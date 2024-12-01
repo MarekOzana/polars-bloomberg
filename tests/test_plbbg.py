@@ -205,3 +205,92 @@ def test_create_request_with_options(bq: BQuery):
         options={"adjustmentSplit": True},
     )
     assert request.getElement("adjustmentSplit").toPy() is True
+
+
+def test_parse_bdp_responses(bq: BQuery):
+    # Mock responses as they might be received from the Bloomberg API
+    mock_responses = [
+        {
+            "securityData": [
+                {
+                    "security": "IBM US Equity",
+                    "fieldData": {"PX_LAST": 125.32, "DS002": 0.85},
+                },
+                {
+                    "security": "AAPL US Equity",
+                    "fieldData": {"PX_LAST": 150.75, "DS002": 1.10},
+                },
+            ]
+        }
+    ]
+
+    # Expected output after parsing
+    expected_output = [
+        {"security": "IBM US Equity", "PX_LAST": 125.32, "DS002": 0.85},
+        {"security": "AAPL US Equity", "PX_LAST": 150.75, "DS002": 1.10},
+    ]
+
+    # Call the _parse_bdp_responses function with mock data
+    result = bq._parse_bdp_responses(mock_responses, fields=["PX_LAST", "DS002"])
+    print(result)
+
+    # Assert that the parsed result matches the expected output
+    assert result == expected_output
+
+
+def test_parse_bdh_responses(bq: BQuery):
+    # Mock responses as they might be received from the Bloomberg API
+    mock_responses = [
+        {
+            "securityData": {
+                "security": "IBM US Equity",
+                "fieldData": [
+                    {"date": "2023-01-01", "PX_LAST": 125.32, "VOLUME": 1000000},
+                    {"date": "2023-01-02", "PX_LAST": 126.50, "VOLUME": 1100000},
+                ],
+            }
+        },
+        {
+            "securityData": {
+                "security": "AAPL US Equity",
+                "fieldData": [
+                    {"date": "2023-01-01", "PX_LAST": 150.75, "VOLUME": 2000000},
+                    {"date": "2023-01-02", "PX_LAST": 151.20, "VOLUME": 2100000},
+                ],
+            }
+        },
+    ]
+
+    # Expected output after parsing
+    expected_output = [
+        {
+            "security": "IBM US Equity",
+            "date": "2023-01-01",
+            "PX_LAST": 125.32,
+            "VOLUME": 1000000,
+        },
+        {
+            "security": "IBM US Equity",
+            "date": "2023-01-02",
+            "PX_LAST": 126.50,
+            "VOLUME": 1100000,
+        },
+        {
+            "security": "AAPL US Equity",
+            "date": "2023-01-01",
+            "PX_LAST": 150.75,
+            "VOLUME": 2000000,
+        },
+        {
+            "security": "AAPL US Equity",
+            "date": "2023-01-02",
+            "PX_LAST": 151.20,
+            "VOLUME": 2100000,
+        },
+    ]
+
+    # Call the _parse_bdh_responses function with mock data
+    result = bq._parse_bdh_responses(mock_responses, fields=["PX_LAST", "VOLUME"])
+
+    # Assert that the parsed result matches the expected output
+    assert result == expected_output

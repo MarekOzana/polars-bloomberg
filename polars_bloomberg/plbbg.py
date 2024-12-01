@@ -14,8 +14,8 @@ Usage
 
     with BQuery() as bq:
         df_ref = bq.bdp(['AAPL US Equity', 'MSFT US Equity'], ['PX_LAST'])
-        df_rf2 = bq.bdp(["OMX Index", "SPX Index", "SEBA SS Equity"], 
-                        ["PX_LAST", "SECURITY_DES", "DVD_EX_DT", "CRNCY_ADJ_PX_LAST"], 
+        df_rf2 = bq.bdp(["OMX Index", "SPX Index", "SEBA SS Equity"],
+                        ["PX_LAST", "SECURITY_DES", "DVD_EX_DT", "CRNCY_ADJ_PX_LAST"],
                         overrides=[("EQY_FUND_CRNCY", "SEK")])
         df_hist = bq.bdh(['AAPL US Equity'], ['PX_LAST'], date(2020, 1, 1), date(2020, 1, 30))
 
@@ -95,7 +95,9 @@ class BQuery:
         Bloomberg Data History, equivalent to Excel BDH() function.
         Fetch historical data for given securities and fields between dates.
         """
-        request = self._create_request("HistoricalDataRequest", securities, fields, overrides, options)
+        request = self._create_request(
+            "HistoricalDataRequest", securities, fields, overrides, options
+        )
         request.set("startDate", start_date.strftime("%Y%m%d"))
         request.set("endDate", end_date.strftime("%Y%m%d"))
         request.set("periodicitySelection", "DAILY")
