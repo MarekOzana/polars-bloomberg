@@ -105,6 +105,18 @@ class BQuery:
         data = self._parse_bdh_responses(responses, fields)
         return pl.DataFrame(data)
 
+    def bql(
+        self,
+        expression: str,
+        overrides: Optional[Sequence] = None,
+        options: Optional[Dict] = None,
+    ) -> pl.DataFrame:
+        """Fetch data using a BQL expression."""
+        request = self._create_bql_request(expression, overrides, options)
+        responses = self._send_request(request)
+        data = self._parse_bql_responses(responses)
+        return pl.DataFrame(data)
+
     def _create_request(
         self,
         request_type: str,
@@ -139,6 +151,35 @@ class BQuery:
         fields_element = request.getElement("fields")
         for field in fields:
             fields_element.appendValue(field)
+
+        # Add overrides if provided
+        if overrides:
+            overrides_element = request.getElement("overrides")
+            for field_id, value in overrides:
+                override_element = overrides_element.appendElement()
+                override_element.setElement("fieldId", field_id)
+                override_element.setElement("value", value)
+
+        # Add additional options if provided
+        if options:
+            for key, value in options.items():
+                request.set(key, value)
+
+        return request
+
+    def _create_bql_request(
+        self,
+        expression: str,
+        overrides: Optional[Sequence] = None,
+        options: Optional[Dict] = None,
+    ) -> blpapi.Request:
+        """Create a BQL request.
+        TODO: fails in createRequest("sendQuery") - need to fix it
+        """
+        service = self.session.getService("//blp/bqlsvc")
+        request = service.createRequest("sendQuery")
+
+        request.set("query", expression)
 
         # Add overrides if provided
         if overrides:
@@ -194,4 +235,19 @@ class BQuery:
                 for field in fields:
                     record[field] = entry.get(field)
                 data.append(record)
+        return data
+
+    def _parse_bql_responses(self, responses: List[Dict]) -> List[Dict]:
+        """Parse BQL responses."""
+        data = []
+        for response in responses:
+            results = response.get("results", [])
+            for result in results:
+                tables = result.get("table", [])
+                for table in tables:
+                    columns = table.get("columnNames", [])
+                    rows = table.get("rows", [])
+                    for row in rows:
+                        record = dict(zip(columns, row))
+                        data.append(record)
         return data

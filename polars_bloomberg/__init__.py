@@ -1,3 +1,3 @@
 from .plbbg import BQuery
 
-__all__ = ['BQuery']
+__all__ = ["BQuery"]
