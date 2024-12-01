@@ -1,0 +1,3 @@
+--extra-index-url https://blpapi.bloomberg.com/repository/releases/python/simple/
+blpapi>=3.24.0
+polars>=1.7.1

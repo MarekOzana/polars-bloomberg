@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "polars-bloomberg"
+version = "0.1.0"
+description = "Python library providing a Polars DataFrame interface for easy and intuitive access to Bloomberg API."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+authors = [
+  { name = "Marek Ozana, Ph.D." }
+]
+dependencies = [
+  "polars>=1.7.1",
+  "blpapi>=3.24.0"
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
