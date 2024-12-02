@@ -18,30 +18,26 @@ Usage
                         ["PX_LAST", "SECURITY_DES", "DVD_EX_DT", "CRNCY_ADJ_PX_LAST"],
                         overrides=[("EQY_FUND_CRNCY", "SEK")])
         df_hist = bq.bdh(['AAPL US Equity'], ['PX_LAST'], date(2020, 1, 1), date(2020, 1, 30))
+        df_px = bq.bql("get(px_last) for(['IBM US Equity', 'AAPL US Equity'])")
 
 :author: Marek Ozana
 :date: 2024-12
 """
 
-from typing import Dict, List, Optional, Sequence
+import json
+import logging
+from datetime import date
+from typing import Any, Dict, List, Optional, Sequence
+
 import blpapi
 import polars as pl
-from datetime import date
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class BQuery:
-    """
-    Simplified Bloomberg Query class for fetching reference and historical data.
-
-    Usage:
-        with BQuery() as bq:
-            # Reference Data (BDP)
-            df_bdp = bq.bdp(['OMX Index'], ['PX_LAST'])
-
-            # Historical Data (BDH)
-            df_bdh = bq.bdh(['OMX Index'], ['PX_LAST'], date(2020, 1, 1), date(2020, 1, 30))
-    """
-
     def __init__(self, host: str = "localhost", port: int = 8194):
         self.host = host
         self.port = port
@@ -55,8 +51,12 @@ class BQuery:
 
         if not self.session.start():
             raise ConnectionError("Failed to start Bloomberg session.")
+
+        # Open both required services
         if not self.session.openService("//blp/refdata"):
             raise ConnectionError("Failed to open service //blp/refdata.")
+        if not self.session.openService("//blp/bqlsvc"):
+            raise ConnectionError("Failed to open service //blp/bqlsvc.")
 
         return self
 
@@ -132,8 +132,7 @@ class BQuery:
             request_type (str): Type of the request (e.g., 'ReferenceDataRequest').
             securities (List[str]): List of securities to include in the request.
             fields (List[str]): List of fields to include in the request.
-            overrides (List[Dict], optional): List of overrides where each override
-                         is a dictionary with 'fieldId' and 'value'.
+            overrides (List[Tuple[str, Any]], optional): List of overrides.
             options (Dict, optional): Additional options as key-value pairs.
 
         Returns:
@@ -173,13 +172,10 @@ class BQuery:
         overrides: Optional[Sequence] = None,
         options: Optional[Dict] = None,
     ) -> blpapi.Request:
-        """Create a BQL request.
-        TODO: fails in createRequest("sendQuery") - need to fix it
-        """
+        """Create a BQL request."""
         service = self.session.getService("//blp/bqlsvc")
         request = service.createRequest("sendQuery")
-
-        request.set("query", expression)
+        request.set("expression", expression)
 
         # Add overrides if provided
         if overrides:
@@ -237,17 +233,55 @@ class BQuery:
                 data.append(record)
         return data
 
-    def _parse_bql_responses(self, responses: List[Dict]) -> List[Dict]:
-        """Parse BQL responses."""
+    def _parse_bql_responses(self, responses: List[Any]) -> List[Dict]:
+        """Parse BQL responses without 'table' structure.
+
+        Example response:
+        {
+            'results': {
+                'px_last': {
+                    'idColumn': {'values': ['IBM US Equity', 'AAPL US Equity']},
+                    'valuesColumn': {'values': [227.615, 239.270]},
+                    'secondaryColumns': [
+                        {'name': 'DATE', 'values': ['2024-12-02T00:00:00Z', '2024-12-02T00:00:00Z']},
+                        {'name': 'CURRENCY', 'values': ['USD', 'USD']}
+                    ]
+                }
+            }
+        }
+        """
         data = []
         for response in responses:
-            results = response.get("results", [])
-            for result in results:
-                tables = result.get("table", [])
-                for table in tables:
-                    columns = table.get("columnNames", [])
-                    rows = table.get("rows", [])
-                    for row in rows:
-                        record = dict(zip(columns, row))
-                        data.append(record)
+            # Parse JSON string if necessary
+            if isinstance(response, str):
+                try:
+                    response_dict = json.loads(response.replace("'", "\""))
+                except json.JSONDecodeError:
+                    logger.warning("Invalid JSON string in response.")
+                    continue
+            elif isinstance(response, dict):
+                response_dict = response
+            else:
+                logger.warning(f"Unexpected response type: {type(response)}.")
+                continue
+
+            results = response_dict.get("results", {})
+            for field, content in results.items():
+                id_values = content.get("idColumn", {}).get("values", [])
+                value_values = content.get("valuesColumn", {}).get("values", [])
+                secondary_columns = content.get("secondaryColumns", [])
+
+                # Extract secondary column data
+                secondary_data = {col['name']: col['values'] for col in secondary_columns if 'name' in col and 'values' in col}
+
+                for i in range(len(id_values)):
+                    record = {
+                        "security": id_values[i],
+                        field: value_values[i] if i < len(value_values) else None
+                    }
+                    for sec_name, sec_values in secondary_data.items():
+                        record[sec_name] = sec_values[i] if i < len(sec_values) else None
+                    data.append(record)
+                    logger.debug(f"Added record: {record}")
+        logger.info(f"Total records parsed: {len(data)}")
         return data
