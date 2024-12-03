@@ -1,0 +1,144 @@
+{
+    "avg(group(pe_ratio(),gics_sector_name()))": {
+        "_query": "get(avg(group(pe_ratio(), gics_sector_name()))) for(members('OMX Index'))",
+        "name": "avg(group(pe_ratio(),gics_sector_name()))",
+        "offsets": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+        ],
+        "namespace": "FUNCTION_DEFAULT",
+        "source": "BQLAnalyticsEngine",
+        "idColumn": {
+            "name": "ID",
+            "type": "STRING",
+            "rank": 0,
+            "values": [
+                "Communication Services",
+                "Consumer Discretionary",
+                "Consumer Staples",
+                "Financials",
+                "Health Care",
+                "Industrials",
+                "Information Technology",
+                "Materials",
+                "Real Estate"
+            ]
+        },
+        "valuesColumn": {
+            "name": "VALUE",
+            "type": "DOUBLE",
+            "rank": 0,
+            "values": [
+                20.119679379207422,
+                19.49786211471306,
+                16.365460461517294,
+                6.894269077053023,
+                21.97002424637502,
+                32.75100479672126,
+                65.02795284106281,
+                68.9728034159475,
+                "NaN"
+            ]
+        },
+        "secondaryColumns": [
+            {
+                "name": "REVISION_DATE",
+                "type": "DATE",
+                "rank": 0,
+                "values": [
+                    "2024-10-24T00:00:00Z",
+                    "2024-10-24T00:00:00Z",
+                    "2024-10-24T00:00:00Z",
+                    "2024-10-24T00:00:00Z",
+                    "2024-11-12T00:00:00Z",
+                    "2024-11-15T00:00:00Z",
+                    "2024-11-06T00:00:00Z",
+                    "2024-10-25T00:00:00Z",
+                    null
+                ],
+                "defaultDate": false
+            },
+            {
+                "name": "AS_OF_DATE",
+                "type": "DATE",
+                "rank": 0,
+                "values": [
+                    "2024-12-03T00:00:00Z",
+                    "2024-12-03T00:00:00Z",
+                    "2024-12-03T00:00:00Z",
+                    "2024-12-03T00:00:00Z",
+                    "2024-12-03T00:00:00Z",
+                    "2024-12-03T00:00:00Z",
+                    "2024-12-03T00:00:00Z",
+                    "2024-12-03T00:00:00Z",
+                    "2024-12-03T00:00:00Z"
+                ],
+                "defaultDate": true
+            },
+            {
+                "name": "PERIOD_END_DATE",
+                "type": "DATE",
+                "rank": 0,
+                "values": [
+                    "2024-09-30T00:00:00Z",
+                    "2024-09-30T00:00:00Z",
+                    "2024-09-30T00:00:00Z",
+                    "2024-09-30T00:00:00Z",
+                    "2024-09-30T00:00:00Z",
+                    "2024-09-30T00:00:00Z",
+                    "2024-09-30T00:00:00Z",
+                    "2024-09-30T00:00:00Z",
+                    "2024-09-30T00:00:00Z"
+                ],
+                "defaultDate": false
+            },
+            {
+                "name": "ORIG_IDS",
+                "type": "STRING",
+                "rank": 0,
+                "values": [
+                    null,
+                    null,
+                    "ESSITYB SS Equity",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "SBBB SS Equity"
+                ]
+            },
+            {
+                "name": "GICS_SECTOR_NAME()",
+                "type": "STRING",
+                "rank": 0,
+                "values": [
+                    "Communication Services",
+                    "Consumer Discretionary",
+                    "Consumer Staples",
+                    "Financials",
+                    "Health Care",
+                    "Industrials",
+                    "Information Technology",
+                    "Materials",
+                    "Real Estate"
+                ]
+            }
+        ],
+        "partialErrorMap": null,
+        "responseExceptions": [],
+        "transparency": null,
+        "forUniverse": false,
+        "bqlResponseInfo": null,
+        "defaultDateColumnName": "AS_OF_DATE",
+        "itemPreviewStatistics": null,
+        "indexView": null
+    }
+}

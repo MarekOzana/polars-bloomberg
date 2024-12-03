@@ -1,0 +1,98 @@
+{
+    "name()": {
+        "_query": "get(name(), cpn()) for(['XS2479344561 Corp', 'USX60003AC87 Corp'])",
+        "name": "name()",
+        "offsets": [
+            0,
+            1
+        ],
+        "namespace": "FUNCTION_DEFAULT",
+        "source": "BQLAnalyticsEngine",
+        "idColumn": {
+            "name": "ID",
+            "type": "STRING",
+            "rank": 0,
+            "values": [
+                "XS2479344561 Corp",
+                "USX60003AC87 Corp"
+            ]
+        },
+        "valuesColumn": {
+            "name": "VALUE",
+            "type": "STRING",
+            "rank": 0,
+            "values": [
+                "SEB 6 \u215e PERP",
+                "NDAFH 6.3 PERP"
+            ]
+        },
+        "secondaryColumns": [],
+        "partialErrorMap": {
+            "errorIterator": null
+        },
+        "responseExceptions": [],
+        "transparency": null,
+        "forUniverse": true,
+        "bqlResponseInfo": null,
+        "defaultDateColumnName": null,
+        "itemPreviewStatistics": null,
+        "indexView": null
+    },
+    "cpn()": {
+        "name": "cpn()",
+        "offsets": [
+            0,
+            1
+        ],
+        "namespace": "DATAITEM_DEFAULT",
+        "source": "SRCH",
+        "idColumn": {
+            "name": "ID",
+            "type": "STRING",
+            "rank": 0,
+            "values": [
+                "XS2479344561 Corp",
+                "USX60003AC87 Corp"
+            ]
+        },
+        "valuesColumn": {
+            "name": "VALUE",
+            "type": "DOUBLE",
+            "rank": 0,
+            "values": [
+                6.875,
+                6.3
+            ]
+        },
+        "secondaryColumns": [
+            {
+                "name": "MULTIPLIER",
+                "type": "DOUBLE",
+                "rank": 0,
+                "values": [
+                    1.0,
+                    1.0
+                ]
+            },
+            {
+                "name": "CPN_TYP",
+                "type": "ENUM",
+                "rank": 0,
+                "values": [
+                    "VARIABLE",
+                    "VARIABLE"
+                ]
+            }
+        ],
+        "partialErrorMap": {
+            "errorIterator": null
+        },
+        "responseExceptions": [],
+        "transparency": null,
+        "forUniverse": true,
+        "bqlResponseInfo": null,
+        "defaultDateColumnName": null,
+        "itemPreviewStatistics": null,
+        "indexView": null
+    }
+}

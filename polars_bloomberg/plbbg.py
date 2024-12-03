@@ -25,7 +25,6 @@ Usage
 """
 import json
 import logging
-import pickle
 from datetime import date
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -234,27 +233,29 @@ class BQuery:
         return data
 
     def _parse_bql_responses(self, responses: List[Any]) -> List[Dict]:
-        """Parse BQL responses without 'table' structure.
+        """Parse BQL responses list. IT consists of dictionaries
+        and string with embedded json.
 
-        Example response:
+        1. Iterate over list of responses and only extract those with 'results' key.
+        Example responses: [
+        {...}, 
+        {...},
+        "{'results': {'px_last': {}, 'valuesColumn': {}, 'secondaryColumns': [{}]}}, 'error': None}"]
+        ]
+
+        2. pass results dictionary to _parse_bql_response_dict method
+        Example results:
         {
-            'results': {
-                'px_last': {
-                    'idColumn': {'values': ['IBM US Equity', 'AAPL US Equity']},
-                    'valuesColumn': {'values': [227.615, 239.270]},
-                    'secondaryColumns': [
-                        {'name': 'DATE', 'values': ['2024-12-02T00:00:00Z', '2024-12-02T00:00:00Z']},
-                        {'name': 'CURRENCY', 'values': ['USD', 'USD']}
-                    ]
-                }
-            }
+            'px_last': {
+                'idColumn': {'values': ['IBM US Equity', 'AAPL US Equity']},
+                'valuesColumn': {'values': [227.615, 239.270]},
+                'secondaryColumns': [
+                    {'name': 'DATE', 'values': ['2024-12-02T00:00:00Z', '2024-12-02T00:00:00Z']},
+                    {'name': 'CURRENCY', 'values': ['USD', 'USD']}
+                ]
+            } 
         }
         """
-        if logger.getEffectiveLevel() <= logging.DEBUG:
-            with open("responses.pkl", "wb") as f:
-                pickle.dump(responses, f)
-                logger.debug("Responses saved to responses.pkl")
-
         data = []
         for response in responses:
             # Parse JSON string if necessary
@@ -271,22 +272,47 @@ class BQuery:
                 continue
 
             results = response_dict.get("results", {})
-            for field, content in results.items():
-                id_values = content.get("idColumn", {}).get("values", [])
-                value_values = content.get("valuesColumn", {}).get("values", [])
-                secondary_columns = content.get("secondaryColumns", [])
+
+            self._parse_bql_response_dict(data, results)
+        logger.info(f"Total records parsed: {len(data)}")
+        return data
+
+    def _parse_bql_response_dict(self, data, results):
+        """Parse BQL response dictionary.
+
+        Example results:
+        {
+            'px_last': {
+                'idColumn': {'values': ['IBM US Equity', 'AAPL US Equity']},
+                'valuesColumn': {'values': [227.615, 239.270]},
+                'secondaryColumns': [
+                    {'name': 'DATE', 'values': ['2024-12-02T00:00:00Z', '2024-12-02T00:00:00Z']},
+                    {'name': 'CURRENCY', 'values': ['USD', 'USD']}
+                ]
+            }
+        }
+        """
+        if len(results) == 0:
+            return
+        
+        if logger.getEffectiveLevel() <= logging.DEBUG:
+            with open("tests/data/results.json", "w") as f:
+                json.dump(results, f)
+                logger.debug("Results saved to results.json")
+        for field, content in results.items():
+            id_values = content.get("idColumn", {}).get("values", [])
+            value_values = content.get("valuesColumn", {}).get("values", [])
+            secondary_columns = content.get("secondaryColumns", [])
 
                 # Extract secondary column data
-                secondary_data = {col['name']: col['values'] for col in secondary_columns if 'name' in col and 'values' in col}
+            secondary_data = {col['name']: col['values'] for col in secondary_columns if 'name' in col and 'values' in col}
 
-                for i in range(len(id_values)):
-                    record = {
+            for i in range(len(id_values)):
+                record = {
                         "security": id_values[i],
                         field: value_values[i] if i < len(value_values) else None
                     }
-                    for sec_name, sec_values in secondary_data.items():
-                        record[sec_name] = sec_values[i] if i < len(sec_values) else None
-                    data.append(record)
-                    logger.debug(f"Added record: {record}")
-        logger.info(f"Total records parsed: {len(data)}")
-        return data
+                for sec_name, sec_values in secondary_data.items():
+                    record[sec_name] = sec_values[i] if i < len(sec_values) else None
+                data.append(record)
+                logger.debug(f"Added record: {record}")
