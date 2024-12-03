@@ -33,7 +33,7 @@ import blpapi
 import polars as pl
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -304,7 +304,6 @@ class BQuery:
         }
         """
         if not results:
-            logger.warning("Empty 'results' in BQL response.")
             return
 
         # Initialize a dictionary to hold records by 'ID'
@@ -324,7 +323,7 @@ class BQuery:
                 sec_col_name = sec_col.get("name", "")
                 sec_col_values = sec_col.get("values", [])
                 # Use a composite key with field name to avoid conflicts
-                full_sec_col_name = f"{field_name}+{sec_col_name}"
+                full_sec_col_name = f"{field_name}.{sec_col_name}"
                 secondary_data[full_sec_col_name] = sec_col_values
 
             for idx, id_value in enumerate(id_values):
@@ -346,10 +345,3 @@ class BQuery:
 
         # Convert records to a list
         data.extend(id_to_record.values())
-
-        if logger.isEnabledFor(logging.DEBUG):
-            with open("parsed_results.json", "w") as f:
-                import json
-
-                json.dump(data, f, indent=2)
-                logger.debug("Parsed data saved to 'parsed_results.json'.")
