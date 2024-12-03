@@ -23,9 +23,9 @@ Usage
 :author: Marek Ozana
 :date: 2024-12
 """
-
 import json
 import logging
+import pickle
 from datetime import date
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -250,6 +250,11 @@ class BQuery:
             }
         }
         """
+        if logger.getEffectiveLevel() <= logging.DEBUG:
+            with open("responses.pkl", "wb") as f:
+                pickle.dump(responses, f)
+                logger.debug("Responses saved to responses.pkl")
+
         data = []
         for response in responses:
             # Parse JSON string if necessary
