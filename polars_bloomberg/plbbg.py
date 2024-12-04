@@ -26,7 +26,7 @@ Usage
 
 import json
 import logging
-from datetime import date
+from datetime import date, datetime
 from typing import Any, Dict, List, Optional, Sequence
 
 import blpapi
@@ -105,15 +105,12 @@ class BQuery:
         data = self._parse_bdh_responses(responses, fields)
         return pl.DataFrame(data)
 
-    def bql(
-        self,
-        expression: str
-    ) -> pl.DataFrame:
+    def bql(self, expression: str) -> pl.DataFrame:
         """Fetch data using a BQL expression."""
         request = self._create_bql_request(expression)
         responses = self._send_request(request)
-        data = self._parse_bql_responses(responses)
-        return pl.DataFrame(data)
+        data, schema = self._parse_bql_responses(responses)
+        return pl.DataFrame(data, schema=schema)
 
     def _create_request(
         self,
@@ -164,10 +161,7 @@ class BQuery:
 
         return request
 
-    def _create_bql_request(
-        self,
-        expression: str
-    ) -> blpapi.Request:
+    def _create_bql_request(self, expression: str) -> blpapi.Request:
         """Create a BQL request."""
         service = self.session.getService("//blp/bqlsvc")
         request = service.createRequest("sendQuery")
@@ -240,6 +234,7 @@ class BQuery:
         }
         """
         data = []
+        all_col_types = {}
         for response in responses:
             # Parse JSON string if necessary
             if isinstance(response, str):
@@ -256,17 +251,44 @@ class BQuery:
 
             results = response_dict.get("results", {})
 
-            self._parse_bql_response_dict(data, results)
-        logger.info(f"Total records parsed: {len(data)}")
-        return data
+            col_type = self._parse_bql_response_dict(data, results)
+            all_col_types.update(col_type)
 
-    def _parse_bql_response_dict(self, data: List[Dict], results: Dict[str, Any]):
+        # Define mapping from string types to Polars types
+        type_mapping = {
+            "STRING": pl.String,
+            "DOUBLE": pl.Float64,
+            "INT": pl.Int64,
+            "DATE": pl.Date,
+        }
+        # Create polars schema
+        schema = {
+            col: type_mapping.get(dtype, pl.Utf8)
+            for col, dtype in all_col_types.items()
+        }
+        # convert DATE-typed strings into datetime.date
+        for col, dtype in schema.items():
+            if dtype == pl.Date:
+                # Convert the column data to datetime.date objects
+                for entry in data:
+                    entry[col] = datetime.strptime(entry[col], "%Y-%m-%dT%H:%M:%SZ").date()
+
+        logger.info(f"Total records parsed: {len(data)}")
+        logger.debug(f"schemas: {schema}")
+        return data, schema
+
+    def _parse_bql_response_dict(
+        self, data: List[Dict], results: Dict[str, Any]
+    ) -> Dict[str, str]:
         """
         Parse BQL response dictionary into a table format.
 
         Parameters:
             data (List[Dict]): The list to append parsed records to.
             results (Dict[str, Any]): The 'results' dictionary from the BQL response.
+
+        Returns:
+            Dict[str, str]: A dictionary mapping column names to their types.
 
         Strategy:
         - Iterate over all fields in 'results'.
@@ -285,8 +307,9 @@ class BQuery:
             ...
         }
         """
+        col_types = {}
         if not results:
-            return
+            return col_types
 
         # Initialize a dictionary to hold records by 'ID'
         id_to_record = {}
@@ -299,6 +322,9 @@ class BQuery:
             id_values = id_column.get("values", [])
             value_values = value_column.get("values", [])
 
+            col_types["ID"] = id_column.get("type", str)
+            col_types[field_name] = value_column.get("type", str)
+
             # Process secondary columns
             secondary_data = {}
             for sec_col in secondary_columns:
@@ -307,6 +333,7 @@ class BQuery:
                 # Use a composite key with field name to avoid conflicts
                 full_sec_col_name = f"{field_name}.{sec_col_name}"
                 secondary_data[full_sec_col_name] = sec_col_values
+                col_types[full_sec_col_name] = sec_col.get("type", str)
 
             for idx, id_value in enumerate(id_values):
                 # Initialize record if not already present
@@ -327,3 +354,4 @@ class BQuery:
 
         # Convert records to a list
         data.extend(id_to_record.values())
+        return col_types

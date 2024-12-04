@@ -20,3 +20,10 @@ with BQuery() as bq:
     df_bql = bq.bql("get(px_last) for(['IBM US Equity', 'AAPL US Equity'])")
 ```
 Explore the [usage examples](examples/Examples-1.ipynb) in the `examples/` directory.
+
+# TODO
+- Add tests on _parse_bql_responses
+- refactor after having tests
+- add more bql examples
+- improve docs
+- release
