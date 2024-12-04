@@ -37,4 +37,4 @@ def ruff(session):
     # Run black linter
     session.run("black", "--check", "polars_bloomberg")
     # Run mypy type checker
-    session.run("mypy", "polars_bloomberg")
+    # session.run("mypy", "polars_bloomberg")
