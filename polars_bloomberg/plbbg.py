@@ -107,12 +107,10 @@ class BQuery:
 
     def bql(
         self,
-        expression: str,
-        overrides: Optional[Sequence] = None,
-        options: Optional[Dict] = None,
+        expression: str
     ) -> pl.DataFrame:
         """Fetch data using a BQL expression."""
-        request = self._create_bql_request(expression, overrides, options)
+        request = self._create_bql_request(expression)
         responses = self._send_request(request)
         data = self._parse_bql_responses(responses)
         return pl.DataFrame(data)
@@ -168,28 +166,12 @@ class BQuery:
 
     def _create_bql_request(
         self,
-        expression: str,
-        overrides: Optional[Sequence] = None,
-        options: Optional[Dict] = None,
+        expression: str
     ) -> blpapi.Request:
         """Create a BQL request."""
         service = self.session.getService("//blp/bqlsvc")
         request = service.createRequest("sendQuery")
         request.set("expression", expression)
-
-        # Add overrides if provided
-        if overrides:
-            overrides_element = request.getElement("overrides")
-            for field_id, value in overrides:
-                override_element = overrides_element.appendElement()
-                override_element.setElement("fieldId", field_id)
-                override_element.setElement("value", value)
-
-        # Add additional options if provided
-        if options:
-            for key, value in options.items():
-                request.set(key, value)
-
         return request
 
     def _send_request(self, request) -> List[Dict]:
