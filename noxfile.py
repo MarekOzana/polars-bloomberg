@@ -1,5 +1,7 @@
 """Nox configuration file for managing test sessions and code quality checks."""
 
+import os
+
 import nox
 
 
@@ -39,6 +41,7 @@ def ruff(session):
     # Run mypy type checker
     # session.run("mypy", "polars_bloomberg")
 
+
 @nox.session(python="3.12")
 def build(session):
     """Build source and wheel distributions of the package."""
@@ -46,8 +49,8 @@ def build(session):
     session.run("python", "-m", "build")
 
     # Verify that the wheel file exists
-    dist_dir = os.path.join(session.virtualenv.location, 'dist')
-    wheel_files = [f for f in os.listdir(dist_dir) if f.endswith('.whl')]
+    dist_dir = os.path.join(session.virtualenv.location, "dist")
+    wheel_files = [f for f in os.listdir(dist_dir) if f.endswith(".whl")]
     if not wheel_files:
         session.error("Wheel file was not created.")
     else:

@@ -243,7 +243,7 @@ class BQuery:
                 response = json.loads(response.replace("'", '"'))
 
             # Get the 'results' section from the response
-            results = response.get('results')
+            results = response.get("results")
             if not results:
                 continue
 
