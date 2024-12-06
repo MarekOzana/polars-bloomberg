@@ -1,7 +1,5 @@
 """Nox configuration file for managing test sessions and code quality checks."""
 
-import os
-
 import nox
 
 
