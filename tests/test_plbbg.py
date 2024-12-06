@@ -3,7 +3,7 @@ Unit tests for the plbbg module.
 The tests REQUIRE an active Bloomberg Terminal connection.
 
 :author: Marek Ozana
-:date: 2024-12-01
+:date: 2024-12-06
 """
 
 from datetime import date
@@ -160,6 +160,26 @@ def test_bdh(bq: BQuery):
     assert_frame_equal(df, df_exp)
 
 
+def test_bql(bq: BQuery):
+    query = """
+            get(name(), cpn()) 
+            for(['XS2479344561 Corp', 'USX60003AC87 Corp'])
+            """
+    df = bq.bql(query)
+    assert df.shape == (2, 5)
+    assert df.columns == ["ID", "name()", "cpn()", "cpn().MULTIPLIER", "cpn().CPN_TYP"]
+    df_exp = pl.DataFrame(
+        {
+            "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
+            "name()": ["SEB 6 ⅞ PERP", "NDAFH 6.3 PERP"],
+            "cpn()": [6.875, 6.3],
+            "cpn().MULTIPLIER": [1.0, 1.0],
+            "cpn().CPN_TYP": ["VARIABLE", "VARIABLE"],
+        }
+    )
+    assert_frame_equal(df, df_exp)
+
+
 def test_create_request(bq: BQuery):
     """
     Test the _create_request method.
@@ -207,7 +227,9 @@ def test_create_request_with_options(bq: BQuery):
     assert request.getElement("adjustmentSplit").toPy() is True
 
 
-def test_parse_bdp_responses(bq: BQuery):
+@pytest.mark.no_bbg
+def test_parse_bdp_responses():
+    bq = BQuery()  # unitialized object (no BBG connection yet)
     # Mock responses as they might be received from the Bloomberg API
     mock_responses = [
         {
@@ -238,7 +260,9 @@ def test_parse_bdp_responses(bq: BQuery):
     assert result == expected_output
 
 
-def test_parse_bdh_responses(bq: BQuery):
+@pytest.mark.no_bbg
+def test_parse_bdh_responses():
+    bq = BQuery()  # unitialized object (no BBG connection yet)
     # Mock responses as they might be received from the Bloomberg API
     mock_responses = [
         {
@@ -294,3 +318,43 @@ def test_parse_bdh_responses(bq: BQuery):
 
     # Assert that the parsed result matches the expected output
     assert result == expected_output
+
+@pytest.mark.no_bbg
+def test_parse_bql_responses():
+    bq = BQuery()  # uninitialized object (no BBG connection yet)
+
+    # Mock responses as they might be received from the Bloomberg API
+    mock_responses = [
+        {"other_data": "value1"},
+        {"other_data": "value2"},
+        "{'results': {'px_last': {'idColumn': {'values': ['IBM US Equity', 'AAPL US Equity']}, 'valuesColumn': {'type':'DOUBLE', 'values': [125.32, 150.75]}, 'secondaryColumns': [{'name': 'DATE', 'type':'DATE','values': ['2024-12-03T00:00:00Z', '2024-12-03T00:00:00Z']}, {'name': 'CURRENCY', 'values': ['USD', 'USD']}]}}}"
+    ]
+
+    # Expected output after parsing
+    expected_data = [
+        {
+            'ID': 'IBM US Equity',
+            'px_last': 125.32,
+            'px_last.DATE': date(2024, 12, 3),
+            'px_last.CURRENCY': 'USD'
+        },
+        {
+            'ID': 'AAPL US Equity',
+            'px_last': 150.75,
+            'px_last.DATE': date(2024, 12, 3),
+            'px_last.CURRENCY': 'USD'
+        }
+    ]
+    expected_schema = {
+        'ID': pl.String,
+        'px_last': pl.Float64,
+        'px_last.DATE': pl.Date,
+        'px_last.CURRENCY': pl.String
+    }
+
+    # Call the _parse_bql_responses function with mock data
+    data, schema = bq._parse_bql_responses(mock_responses)
+
+    # Assert that the parsed result matches the expected output
+    assert data == expected_data
+    assert schema == expected_schema

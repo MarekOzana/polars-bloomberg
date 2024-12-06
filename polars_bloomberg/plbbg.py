@@ -301,9 +301,9 @@ class BQuery:
         {
             'ID': ...,
             'Field1': ...,
-            'Field1+SecondaryCol1': ...,
+            'Field1.SecondaryCol1': ...,
             'Field2': ...,
-            'Field2+SecondaryCol1': ...,
+            'Field2.SecondaryCol1': ...,
             ...
         }
         """

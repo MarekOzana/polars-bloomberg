@@ -1,4 +1,4 @@
-# ![Polars Bloomberg Logo](assets/polars_bloomberg_logo.png)
+# ![Polars Bloomberg Logo](assets/polars-bloomberg-logo.jpg)
 
 # Polars + Bloomberg Open API
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -22,8 +22,15 @@ with BQuery() as bq:
 Explore the [usage examples](examples/Examples-1.ipynb) in the `examples/` directory.
 
 # TODO
-- Add tests on _parse_bql_responses
-- refactor after having tests
-- add more bql examples
-- improve docs
-- release
+
+- [] test QBuery.bql()
+- [] Add tests on _parse_bql_responses
+- [] add non-bbg pytest mark
+- [] gitbhu actions with non-bbg test-suite
+- [] refactor after having tests
+- [] add more bql examples
+- [] add `bdip` (intraday bars)
+- [] open source
+    - [] improve/create  docs
+    - [] release (public repository, release)
+    - [] push to pip repository
