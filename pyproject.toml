@@ -42,3 +42,6 @@ exclude = ["tests*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+  "no_bbg: mark tests that do not require a Bloomberg connection",
+]

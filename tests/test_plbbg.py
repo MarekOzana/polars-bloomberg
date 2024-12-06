@@ -6,6 +6,7 @@ The tests REQUIRE an active Bloomberg Terminal connection.
 :date: 2024-12-06
 """
 
+import json
 from datetime import date
 from typing import Generator
 
@@ -319,6 +320,7 @@ def test_parse_bdh_responses():
     # Assert that the parsed result matches the expected output
     assert result == expected_output
 
+
 @pytest.mark.no_bbg
 def test_parse_bql_responses():
     bq = BQuery()  # uninitialized object (no BBG connection yet)
@@ -327,29 +329,29 @@ def test_parse_bql_responses():
     mock_responses = [
         {"other_data": "value1"},
         {"other_data": "value2"},
-        "{'results': {'px_last': {'idColumn': {'values': ['IBM US Equity', 'AAPL US Equity']}, 'valuesColumn': {'type':'DOUBLE', 'values': [125.32, 150.75]}, 'secondaryColumns': [{'name': 'DATE', 'type':'DATE','values': ['2024-12-03T00:00:00Z', '2024-12-03T00:00:00Z']}, {'name': 'CURRENCY', 'values': ['USD', 'USD']}]}}}"
+        "{'results': {'px_last': {'idColumn': {'values': ['IBM US Equity', 'AAPL US Equity']}, 'valuesColumn': {'type':'DOUBLE', 'values': [125.32, 150.75]}, 'secondaryColumns': [{'name': 'DATE', 'type':'DATE','values': ['2024-12-03T00:00:00Z', '2024-12-03T00:00:00Z']}, {'name': 'CURRENCY', 'values': ['USD', 'USD']}]}}}",
     ]
 
     # Expected output after parsing
     expected_data = [
         {
-            'ID': 'IBM US Equity',
-            'px_last': 125.32,
-            'px_last.DATE': date(2024, 12, 3),
-            'px_last.CURRENCY': 'USD'
+            "ID": "IBM US Equity",
+            "px_last": 125.32,
+            "px_last.DATE": date(2024, 12, 3),
+            "px_last.CURRENCY": "USD",
         },
         {
-            'ID': 'AAPL US Equity',
-            'px_last': 150.75,
-            'px_last.DATE': date(2024, 12, 3),
-            'px_last.CURRENCY': 'USD'
-        }
+            "ID": "AAPL US Equity",
+            "px_last": 150.75,
+            "px_last.DATE": date(2024, 12, 3),
+            "px_last.CURRENCY": "USD",
+        },
     ]
     expected_schema = {
-        'ID': pl.String,
-        'px_last': pl.Float64,
-        'px_last.DATE': pl.Date,
-        'px_last.CURRENCY': pl.String
+        "ID": pl.String,
+        "px_last": pl.Float64,
+        "px_last.DATE": pl.Date,
+        "px_last.CURRENCY": pl.String,
     }
 
     # Call the _parse_bql_responses function with mock data
@@ -357,4 +359,138 @@ def test_parse_bql_responses():
 
     # Assert that the parsed result matches the expected output
     assert data == expected_data
+    assert schema == expected_schema
+
+
+@pytest.mark.no_bbg
+@pytest.mark.parametrize(
+    "json_file, expected_data, expected_schema",
+    [
+        (
+            "tests/data/results_last_px.json",
+            [
+                {
+                    "ID": "IBM US Equity",
+                    "px_last": 227.02,
+                    "px_last.DATE": "2024-12-03T00:00:00Z",
+                    "px_last.CURRENCY": "USD",
+                },
+                {
+                    "ID": "AAPL US Equity",
+                    "px_last": 241.31,
+                    "px_last.DATE": "2024-12-03T00:00:00Z",
+                    "px_last.CURRENCY": "USD",
+                },
+            ],
+            {
+                "ID": "STRING",
+                "px_last": "DOUBLE",
+                "px_last.DATE": "DATE",
+                "px_last.CURRENCY": "STRING",
+            },
+        ),
+        (
+            "tests/data/results_dur_zspread.json",
+            [
+                {
+                    "ID": "XS2479344561 Corp",
+                    "name()": "SEB 6 ⅞ PERP",
+                    "#dur": 2.26,
+                    "#dur.DATE": "2024-12-03T00:00:00Z",
+                    "#zsprd": 244.5,
+                    "#zsprd.DATE": "2024-12-03T00:00:00Z",
+                },
+                {
+                    "ID": "USX60003AC87 Corp",
+                    "name()": "NDAFH 6.3 PERP",
+                    "#dur": 5.36,
+                    "#dur.DATE": "2024-12-03T00:00:00Z",
+                    "#zsprd": 331.1,
+                    "#zsprd.DATE": "2024-12-03T00:00:00Z",
+                },
+            ],
+            {
+                "ID": "STRING",
+                "name()": "STRING",
+                "#dur": "DOUBLE",
+                "#dur.DATE": "DATE",
+                "#zsprd": "DOUBLE",
+                "#zsprd.DATE": "DATE",
+            },
+        ),
+        (
+            "tests/data/results_cpn.json",
+            [
+                {
+                    "ID": "XS2479344561 Corp",
+                    "name()": "SEB 6 ⅞ PERP",
+                    "cpn()": 6.875,
+                    "cpn().MULTIPLIER": 1.0,
+                    "cpn().CPN_TYP": "VARIABLE",
+                },
+                {
+                    "ID": "USX60003AC87 Corp",
+                    "name()": "NDAFH 6.3 PERP",
+                    "cpn()": 6.3,
+                    "cpn().MULTIPLIER": 1.0,
+                    "cpn().CPN_TYP": "VARIABLE",
+                },
+            ],
+            {
+                "ID": "STRING",
+                "name()": "STRING",
+                "cpn()": "DOUBLE",
+                "cpn().MULTIPLIER": "DOUBLE",
+                "cpn().CPN_TYP": "ENUM",
+            },
+        ),
+        (
+            "tests/data/results_axes.json",
+            [
+                {
+                    "ID": "XS2479344561 Corp",
+                    "name()": "SEB 6 ⅞ PERP",
+                    "axes()": "Y",
+                    "axes().ASK_DEPTH": 3,
+                    "axes().BID_DEPTH": 4,
+                    "axes().ASK_TOTAL_SIZE": 11200000.0,
+                    "axes().BID_TOTAL_SIZE": 15000000.0,
+                },
+                {
+                    "ID": "USX60003AC87 Corp",
+                    "name()": "NDAFH 6.3 PERP",
+                    "axes()": "Y",
+                    "axes().ASK_DEPTH": 1,
+                    "axes().BID_DEPTH": 3,
+                    "axes().ASK_TOTAL_SIZE": 2000000.0,
+                    "axes().BID_TOTAL_SIZE": 13000000.0,
+                },
+            ],
+            {
+                "ID": "STRING",
+                "name()": "STRING",
+                "axes()": "STRING",
+                "axes().ASK_DEPTH": "INT",
+                "axes().BID_DEPTH": "INT",
+                "axes().ASK_TOTAL_SIZE": "DOUBLE",
+                "axes().BID_TOTAL_SIZE": "DOUBLE",
+            },
+        ),
+    ],
+)
+def test_parse_bql_response_dict(json_file, expected_data, expected_schema):
+    bq = BQuery()
+    data = []
+    with open(json_file, "r") as f:
+        results = json.load(f)
+
+    # Call the method to test
+    schema = bq._parse_bql_response_dict(data, results)
+
+    print(data)
+    print(schema)
+
+    # Assert that the data matches the expected output
+    assert data == expected_data
+    # Assert that the column types match the expected schema
     assert schema == expected_schema

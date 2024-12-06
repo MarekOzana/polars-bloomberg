@@ -60,8 +60,8 @@
             "type": "DOUBLE",
             "rank": 0,
             "values": [
-                2.261413102330524,
-                5.360287762019468
+                2.26,
+                5.36
             ]
         },
         "secondaryColumns": [
@@ -109,8 +109,8 @@
             "type": "DOUBLE",
             "rank": 0,
             "values": [
-                244.56142914,
-                331.17355035
+                244.5,
+                331.1
             ]
         },
         "secondaryColumns": [

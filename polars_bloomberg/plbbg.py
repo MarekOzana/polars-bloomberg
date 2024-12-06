@@ -234,47 +234,43 @@ class BQuery:
         }
         """
         data = []
-        all_col_types = {}
+        all_column_types = {}
+
+        # Process each response in the list
         for response in responses:
-            # Parse JSON string if necessary
+            # Parse string responses as JSON
             if isinstance(response, str):
-                try:
-                    response_dict = json.loads(response.replace("'", '"'))
-                except json.JSONDecodeError:
-                    logger.warning("Invalid JSON string in response.")
-                    continue
-            elif isinstance(response, dict):
-                response_dict = response
-            else:
-                logger.warning(f"Unexpected response type: {type(response)}.")
+                response = json.loads(response.replace("'", '"'))
+
+            # Get the 'results' section from the response
+            results = response.get('results')
+            if not results:
                 continue
 
-            results = response_dict.get("results", {})
+            # Parse the results and collect column types
+            column_types = self._parse_bql_response_dict(data, results)
+            all_column_types.update(column_types)
 
-            col_type = self._parse_bql_response_dict(data, results)
-            all_col_types.update(col_type)
-
-        # Define mapping from string types to Polars types
+        # Map string types to Polars data types
         type_mapping = {
-            "STRING": pl.String,
+            "STRING": pl.Utf8,
             "DOUBLE": pl.Float64,
             "INT": pl.Int64,
             "DATE": pl.Date,
         }
-        # Create polars schema
         schema = {
-            col: type_mapping.get(dtype, pl.Utf8)
-            for col, dtype in all_col_types.items()
+            col_name: type_mapping.get(col_type, pl.Utf8)
+            for col_name, col_type in all_column_types.items()
         }
-        # convert DATE-typed strings into datetime.date
-        for col, dtype in schema.items():
-            if dtype == pl.Date:
-                # Convert the column data to datetime.date objects
-                for entry in data:
-                    entry[col] = datetime.strptime(entry[col], "%Y-%m-%dT%H:%M:%SZ").date()
 
-        logger.info(f"Total records parsed: {len(data)}")
-        logger.debug(f"schemas: {schema}")
+        # Convert date strings to date objects
+        for record in data:
+            for col_name, dtype in schema.items():
+                if dtype == pl.Date and isinstance(record.get(col_name), str):
+                    record[col_name] = datetime.strptime(
+                        record[col_name], "%Y-%m-%dT%H:%M:%SZ"
+                    ).date()
+
         return data, schema
 
     def _parse_bql_response_dict(
