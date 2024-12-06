@@ -23,10 +23,10 @@ Explore the [usage examples](examples/Examples-1.ipynb) in the `examples/` direc
 
 # TODO
 
-- [] test QBuery.bql()
-- [] Add tests on _parse_bql_responses
-- [] add non-bbg pytest mark
-- [] gitbhu actions with non-bbg test-suite
+- [x] test QBuery.bql()
+- [x] Add tests on _parse_bql_responses
+- [x] add non-bbg pytest mark
+- [] gitbub actions with non-bbg test-suite
 - [] refactor after having tests
 - [] add more bql examples
 - [] add `bdip` (intraday bars)
