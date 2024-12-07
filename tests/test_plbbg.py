@@ -483,12 +483,60 @@ def test_parse_bql_responses():
             [
                 {
                     "ID": "IBM US Equity",
+                    "#eps": 10.63,
+                    "#eps.REVISION_DATE": "2022-02-22T00:00:00Z",
+                    "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
+                    "#eps.PERIOD_END_DATE": "2019-12-31T00:00:00Z",
+                    "#eps.CURRENCY": "USD",
+                },
+                {
+                    "ID": "IBM US Equity",
+                    "#eps": 6.28,
+                    "#eps.REVISION_DATE": "2023-02-28T00:00:00Z",
+                    "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
+                    "#eps.PERIOD_END_DATE": "2020-12-31T00:00:00Z",
+                    "#eps.CURRENCY": "USD",
+                },
+                {
+                    "ID": "IBM US Equity",
+                    "#eps": 6.41,
+                    "#eps.REVISION_DATE": "2023-02-28T00:00:00Z",
+                    "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
+                    "#eps.PERIOD_END_DATE": "2021-12-31T00:00:00Z",
+                    "#eps.CURRENCY": "USD",
+                },
+                {
+                    "ID": "IBM US Equity",
+                    "#eps": 1.82,
+                    "#eps.REVISION_DATE": "2024-03-18T00:00:00Z",
+                    "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
+                    "#eps.PERIOD_END_DATE": "2022-12-31T00:00:00Z",
+                    "#eps.CURRENCY": "USD",
+                },
+                {
+                    "ID": "IBM US Equity",
+                    "#eps": 8.23,
+                    "#eps.REVISION_DATE": "2024-03-18T00:00:00Z",
+                    "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
+                    "#eps.PERIOD_END_DATE": "2023-12-31T00:00:00Z",
+                    "#eps.CURRENCY": "USD",
+                },
+                {
+                    "ID": "IBM US Equity",
+                    "#eps": 7.89,
+                    "#eps.REVISION_DATE": "2024-12-07T00:00:00Z",
+                    "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
+                    "#eps.PERIOD_END_DATE": "2024-12-31T00:00:00Z",
+                    "#eps.CURRENCY": "USD",
+                },
+                {
+                    "ID": "IBM US Equity",
                     "#eps": 9.236,
                     "#eps.REVISION_DATE": "2024-12-07T00:00:00Z",
                     "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
                     "#eps.PERIOD_END_DATE": "2025-12-31T00:00:00Z",
                     "#eps.CURRENCY": "USD",
-                }
+                },
             ],
             {
                 "ID": "STRING",
@@ -509,9 +557,6 @@ def test_parse_bql_response_dict(json_file, expected_data, expected_schema):
 
     # Call the method to test
     schema = bq._parse_bql_response_dict(data, results)
-
-    print(data)
-    print(schema)
 
     # Assert that the data matches the expected output
     assert data == expected_data

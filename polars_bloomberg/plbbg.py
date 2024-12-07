@@ -31,13 +31,10 @@ Usage
 import json
 import logging
 from datetime import date, datetime
-from typing import Any, Dict, Final, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 import blpapi
 import polars as pl
-
-# Module-level variable to control saving intermediate data
-TO_SAVE: Final[bool] = True
 
 # Configure logging
 # logging.basicConfig(level=logging.DEBUG)
@@ -371,53 +368,38 @@ class BQuery:
         }
 
         """
-        if TO_SAVE:
-            # Create test cases for bugs
-            with open("DELEME-response.json", "w") as f:
-                json.dump(results, f)
         col_types = {}
-
-        # Initialize a dictionary to hold records by 'ID'
-        id_to_record = {}
+        cols = {}
 
         for field_name, content in results.items():
             id_column = content.get("idColumn", {})
             value_column = content.get("valuesColumn", {})
             secondary_columns = content.get("secondaryColumns", [])
 
-            id_values = id_column.get("values", [])
-            value_values = value_column.get("values", [])
+            cols["ID"] = id_column.get("values", [])
+            cols[field_name] = value_column.get("values", [])
 
             col_types["ID"] = id_column.get("type", str)
             col_types[field_name] = value_column.get("type", str)
 
             # Process secondary columns
-            secondary_data = {}
             for sec_col in secondary_columns:
                 sec_col_name = sec_col.get("name", "")
                 sec_col_values = sec_col.get("values", [])
                 # Use a composite key with field name to avoid conflicts
                 full_sec_col_name = f"{field_name}.{sec_col_name}"
-                secondary_data[full_sec_col_name] = sec_col_values
+                cols[full_sec_col_name] = sec_col_values
                 col_types[full_sec_col_name] = sec_col.get("type", str)
 
-            for idx, id_value in enumerate(id_values):
-                # Initialize record if not already present
-                if id_value not in id_to_record:
-                    id_to_record[id_value] = {"ID": id_value}
-
-                record = id_to_record[id_value]
-                # Add main value
-                main_value = value_values[idx] if idx < len(value_values) else None
-                record[field_name] = main_value
-
-                # Add secondary values
-                for sec_col_name, sec_values in secondary_data.items():
-                    sec_value = sec_values[idx] if idx < len(sec_values) else None
-                    record[sec_col_name] = sec_value
-
-                logger.debug("Record for ID '%s': %s", id_value, record)
+        # Generate list of row dictionaries
+        rows = []
+        for i in range(len(cols["ID"])):
+            row = {}
+            for key, values in cols.items():
+                # Assign value if available; else, assign None
+                row[key] = values[i] if i < len(values) else None
+            rows.append(row)
 
         # Convert records to a list
-        data.extend(id_to_record.values())
+        data.extend(rows)
         return col_types
