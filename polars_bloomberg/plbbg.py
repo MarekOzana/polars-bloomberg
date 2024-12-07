@@ -31,10 +31,13 @@ Usage
 import json
 import logging
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, Final, List, Optional, Sequence
 
 import blpapi
 import polars as pl
+
+# Module-level variable to control saving intermediate data
+TO_SAVE: Final[bool] = True
 
 # Configure logging
 # logging.basicConfig(level=logging.DEBUG)
@@ -42,7 +45,6 @@ logger = logging.getLogger(__name__)
 
 
 class BQuery:
-
     """Interface for interacting with the Bloomberg Open API using Polars."""
 
     def __init__(self, host: str = "localhost", port: int = 8194, timeout: int = 32_000):
@@ -369,9 +371,11 @@ class BQuery:
         }
 
         """
+        if TO_SAVE:
+            # Create test cases for bugs
+            with open("DELEME-response.json", "w") as f:
+                json.dump(results, f)
         col_types = {}
-        if not results:
-            return col_types
 
         # Initialize a dictionary to hold records by 'ID'
         id_to_record = {}

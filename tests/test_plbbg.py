@@ -478,6 +478,27 @@ def test_parse_bql_responses():
                 "axes().BID_TOTAL_SIZE": "DOUBLE",
             },
         ),
+        (
+            "tests/data/results_eps_range.json",
+            [
+                {
+                    "ID": "IBM US Equity",
+                    "#eps": 9.236,
+                    "#eps.REVISION_DATE": "2024-12-07T00:00:00Z",
+                    "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
+                    "#eps.PERIOD_END_DATE": "2025-12-31T00:00:00Z",
+                    "#eps.CURRENCY": "USD",
+                }
+            ],
+            {
+                "ID": "STRING",
+                "#eps": "DOUBLE",
+                "#eps.REVISION_DATE": "DATE",
+                "#eps.AS_OF_DATE": "DATE",
+                "#eps.PERIOD_END_DATE": "DATE",
+                "#eps.CURRENCY": "STRING",
+            },
+        ),
     ],
 )
 def test_parse_bql_response_dict(json_file, expected_data, expected_schema):

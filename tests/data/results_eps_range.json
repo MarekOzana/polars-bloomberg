@@ -1,0 +1,110 @@
+{
+    "#eps": {
+        "_query": "let(#eps=is_eps(fa_period_type='A', fa_period_offset=range(-4,2));) get(#eps) for(['IBM US Equity'])",
+        "name": "#eps",
+        "offsets": [
+            6
+        ],
+        "namespace": "DATAITEM_DEFAULT",
+        "source": "DATANEXT",
+        "idColumn": {
+            "name": "ID",
+            "type": "STRING",
+            "rank": 0,
+            "values": [
+                "IBM US Equity",
+                "IBM US Equity",
+                "IBM US Equity",
+                "IBM US Equity",
+                "IBM US Equity",
+                "IBM US Equity",
+                "IBM US Equity"
+            ]
+        },
+        "valuesColumn": {
+            "name": "VALUE",
+            "type": "DOUBLE",
+            "rank": 0,
+            "values": [
+                10.63,
+                6.28,
+                6.41,
+                1.82,
+                8.23,
+                7.891000000000001,
+                9.236
+            ]
+        },
+        "secondaryColumns": [
+            {
+                "name": "REVISION_DATE",
+                "type": "DATE",
+                "rank": 0,
+                "values": [
+                    "2022-02-22T00:00:00Z",
+                    "2023-02-28T00:00:00Z",
+                    "2023-02-28T00:00:00Z",
+                    "2024-03-18T00:00:00Z",
+                    "2024-03-18T00:00:00Z",
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-07T00:00:00Z"
+                ],
+                "defaultDate": false
+            },
+            {
+                "name": "AS_OF_DATE",
+                "type": "DATE",
+                "rank": 0,
+                "values": [
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-07T00:00:00Z"
+                ],
+                "defaultDate": false
+            },
+            {
+                "name": "PERIOD_END_DATE",
+                "type": "DATE",
+                "rank": 0,
+                "values": [
+                    "2019-12-31T00:00:00Z",
+                    "2020-12-31T00:00:00Z",
+                    "2021-12-31T00:00:00Z",
+                    "2022-12-31T00:00:00Z",
+                    "2023-12-31T00:00:00Z",
+                    "2024-12-31T00:00:00Z",
+                    "2025-12-31T00:00:00Z"
+                ],
+                "defaultDate": true
+            },
+            {
+                "name": "CURRENCY",
+                "type": "STRING",
+                "rank": 0,
+                "values": [
+                    "USD",
+                    "USD",
+                    "USD",
+                    "USD",
+                    "USD",
+                    "USD",
+                    "USD"
+                ]
+            }
+        ],
+        "partialErrorMap": {
+            "errorIterator": null
+        },
+        "responseExceptions": [],
+        "transparency": null,
+        "forUniverse": true,
+        "bqlResponseInfo": null,
+        "defaultDateColumnName": null,
+        "itemPreviewStatistics": null,
+        "indexView": null
+    }
+}
