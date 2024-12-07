@@ -8,13 +8,8 @@ version = "0.2.1"
 description = "Python library providing a Polars DataFrame interface for easy and intuitive access to Bloomberg API."
 readme = "README.md"
 license = { text = "Apache-2.0" }
-authors = [
-  { name = "Marek Ozana, Ph.D." }
-]
-dependencies = [
-  "polars>=1.7.1",
-  "blpapi>=3.24.0"
-]
+authors = [{ name = "Marek Ozana, Ph.D." }]
+dependencies = ["polars>=1.7.1", "blpapi>=3.24.0"]
 requires-python = ">=3.8"
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -25,17 +20,11 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.12",
   "License :: OSI Approved :: Apache Software License",
-  "Operating System :: OS Independent"
+  "Operating System :: OS Independent",
 ]
 
 [project.optional-dependencies]
-dev = [
-  "pytest",
-  "pytest-cov",
-  "jupyter",
-  "altair",
-  "nox",
-]
+dev = ["pytest", "pytest-cov", "jupyter", "altair", "nox"]
 
 [project.urls]
 Homepage = "https://github.com/MarekOzana/polars-bloomberg"
@@ -46,6 +35,41 @@ exclude = ["tests*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = [
-  "no_bbg: mark tests that do not require a Bloomberg connection",
+markers = ["no_bbg: mark tests that do not require a Bloomberg connection"]
+
+[tool.ruff]
+line-length = 89
+lint.select = [
+  "C",    # mccabe (complexity)
+  "E",    # Pycodestyle errors
+  "F",    # Pyflakes
+  "I",    # isort
+  "N",    # pep8-naming
+  "UP",   # pyupgrade
+  "YTT",  # flake8-2020 (YTT)
+  "B",    # flake8-bugbear 
+  "T20",  # flake8-print (T20)
+  "SIM",  # flake8-simplify (SIM)
+  "RUF",  # RUF specific
+  "PL",   # PyLInt
+  "NPY",  # NumPy-specific rules (NPY)
+  "W",    # Pycodestyle warnings
+  "D",    # Docstring conventions
+  "Q",    # Quote consistency
+  "S",    # Security best practices
+  "A",    # Assertion best practices
+  "R",    # Refactor suggestions
+  "G",    # General best practices
+  "D203", # One blank line required before class
 ]
+lint.ignore = ["D211", "D213"]  # No blank lines before class (Removed)
+exclude = ["test_plbbg.py"]
+
+[tool.ruff.lint.pylint]
+max-args = 6
+
+[tool.black]
+line-length = 89
+
+[tool.mypy]
+ignore_missing_imports = true

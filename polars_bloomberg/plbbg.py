@@ -1,12 +1,9 @@
-"""
-Polars interface to Bloomberg Open API
-======================================
+"""Polars interface to Bloomberg Open API.
 
 This module provides a Polars-based interface to interact with the Bloomberg Open API.
 
 Usage
 -----
-
 .. code-block:: python
 
     from datetime import date
@@ -14,10 +11,17 @@ Usage
 
     with BQuery() as bq:
         df_ref = bq.bdp(['AAPL US Equity', 'MSFT US Equity'], ['PX_LAST'])
-        df_rf2 = bq.bdp(["OMX Index", "SPX Index", "SEBA SS Equity"],
-                        ["PX_LAST", "SECURITY_DES", "DVD_EX_DT", "CRNCY_ADJ_PX_LAST"],
-                        overrides=[("EQY_FUND_CRNCY", "SEK")])
-        df_hist = bq.bdh(['AAPL US Equity'], ['PX_LAST'], date(2020, 1, 1), date(2020, 1, 30))
+        df_rf2 = bq.bdp(
+            ["OMX Index", "SPX Index", "SEBA SS Equity"],
+            ["PX_LAST", "SECURITY_DES", "DVD_EX_DT", "CRNCY_ADJ_PX_LAST"],
+            overrides=[("EQY_FUND_CRNCY", "SEK")]
+        )
+        df_hist = bq.bdh(
+            ['AAPL US Equity'],
+            ['PX_LAST'],
+            date(2020, 1, 1),
+            date(2020, 1, 30)
+        )
         df_px = bq.bql("get(px_last) for(['IBM US Equity', 'AAPL US Equity'])")
 
 :author: Marek Ozana
@@ -38,12 +42,29 @@ logger = logging.getLogger(__name__)
 
 
 class BQuery:
-    def __init__(self, host: str = "localhost", port: int = 8194):
+
+    """Interface for interacting with the Bloomberg Open API using Polars."""
+
+    def __init__(self, host: str = "localhost", port: int = 8194, timeout: int = 32_000):
+        """Initialize a BQuery instance with connection parameters.
+
+        Parameters
+        ----------
+        host : str
+            The hostname for the Bloomberg API server.
+        port : int
+            The port number for the Bloomberg API server.
+        timeout : int
+            Timeout in milliseconds for API requests.
+
+        """
         self.host = host
         self.port = port
+        self.timeout = timeout  # Timeout in milliseconds
         self.session = None
 
     def __enter__(self):
+        """Enter the runtime context related to this object."""
         options = blpapi.SessionOptions()
         options.setServerHost(self.host)
         options.setServerPort(self.port)
@@ -61,6 +82,7 @@ class BQuery:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """Exit the context manager and stop the Bloomberg session."""
         if self.session:
             self.session.stop()
 
@@ -71,8 +93,8 @@ class BQuery:
         overrides: Optional[Sequence] = None,
         options: Optional[Dict] = None,
     ) -> pl.DataFrame:
-        """
-        Bloomberg Data Point, equivalent to Excel BDP() function.
+        """Bloomberg Data Point, equivalent to Excel BDP() function.
+
         Fetch reference data for given securities and fields.
         """
         request = self._create_request(
@@ -91,8 +113,8 @@ class BQuery:
         overrides: Optional[Sequence] = None,
         options: Optional[Dict] = None,
     ) -> pl.DataFrame:
-        """
-        Bloomberg Data History, equivalent to Excel BDH() function.
+        """Bloomberg Data History, equivalent to Excel BDH() function.
+
         Fetch historical data for given securities and fields between dates.
         """
         request = self._create_request(
@@ -120,18 +142,25 @@ class BQuery:
         overrides: Optional[Sequence] = None,
         options: Optional[Dict] = None,
     ) -> blpapi.Request:
-        """
-        Create a Bloomberg request with support for overrides and additional options.
+        """Create a Bloomberg request with support for overrides and additional options.
 
-        Parameters:
-            request_type (str): Type of the request (e.g., 'ReferenceDataRequest').
-            securities (List[str]): List of securities to include in the request.
-            fields (List[str]): List of fields to include in the request.
-            overrides (List[Tuple[str, Any]], optional): List of overrides.
-            options (Dict, optional): Additional options as key-value pairs.
+        Parameters
+        ----------
+        request_type: str
+            Type of the request (e.g., 'ReferenceDataRequest').
+        securities: List[str]
+            List of securities to include in the request.
+        fields: List[str]
+            List of fields to include in the request.
+        overrides: Optional[Sequence]
+            List of overrides.
+        options: Optional[Dict]
+            Additional options as key-value pairs.
 
-        Returns:
+        Returns
+        -------
             blpapi.Request: The constructed Bloomberg request.
+
         """
         service = self.session.getService("//blp/refdata")
         request = service.createRequest(request_type)
@@ -169,12 +198,33 @@ class BQuery:
         return request
 
     def _send_request(self, request) -> List[Dict]:
+        """Send a Bloomberg request and collect responses with timeout handling.
+
+        Returns:
+            List[Dict]: The list of responses.
+
+        Raises:
+            TimeoutError: If the request times out.
+
+        """
         self.session.sendRequest(request)
         responses = []
         while True:
-            event = self.session.nextEvent()
+            # Wait for an event with the specified timeout
+            event = self.session.nextEvent(self.timeout)
+            if event.eventType() == blpapi.Event.TIMEOUT:
+                # Handle the timeout scenario
+                raise TimeoutError(
+                    f"Request timed out after {self.timeout} milliseconds"
+                )
             for msg in event:
+                # Check for errors in the message
+                if msg.hasElement("responseError"):
+                    error = msg.getElement("responseError")
+                    error_message = error.getElementAsString("message")
+                    raise Exception(f"Response error: {error_message}")
                 responses.append(msg.toPy())
+            # Break the loop when the final response is received
             if event.eventType() == blpapi.Event.RESPONSE:
                 break
         return responses
@@ -210,14 +260,16 @@ class BQuery:
         return data
 
     def _parse_bql_responses(self, responses: List[Any]) -> List[Dict]:
-        """Parse BQL responses list. IT consists of dictionaries
-        and string with embedded json.
+        """Parse BQL responses list.
+
+        I consists of dictionaries and string with embedded json.
 
         1. Iterate over list of responses and only extract those with 'results' key.
         Example responses: [
         {...},
         {...},
-        "{'results': {'px_last': {}, 'valuesColumn': {}, 'secondaryColumns': [{}]}}, 'error': None}"]
+        "{'results': {'px_last': {}, 'valuesColumn': {}, "
+        "'secondaryColumns': [{}]}}, 'error': None}"]
         ]
 
         2. pass results dictionary to _parse_bql_response_dict method
@@ -227,7 +279,10 @@ class BQuery:
                 'idColumn': {'values': ['IBM US Equity', 'AAPL US Equity']},
                 'valuesColumn': {'values': [227.615, 239.270]},
                 'secondaryColumns': [
-                    {'name': 'DATE', 'values': ['2024-12-02T00:00:00Z', '2024-12-02T00:00:00Z']},
+                    {'name': 'DATE', 'values': [
+                        '2024-12-02T00:00:00Z',
+                        '2024-12-02T00:00:00Z'
+                    ]},
                     {'name': 'CURRENCY', 'values': ['USD', 'USD']}
                 ]
             }
@@ -238,12 +293,19 @@ class BQuery:
 
         # Process each response in the list
         for response in responses:
+            response_dict = response
             # Parse string responses as JSON
             if isinstance(response, str):
-                response = json.loads(response.replace("'", '"'))
+                try:
+                    response_dict = json.loads(response.replace("'", '"'))
+                except json.JSONDecodeError as e:
+                    logger.error(
+                        "JSON decoding failed for response: %s. Error: %s", response, e
+                    )
+                    continue
 
             # Get the 'results' section from the response
-            results = response.get("results")
+            results = response_dict.get("results")
             if not results:
                 continue
 
@@ -276,14 +338,17 @@ class BQuery:
     def _parse_bql_response_dict(
         self, data: List[Dict], results: Dict[str, Any]
     ) -> Dict[str, str]:
-        """
-        Parse BQL response dictionary into a table format.
+        """Parse BQL response dictionary into a table format.
 
-        Parameters:
-            data (List[Dict]): The list to append parsed records to.
-            results (Dict[str, Any]): The 'results' dictionary from the BQL response.
+        Parameters
+        ----------
+        data: List[Dict]
+            The list to append parsed records to.
+        results: Dict[str, Any]
+            The 'results' dictionary from the BQL response.
 
-        Returns:
+        Returns
+        -------
             Dict[str, str]: A dictionary mapping column names to their types.
 
         Strategy:
@@ -302,6 +367,7 @@ class BQuery:
             'Field2.SecondaryCol1': ...,
             ...
         }
+
         """
         col_types = {}
         if not results:
@@ -346,7 +412,7 @@ class BQuery:
                     sec_value = sec_values[idx] if idx < len(sec_values) else None
                     record[sec_col_name] = sec_value
 
-                logger.debug(f"Record for ID '{id_value}': {record}")
+                logger.debug("Record for ID '%s': %s", id_value, record)
 
         # Convert records to a list
         data.extend(id_to_record.values())

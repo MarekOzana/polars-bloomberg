@@ -9,7 +9,9 @@ The tests REQUIRE an active Bloomberg Terminal connection.
 import json
 from datetime import date
 from typing import Generator
+from unittest.mock import MagicMock, patch
 
+import blpapi
 import polars as pl
 import pytest
 from polars.testing import assert_frame_equal
@@ -494,3 +496,132 @@ def test_parse_bql_response_dict(json_file, expected_data, expected_schema):
     assert data == expected_data
     # Assert that the column types match the expected schema
     assert schema == expected_schema
+
+
+class TestBQuerySendRequest:
+    """Test suite for the BQuery._send_request method."""
+
+    @pytest.fixture
+    def bquery(self):
+        """
+        Fixture to create a BQuery instance with a mocked session.
+
+        Initializes the BQuery object with a specified timeout and mocks
+        the Bloomberg session to control its behavior during tests.
+        """
+        with patch("polars_bloomberg.plbbg.blpapi.Session") as mock_session_class:
+            """This mock session replaces the actual Bloomberg session to avoid
+                making real API calls during testing.
+            """
+            mock_session_instance = MagicMock()
+            mock_session_class.return_value = mock_session_instance
+            with BQuery(timeout=5000) as bquery:
+                yield bquery
+
+    def test_send_request_success(self, bquery):
+        """
+        Test that _send_request successfully processes partial and final responses.
+
+        This test simulates a scenario where the Bloomberg API returns a partial
+        response followed by a final response. It verifies that _send_request
+        correctly collects and returns the responses.
+        """
+        # Create mock events
+        partial_event = MagicMock()
+        partial_event.eventType.return_value = blpapi.Event.PARTIAL_RESPONSE
+
+        final_event = MagicMock()
+        final_event.eventType.return_value = blpapi.Event.RESPONSE
+
+        # Mock messages for each event
+        partial_message = MagicMock()
+        partial_message.hasElement.return_value = False  # No errors
+        partial_message.toPy.return_value = {"partial": "data"}
+
+        final_message = MagicMock()
+        final_message.hasElement.return_value = False  # No errors
+        final_message.toPy.return_value = {"final": "data"}
+
+        # Set up event messages
+        partial_event.__iter__.return_value = iter([partial_message])
+        final_event.__iter__.return_value = iter([final_message])
+
+        # Configure nextEvent to return partial and then final event
+        bquery.session.nextEvent.side_effect = [partial_event, final_event]
+
+        # Mock request
+        mock_request = MagicMock()
+
+        # Call the method under test
+        responses = bquery._send_request(mock_request)
+
+        # Assertions
+        bquery.session.sendRequest.assert_called_with(mock_request)
+        assert responses == [{"partial": "data"}, {"final": "data"}]
+        assert bquery.session.nextEvent.call_count == 2
+        bquery.session.nextEvent.assert_any_call(5000)
+
+    def test_send_request_timeout(self, bquery):
+        """
+        Test that _send_request raises a TimeoutError when a timeout occurs.
+
+        This test simulates a scenario where the Bloomberg API does not respond
+        within the specified timeout period, triggering a timeout event.
+        """
+        # Create a timeout event
+        timeout_event = MagicMock()
+        timeout_event.eventType.return_value = blpapi.Event.TIMEOUT
+        timeout_event.__iter__.return_value = iter([])  # No messages
+
+        # Configure nextEvent to return a timeout event
+        bquery.session.nextEvent.return_value = timeout_event
+
+        # Mock request
+        mock_request = MagicMock()
+
+        # Call the method under test and expect a TimeoutError
+        with pytest.raises(
+            TimeoutError, match="Request timed out after 5000 milliseconds"
+        ):
+            bquery._send_request(mock_request)
+
+        # Assertions
+        bquery.session.sendRequest.assert_called_with(mock_request)
+        bquery.session.nextEvent.assert_called_once_with(5000)
+
+    def test_send_request_with_response_error(self, bquery):
+        """
+        Test that _send_request raises an Exception when the response contains an error.
+
+        This test simulates a scenario where the Bloomberg API returns a response
+        containing an error message. It verifies that _send_request properly
+        detects and raises an exception for the error.
+        """
+        # Create a response event with an error
+        response_event = MagicMock()
+        response_event.eventType.return_value = blpapi.Event.RESPONSE
+
+        # Mock message with a response error
+        error_message = MagicMock()
+        error_message.hasElement.return_value = True
+
+        # Mock the error element returned by getElement("responseError")
+        error_element = MagicMock()
+        error_element.getElementAsString.return_value = "Invalid field"
+        error_message.getElement.return_value = error_element
+
+        response_event.__iter__.return_value = iter([error_message])
+
+        # Configure nextEvent to return the response event
+        bquery.session.nextEvent.return_value = response_event
+
+        # Mock request
+        mock_request = MagicMock()
+
+        # Call the method under test and expect an Exception
+        with pytest.raises(Exception, match="Response error: Invalid field"):
+            bquery._send_request(mock_request)
+
+        # Assertions
+        bquery.session.sendRequest.assert_called_with(mock_request)
+        bquery.session.nextEvent.assert_called_once_with(5000)
