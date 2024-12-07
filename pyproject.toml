@@ -63,7 +63,7 @@ lint.select = [
   "D203", # One blank line required before class
 ]
 lint.ignore = ["D211", "D213"]  # No blank lines before class (Removed)
-exclude = ["test_plbbg.py"]
+exclude = ["test_plbbg.py", "*.ipynb"]
 
 [tool.ruff.lint.pylint]
 max-args = 6

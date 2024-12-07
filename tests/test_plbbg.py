@@ -498,6 +498,7 @@ def test_parse_bql_response_dict(json_file, expected_data, expected_schema):
     assert schema == expected_schema
 
 
+@pytest.mark.no_bbg
 class TestBQuerySendRequest:
     """Test suite for the BQuery._send_request method."""
 
