@@ -48,6 +48,8 @@ df = bq.bql("get(px_last) for(['IBM US Equity', 'OMX Index'])")
 <div>
 <small>shape: (2, 4)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>px_last</th><th>px_last.DATE</th><th>px_last.CURRENCY</th></tr><tr><td>str</td><td>f64</td><td>date</td><td>str</td></tr></thead><tbody><tr><td>&quot;IBM US Equity&quot;</td><td>238.04</td><td>2024-12-07</td><td>&quot;USD&quot;</td></tr><tr><td>&quot;OMX Index&quot;</td><td>2614.268</td><td>2024-12-07</td><td>&quot;SEK&quot;</td></tr></tbody></table></div>
 
+<details><summary>More BQL Examples</summary>
+    
 Example of more complex query:
 ```python
 df = bq.bql("""
@@ -64,6 +66,8 @@ df = bq.bql("""
 <tr><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td></tr>
 <tr><td>&quot;IBM US Equity&quot;</td><td>9.236</td><td>2024-12-07</td><td>2024-12-07</td><td>2025-12-31</td><td>&quot;USD&quot;</td></tr>
 </tbody></table></div>
+
+</details>
 
 ## More Examples
 Explore additional [usage examples](examples/Examples-1.ipynb) in the `examples/` directory.
