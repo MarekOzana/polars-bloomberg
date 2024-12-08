@@ -258,7 +258,7 @@ class BQuery:
                 data.append(record)
         return data
 
-    def _parse_bql_responses(self, responses: List[Any]) -> List[Dict]:
+    def _parse_bql_responses(self, responses: List[Any]):
         """Parse BQL responses list.
 
         I consists of dictionaries and string with embedded json.
@@ -287,8 +287,8 @@ class BQuery:
             }
         }
         """
-        data = []
-        all_column_types = {}
+        data: Dict[str, list] = {}  # Column name -> list of values
+        all_column_types: Dict[str, str] = {}  # Column name -> type
 
         # Process each response in the list
         for response in responses:
@@ -309,8 +309,11 @@ class BQuery:
                 continue
 
             # Parse the results and collect column types
-            column_types = self._parse_bql_response_dict(data, results)
-            all_column_types.update(column_types)
+            cols, col_types = self._parse_bql_response_dict(results)
+            # Extend existing columns in data dictionary
+            for col_name, values in cols.items():
+                data.setdefault(col_name, []).extend(values)
+            all_column_types.update(col_types)
 
         # Map string types to Polars data types
         type_mapping = {
@@ -325,29 +328,24 @@ class BQuery:
         }
 
         # Convert date strings to date objects
-        for record in data:
-            for col_name, dtype in schema.items():
-                if dtype == pl.Date and isinstance(record.get(col_name), str):
-                    record[col_name] = datetime.strptime(
-                        record[col_name], "%Y-%m-%dT%H:%M:%SZ"
-                    ).date()
+        fmt = "%Y-%m-%dT%H:%M:%SZ"
+        for col, values in data.items():
+            if schema.get(col) == pl.Date:
+                data[col] = [datetime.strptime(v, fmt).date() for v in values]
 
         return data, schema
 
-    def _parse_bql_response_dict(
-        self, data: List[Dict], results: Dict[str, Any]
-    ) -> Dict[str, str]:
+    def _parse_bql_response_dict(self, results: Dict[str, Any]):
         """Parse BQL response dictionary into a table format.
 
         Parameters
         ----------
-        data: List[Dict]
-            The list to append parsed records to.
         results: Dict[str, Any]
             The 'results' dictionary from the BQL response.
 
         Returns
         -------
+            List[Dict]: The list of records.
             Dict[str, str]: A dictionary mapping column names to their types.
 
         Strategy:
@@ -368,8 +366,8 @@ class BQuery:
         }
 
         """
-        col_types = {}
-        cols = {}
+        col_types = {}  # Column name -> type
+        cols: Dict[str, list] = {}  # Column name -> list of values
 
         for field_name, content in results.items():
             id_column = content.get("idColumn", {})
@@ -391,15 +389,4 @@ class BQuery:
                 cols[full_sec_col_name] = sec_col_values
                 col_types[full_sec_col_name] = sec_col.get("type", str)
 
-        # Generate list of row dictionaries
-        rows = []
-        for i in range(len(cols["ID"])):
-            row = {}
-            for key, values in cols.items():
-                # Assign value if available; else, assign None
-                row[key] = values[i] if i < len(values) else None
-            rows.append(row)
-
-        # Convert records to a list
-        data.extend(rows)
-        return col_types
+        return cols, col_types

@@ -1,5 +1,5 @@
-"""
-Unit tests for the plbbg module.
+"""Unit tests for the plbbg module.
+
 The tests REQUIRE an active Bloomberg Terminal connection.
 
 :author: Marek Ozana
@@ -8,7 +8,7 @@ The tests REQUIRE an active Bloomberg Terminal connection.
 
 import json
 from datetime import date
-from typing import Generator
+from typing import Final, Generator
 from unittest.mock import MagicMock, patch
 
 import blpapi
@@ -21,14 +21,13 @@ from polars_bloomberg import BQuery
 
 @pytest.fixture(scope="module")
 def bq() -> Generator[BQuery, None, None]:
+    """Fixture to create a BQuery instance for testing."""
     with BQuery() as bq_instance:
         yield bq_instance
 
 
 def test_bdp(bq: BQuery):
-    """
-    Test the BDP function.
-    """
+    """Test the BDP function."""
     # Plain vanilla
     df = bq.bdp(
         ["OMX Index"],
@@ -50,24 +49,21 @@ def test_bdp(bq: BQuery):
         ["PX_LAST", "CRNCY_ADJ_PX_LAST"],
         overrides=[("EQY_FUND_CRNCY", "SEK")],
     )
-    assert (
-        df_1.filter(pl.col("security") == "OMX Index")
-        .select((pl.col("PX_LAST") - pl.col("CRNCY_ADJ_PX_LAST")).abs().alias("diff"))
-        .item()
-        < 1e-6
-    ), "OMX Index should have PX_LAST same as in SEK"
+    assert df_1.filter(pl.col("security") == "OMX Index").select(
+        (pl.col("PX_LAST") - pl.col("CRNCY_ADJ_PX_LAST")).abs().alias("diff")
+    ).item() == pytest.approx(0), "OMX Index should have PX_LAST same as in SEK"
+
+    much_bigger: Final[int] = 10
     assert (
         df_1.filter(pl.col("security") == "SPX Index")
         .select((pl.col("CRNCY_ADJ_PX_LAST") / pl.col("PX_LAST")).alias("ratio"))
         .item()
-        > 10
+        > much_bigger
     ), "SPX Index should have PX_LAST 10x larger in USD than in SEK"
 
 
 def test_bdh(bq: BQuery):
-    """
-    Test the BDH function.
-    """
+    """Test the BDH function."""
     # Plain vanilla
     df = bq.bdh(
         ["OMX Index", "SEBA SS Equity"],
@@ -164,8 +160,9 @@ def test_bdh(bq: BQuery):
 
 
 def test_bql(bq: BQuery):
+    """Test the BQL function."""
     query = """
-            get(name(), cpn()) 
+            get(name(), cpn())
             for(['XS2479344561 Corp', 'USX60003AC87 Corp'])
             """
     df = bq.bql(query)
@@ -184,9 +181,7 @@ def test_bql(bq: BQuery):
 
 
 def test_create_request(bq: BQuery):
-    """
-    Test the _create_request method.
-    """
+    """Test the _create_request method."""
     request = bq._create_request(
         request_type="ReferenceDataRequest",
         securities=["OMX Index", "SPX Index"],
@@ -197,9 +192,7 @@ def test_create_request(bq: BQuery):
 
 
 def test_create_request_with_overrides(bq: BQuery):
-    """
-    Test the _create_request method with overrides.
-    """
+    """Test the _create_request method with overrides."""
     request = bq._create_request(
         request_type="ReferenceDataRequest",
         securities=["OMX Index", "SPX Index"],
@@ -218,9 +211,7 @@ def test_create_request_with_overrides(bq: BQuery):
 
 
 def test_create_request_with_options(bq: BQuery):
-    """
-    Test the _create_request method with options.
-    """
+    """Test the _create_request method with options."""
     request = bq._create_request(
         request_type="HistoricalDataRequest",
         securities=["OMX Index", "SPX Index"],
@@ -232,6 +223,7 @@ def test_create_request_with_options(bq: BQuery):
 
 @pytest.mark.no_bbg
 def test_parse_bdp_responses():
+    """Test the _parse_bdp_responses method."""
     bq = BQuery()  # unitialized object (no BBG connection yet)
     # Mock responses as they might be received from the Bloomberg API
     mock_responses = [
@@ -257,7 +249,6 @@ def test_parse_bdp_responses():
 
     # Call the _parse_bdp_responses function with mock data
     result = bq._parse_bdp_responses(mock_responses, fields=["PX_LAST", "DS002"])
-    print(result)
 
     # Assert that the parsed result matches the expected output
     assert result == expected_output
@@ -265,6 +256,7 @@ def test_parse_bdp_responses():
 
 @pytest.mark.no_bbg
 def test_parse_bdh_responses():
+    """Test the _parse_bdh_responses method."""
     bq = BQuery()  # unitialized object (no BBG connection yet)
     # Mock responses as they might be received from the Bloomberg API
     mock_responses = [
@@ -325,30 +317,28 @@ def test_parse_bdh_responses():
 
 @pytest.mark.no_bbg
 def test_parse_bql_responses():
+    """Test the _parse_bql_responses method."""
     bq = BQuery()  # uninitialized object (no BBG connection yet)
 
     # Mock responses as they might be received from the Bloomberg API
     mock_responses = [
         {"other_data": "value1"},
         {"other_data": "value2"},
-        "{'results': {'px_last': {'idColumn': {'values': ['IBM US Equity', 'AAPL US Equity']}, 'valuesColumn': {'type':'DOUBLE', 'values': [125.32, 150.75]}, 'secondaryColumns': [{'name': 'DATE', 'type':'DATE','values': ['2024-12-03T00:00:00Z', '2024-12-03T00:00:00Z']}, {'name': 'CURRENCY', 'values': ['USD', 'USD']}]}}}",
+        "{'results': {'px_last': {'idColumn': "
+        "{'values': ['IBM US Equity', 'AAPL US Equity']}, "
+        "'valuesColumn': {'type':'DOUBLE', 'values': [125.32, 150.75]}, "
+        "'secondaryColumns': [{'name': 'DATE', 'type':'DATE',"
+        "'values': ['2024-12-03T00:00:00Z', '2024-12-03T00:00:00Z']}, "
+        "{'name': 'CURRENCY', 'values': ['USD', 'USD']}]}}}",
     ]
 
     # Expected output after parsing
-    expected_data = [
-        {
-            "ID": "IBM US Equity",
-            "px_last": 125.32,
-            "px_last.DATE": date(2024, 12, 3),
-            "px_last.CURRENCY": "USD",
-        },
-        {
-            "ID": "AAPL US Equity",
-            "px_last": 150.75,
-            "px_last.DATE": date(2024, 12, 3),
-            "px_last.CURRENCY": "USD",
-        },
-    ]
+    expected_data = {
+        "ID": ["IBM US Equity", "AAPL US Equity"],
+        "px_last": [125.32, 150.75],
+        "px_last.DATE": [date(2024, 12, 3), date(2024, 12, 3)],
+        "px_last.CURRENCY": ["USD", "USD"],
+    }
     expected_schema = {
         "ID": pl.String,
         "px_last": pl.Float64,
@@ -370,20 +360,12 @@ def test_parse_bql_responses():
     [
         (
             "tests/data/results_last_px.json",
-            [
-                {
-                    "ID": "IBM US Equity",
-                    "px_last": 227.02,
-                    "px_last.DATE": "2024-12-03T00:00:00Z",
-                    "px_last.CURRENCY": "USD",
-                },
-                {
-                    "ID": "AAPL US Equity",
-                    "px_last": 241.31,
-                    "px_last.DATE": "2024-12-03T00:00:00Z",
-                    "px_last.CURRENCY": "USD",
-                },
-            ],
+            {
+                "ID": ["IBM US Equity", "AAPL US Equity"],
+                "px_last": [227.02, 241.31],
+                "px_last.DATE": ["2024-12-03T00:00:00Z", "2024-12-03T00:00:00Z"],
+                "px_last.CURRENCY": ["USD", "USD"],
+            },
             {
                 "ID": "STRING",
                 "px_last": "DOUBLE",
@@ -393,24 +375,14 @@ def test_parse_bql_responses():
         ),
         (
             "tests/data/results_dur_zspread.json",
-            [
-                {
-                    "ID": "XS2479344561 Corp",
-                    "name()": "SEB 6 ⅞ PERP",
-                    "#dur": 2.26,
-                    "#dur.DATE": "2024-12-03T00:00:00Z",
-                    "#zsprd": 244.5,
-                    "#zsprd.DATE": "2024-12-03T00:00:00Z",
-                },
-                {
-                    "ID": "USX60003AC87 Corp",
-                    "name()": "NDAFH 6.3 PERP",
-                    "#dur": 5.36,
-                    "#dur.DATE": "2024-12-03T00:00:00Z",
-                    "#zsprd": 331.1,
-                    "#zsprd.DATE": "2024-12-03T00:00:00Z",
-                },
-            ],
+            {
+                "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
+                "name()": ["SEB 6 ⅞ PERP", "NDAFH 6.3 PERP"],
+                "#dur": [2.26, 5.36],
+                "#dur.DATE": ["2024-12-03T00:00:00Z", "2024-12-03T00:00:00Z"],
+                "#zsprd": [244.5, 331.1],
+                "#zsprd.DATE": ["2024-12-03T00:00:00Z", "2024-12-03T00:00:00Z"],
+            },
             {
                 "ID": "STRING",
                 "name()": "STRING",
@@ -422,22 +394,13 @@ def test_parse_bql_responses():
         ),
         (
             "tests/data/results_cpn.json",
-            [
-                {
-                    "ID": "XS2479344561 Corp",
-                    "name()": "SEB 6 ⅞ PERP",
-                    "cpn()": 6.875,
-                    "cpn().MULTIPLIER": 1.0,
-                    "cpn().CPN_TYP": "VARIABLE",
-                },
-                {
-                    "ID": "USX60003AC87 Corp",
-                    "name()": "NDAFH 6.3 PERP",
-                    "cpn()": 6.3,
-                    "cpn().MULTIPLIER": 1.0,
-                    "cpn().CPN_TYP": "VARIABLE",
-                },
-            ],
+            {
+                "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
+                "name()": ["SEB 6 ⅞ PERP", "NDAFH 6.3 PERP"],
+                "cpn()": [6.875, 6.3],
+                "cpn().MULTIPLIER": [1.0, 1.0],
+                "cpn().CPN_TYP": ["VARIABLE", "VARIABLE"],
+            },
             {
                 "ID": "STRING",
                 "name()": "STRING",
@@ -448,26 +411,15 @@ def test_parse_bql_responses():
         ),
         (
             "tests/data/results_axes.json",
-            [
-                {
-                    "ID": "XS2479344561 Corp",
-                    "name()": "SEB 6 ⅞ PERP",
-                    "axes()": "Y",
-                    "axes().ASK_DEPTH": 3,
-                    "axes().BID_DEPTH": 4,
-                    "axes().ASK_TOTAL_SIZE": 11200000.0,
-                    "axes().BID_TOTAL_SIZE": 15000000.0,
-                },
-                {
-                    "ID": "USX60003AC87 Corp",
-                    "name()": "NDAFH 6.3 PERP",
-                    "axes()": "Y",
-                    "axes().ASK_DEPTH": 1,
-                    "axes().BID_DEPTH": 3,
-                    "axes().ASK_TOTAL_SIZE": 2000000.0,
-                    "axes().BID_TOTAL_SIZE": 13000000.0,
-                },
-            ],
+            {
+                "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
+                "name()": ["SEB 6 ⅞ PERP", "NDAFH 6.3 PERP"],
+                "axes()": ["Y", "Y"],
+                "axes().ASK_DEPTH": [3, 1],
+                "axes().BID_DEPTH": [4, 3],
+                "axes().ASK_TOTAL_SIZE": [11200000.0, 2000000.0],
+                "axes().BID_TOTAL_SIZE": [15000000.0, 13000000.0],
+            },
             {
                 "ID": "STRING",
                 "name()": "STRING",
@@ -480,64 +432,46 @@ def test_parse_bql_responses():
         ),
         (
             "tests/data/results_eps_range.json",
-            [
-                {
-                    "ID": "IBM US Equity",
-                    "#eps": 10.63,
-                    "#eps.REVISION_DATE": "2022-02-22T00:00:00Z",
-                    "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
-                    "#eps.PERIOD_END_DATE": "2019-12-31T00:00:00Z",
-                    "#eps.CURRENCY": "USD",
-                },
-                {
-                    "ID": "IBM US Equity",
-                    "#eps": 6.28,
-                    "#eps.REVISION_DATE": "2023-02-28T00:00:00Z",
-                    "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
-                    "#eps.PERIOD_END_DATE": "2020-12-31T00:00:00Z",
-                    "#eps.CURRENCY": "USD",
-                },
-                {
-                    "ID": "IBM US Equity",
-                    "#eps": 6.41,
-                    "#eps.REVISION_DATE": "2023-02-28T00:00:00Z",
-                    "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
-                    "#eps.PERIOD_END_DATE": "2021-12-31T00:00:00Z",
-                    "#eps.CURRENCY": "USD",
-                },
-                {
-                    "ID": "IBM US Equity",
-                    "#eps": 1.82,
-                    "#eps.REVISION_DATE": "2024-03-18T00:00:00Z",
-                    "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
-                    "#eps.PERIOD_END_DATE": "2022-12-31T00:00:00Z",
-                    "#eps.CURRENCY": "USD",
-                },
-                {
-                    "ID": "IBM US Equity",
-                    "#eps": 8.23,
-                    "#eps.REVISION_DATE": "2024-03-18T00:00:00Z",
-                    "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
-                    "#eps.PERIOD_END_DATE": "2023-12-31T00:00:00Z",
-                    "#eps.CURRENCY": "USD",
-                },
-                {
-                    "ID": "IBM US Equity",
-                    "#eps": 7.89,
-                    "#eps.REVISION_DATE": "2024-12-07T00:00:00Z",
-                    "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
-                    "#eps.PERIOD_END_DATE": "2024-12-31T00:00:00Z",
-                    "#eps.CURRENCY": "USD",
-                },
-                {
-                    "ID": "IBM US Equity",
-                    "#eps": 9.236,
-                    "#eps.REVISION_DATE": "2024-12-07T00:00:00Z",
-                    "#eps.AS_OF_DATE": "2024-12-07T00:00:00Z",
-                    "#eps.PERIOD_END_DATE": "2025-12-31T00:00:00Z",
-                    "#eps.CURRENCY": "USD",
-                },
-            ],
+            {
+                "ID": [
+                    "IBM US Equity",
+                    "IBM US Equity",
+                    "IBM US Equity",
+                    "IBM US Equity",
+                    "IBM US Equity",
+                    "IBM US Equity",
+                    "IBM US Equity",
+                ],
+                "#eps": [10.63, 6.28, 6.41, 1.82, 8.23, 7.89, 9.236],
+                "#eps.REVISION_DATE": [
+                    "2022-02-22T00:00:00Z",
+                    "2023-02-28T00:00:00Z",
+                    "2023-02-28T00:00:00Z",
+                    "2024-03-18T00:00:00Z",
+                    "2024-03-18T00:00:00Z",
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-07T00:00:00Z",
+                ],
+                "#eps.AS_OF_DATE": [
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-07T00:00:00Z",
+                ],
+                "#eps.PERIOD_END_DATE": [
+                    "2019-12-31T00:00:00Z",
+                    "2020-12-31T00:00:00Z",
+                    "2021-12-31T00:00:00Z",
+                    "2022-12-31T00:00:00Z",
+                    "2023-12-31T00:00:00Z",
+                    "2024-12-31T00:00:00Z",
+                    "2025-12-31T00:00:00Z",
+                ],
+                "#eps.CURRENCY": ["USD", "USD", "USD", "USD", "USD", "USD", "USD"],
+            },
             {
                 "ID": "STRING",
                 "#eps": "DOUBLE",
@@ -550,16 +484,16 @@ def test_parse_bql_responses():
     ],
 )
 def test_parse_bql_response_dict(json_file, expected_data, expected_schema):
+    """Test the _parse_bql_response_dict method with various input files."""
     bq = BQuery()
-    data = []
-    with open(json_file, "r") as f:
+    with open(json_file) as f:
         results = json.load(f)
 
     # Call the method to test
-    schema = bq._parse_bql_response_dict(data, results)
+    cols, schema = bq._parse_bql_response_dict(results)
 
     # Assert that the data matches the expected output
-    assert data == expected_data
+    assert cols == expected_data
     # Assert that the column types match the expected schema
     assert schema == expected_schema
 
@@ -570,8 +504,7 @@ class TestBQuerySendRequest:
 
     @pytest.fixture
     def bquery(self):
-        """
-        Fixture to create a BQuery instance with a mocked session.
+        """Fixture to create a BQuery instance with a mocked session.
 
         Initializes the BQuery object with a specified timeout and mocks
         the Bloomberg session to control its behavior during tests.
@@ -586,8 +519,7 @@ class TestBQuerySendRequest:
                 yield bquery
 
     def test_send_request_success(self, bquery):
-        """
-        Test that _send_request successfully processes partial and final responses.
+        """Test that _send_request successfully processes partial and final responses.
 
         This test simulates a scenario where the Bloomberg API returns a partial
         response followed by a final response. It verifies that _send_request
@@ -625,12 +557,11 @@ class TestBQuerySendRequest:
         # Assertions
         bquery.session.sendRequest.assert_called_with(mock_request)
         assert responses == [{"partial": "data"}, {"final": "data"}]
-        assert bquery.session.nextEvent.call_count == 2
+        assert bquery.session.nextEvent.call_count == 2  # noqa: PLR2004
         bquery.session.nextEvent.assert_any_call(5000)
 
     def test_send_request_timeout(self, bquery):
-        """
-        Test that _send_request raises a TimeoutError when a timeout occurs.
+        """Test that _send_request raises a TimeoutError when a timeout occurs.
 
         This test simulates a scenario where the Bloomberg API does not respond
         within the specified timeout period, triggering a timeout event.
@@ -657,8 +588,7 @@ class TestBQuerySendRequest:
         bquery.session.nextEvent.assert_called_once_with(5000)
 
     def test_send_request_with_response_error(self, bquery):
-        """
-        Test that _send_request raises an Exception when the response contains an error.
+        """Test _send_request when the response contains an error.
 
         This test simulates a scenario where the Bloomberg API returns a response
         containing an error message. It verifies that _send_request properly

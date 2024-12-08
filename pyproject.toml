@@ -54,15 +54,15 @@ lint.select = [
   "PL",  # PyLInt
   "NPY", # NumPy-specific rules (NPY)
   "W",   # Pycodestyle warnings
-  #  "D",   # Docstring conventions
+  "D",   # Docstring conventions
   "Q", # Quote consistency
-  "S", # Security best practices
+  # "S", # Security best practices
   "A", # Assertion best practices
   "R", # Refactor suggestions
   "G", # General best practices
 ]
 lint.ignore = ["D211", "D213", "D203"] # No blank lines before class (Removed)
-exclude = ["test_*.py", "*.ipynb"]
+exclude = ["*.ipynb"]
 
 [tool.ruff.lint.pylint]
 max-args = 6
