@@ -4,27 +4,36 @@
 ![python-package](https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml/badge.svg)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
-**Polars + Bloomberg Open API** is a Python library that facilitates seamless integration of Bloomberg data into Polars DataFrames. Designed for users familiar with Pandas or Excel, it offers minimal-boilerplate functions such as `bdp()`, `bdh()`, and `bql()`. Leverage Polars' high-performance capabilities alongside the Bloomberg API for lightning-fast DataFrame operations and a minimal memory footprint.
+**Polars + Bloomberg Open API** is a Python library that facilitates integration of Bloomberg data into Polars DataFrames. Designed for users familiar with Pandas or Excel, it offers minimal-boilerplate functions such as `bdp()`, `bdh()`, and `bql()`. Leverage Polars' high-performance capabilities alongside the Bloomberg API for lightning-fast DataFrame operations and a minimal memory footprint.
 
 
-## Features
+*Key Benefits:*
 - Intuitive "Excel-like" methods: `bdp()`, `bdh()`, `bql()`
 - Outputs data as Polars DataFrames
 - Lightweight design with no dependency on `pandas`
+- Quickly prototype, test, and scale complex financial analyses.
+
+## Prerequisites
+
+- **Bloomberg Access:** A valid Bloomberg terminal or Bloomberg Server API (SAPI) license.
+- **Bloomberg Python API:** The `blpapi` library must be installed. See the [Bloomberg API Library](https://www.bloomberg.com/professional/support/api-library/) for guidance.
+- **Python Version:** Python 3.8+ recommended.
+- **Installation:** `pip install polars-bloomberg`
 
 
-# Installation
-```bash
-pip install polars-bloomberg
-```
+## Quick Start Guide (5 Minutes)
 
-# 5 Minutes Start Guide
-Here are some basic examples demonstrating how to use the `Polars + Bloomberg Open API` to fetch Bloomberg data and return them in a Polars DataFrame.
+Below is a simple example to get you started. For more comprehensive examples, please see the [examples/](examples/) directory.
 
-User starts by creating a BQuery() object using context manager syntax. The object can then be used for data-point bdp() queries, historical bdh() queries or even BLoomberg Query Language bql() queries.
+**Concept:**  
+`BQuery` is your main interface. Using a context manager ensures the connection opens and closes cleanly. Within this session, you can use:
+- `bq.bdp()` for Bloomberg Data Points (single-value fields).
+- `bq.bdh()` for Historical Data (time series).
+- `bq.bql()` for complex Bloomberg Query Language requests.
 
 ## BDP - Bloomberg Data Point
-Full-code example, getting last price for Apple and Microsoft shares:
+
+### Example: Fetching the Last Price of Apple and Microsoft
 ```python
 from polars_bloomberg import BQuery
 
@@ -112,14 +121,12 @@ with BQuery() as bq:
 <small>shape: (3, 3)</small><table border="1" class="dataframe"><thead><tr><th>security</th><th>date</th><th>PX_LAST</th></tr><tr><td>str</td><td>date</td><td>f64</td></tr></thead><tbody><tr><td>&quot;AAPL US Equity&quot;</td><td>2019-01-31</td><td>41.61</td></tr><tr><td>&quot;AAPL US Equity&quot;</td><td>2019-02-28</td><td>43.288</td></tr><tr><td>&quot;AAPL US Equity&quot;</td><td>2019-03-29</td><td>47.488</td></tr></tbody></table>
 </div>
 
-### BDH with currency overrides
-
-
 </details>
 
 
 ## BQL - Bloomberg Query Language
-Allows to run complex `bql` queries and get result in wide `polars.DataFrame`with correct types
+Allows to run complex `bql` queries and get result in wide `polars.DataFrame`with correct polars types
+
 ```python
 df = bq.bql("get(px_last) for(['IBM US Equity', 'OMX Index'])")
 ```
@@ -128,7 +135,7 @@ df = bq.bql("get(px_last) for(['IBM US Equity', 'OMX Index'])")
 
 <details><summary>More BQL Examples</summary>
     
-Example of more complex query:
+### Actual and Forward EPS Estimates
 ```python
 df = bq.bql("""
     let(#eps=is_eps(fa_period_type='A',
@@ -143,7 +150,47 @@ df = bq.bql("""
 <tr><td>&quot;IBM US Equity&quot;</td><td>6.28</td><td>2023-02-28</td><td>2024-12-07</td><td>2020-12-31</td><td>&quot;USD&quot;</td></tr>
 <tr><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td></tr>
 <tr><td>&quot;IBM US Equity&quot;</td><td>9.236</td><td>2024-12-07</td><td>2024-12-07</td><td>2025-12-31</td><td>&quot;USD&quot;</td></tr>
-</tbody></table></div>
+</tbody></table>
+</div>
+
+### Average issuer OAS spread per maturity bucket
+```python
+query = """
+let( 
+    #bins = bins(maturity_years,
+                 [3,9,18,30],
+                 ['(1) 0-3','(2) 3-9','(3) 9-18','(4) 18-30','(5) 30+']);
+    #average_spread = avg(group(spread(st=oas),#bins));
+)
+get(#average_spread)
+for(filter(bonds('NVDA US Equity', issuedby = 'ENTITY'),
+           maturity_years != NA))
+"""
+
+with BQuery() as bq:
+    df = bq.bql(query)
+```
+<div>
+<small>shape: (5, 5)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>#average_spread</th><th>#average_spread.DATE</th><th>#average_spread.ORIG_IDS</th><th>#average_spread.#BINS</th></tr><tr><td>str</td><td>f64</td><td>date</td><td>str</td><td>str</td></tr></thead><tbody><tr><td>&quot;(1) 0-3&quot;</td><td>30.74</td><td>2024-12-08</td><td>&quot;QZ552396 Corp&quot;</td><td>&quot;(1) 0-3&quot;</td></tr><tr><td>&quot;(2) 3-9&quot;</td><td>59.79</td><td>2024-12-08</td><td>null</td><td>&quot;(2) 3-9&quot;</td></tr><tr><td>&quot;(3) 9-18&quot;</td><td>105.39</td><td>2024-12-08</td><td>&quot;BH393780 Corp&quot;</td><td>&quot;(3) 9-18&quot;</td></tr><tr><td>&quot;(4) 18-30&quot;</td><td>131.72</td><td>2024-12-08</td><td>&quot;BH393781 Corp&quot;</td><td>&quot;(4) 18-30&quot;</td></tr><tr><td>&quot;(5) 30+&quot;</td><td>150.33</td><td>2024-12-08</td><td>&quot;BH393782 Corp&quot;</td><td>&quot;(5) 30+&quot;</td></tr></tbody></table>
+</div>
+
+### Technical Analysis: stocks with 20d EMA > 200d EMA and RSI > 70
+```python
+with BQuery() as bq:
+    df = bq.bql(
+        """
+        let(#ema20=emavg(period=20); 
+            #ema200=emavg(period=200); 
+            #rsi=rsi(close=px_last());)
+        get(name(), #ema20, #ema200, #rsi)
+        for(filter(members('OMX Index'), 
+                    and(#ema20 > #ema200, #rsi > 70)))
+        with(fill=PREV)
+        """
+    )
+```
+<div>
+<small>shape: (2, 10)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>name()</th><th>#ema20</th><th>#ema20.DATE</th><th>#ema20.CURRENCY</th><th>#ema200</th><th>#ema200.DATE</th><th>#ema200.CURRENCY</th><th>#rsi</th><th>#rsi.DATE</th></tr><tr><td>str</td><td>str</td><td>f64</td><td>date</td><td>str</td><td>f64</td><td>date</td><td>str</td><td>f64</td><td>date</td></tr></thead><tbody><tr><td>&quot;SKFB SS Equity&quot;</td><td>&quot;SKF AB&quot;</td><td>210.185019</td><td>2024-12-08</td><td>&quot;SEK&quot;</td><td>204.16756</td><td>2024-12-08</td><td>&quot;SEK&quot;</td><td>72.255568</td><td>2024-12-08</td></tr><tr><td>&quot;ABB SS Equity&quot;</td><td>&quot;ABB Ltd&quot;</td><td>623.496942</td><td>2024-12-08</td><td>&quot;SEK&quot;</td><td>561.902577</td><td>2024-12-08</td><td>&quot;SEK&quot;</td><td>72.144556</td><td>2024-12-08</td></tr></tbody></table></div>
 
 </details>
 
