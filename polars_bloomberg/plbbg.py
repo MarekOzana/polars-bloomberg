@@ -121,7 +121,6 @@ class BQuery:
         )
         request.set("startDate", start_date.strftime("%Y%m%d"))
         request.set("endDate", end_date.strftime("%Y%m%d"))
-        request.set("periodicitySelection", "DAILY")
         responses = self._send_request(request)
         data = self._parse_bdh_responses(responses, fields)
         return pl.DataFrame(data)
