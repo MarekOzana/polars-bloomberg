@@ -30,8 +30,9 @@ Usage
 
 import json
 import logging
+from collections.abc import Sequence
 from datetime import date, datetime
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any
 
 import blpapi
 import polars as pl
@@ -87,10 +88,10 @@ class BQuery:
 
     def bdp(
         self,
-        securities: List[str],
-        fields: List[str],
-        overrides: Optional[Sequence] = None,
-        options: Optional[Dict] = None,
+        securities: list[str],
+        fields: list[str],
+        overrides: Sequence | None = None,
+        options: dict | None = None,
     ) -> pl.DataFrame:
         """Bloomberg Data Point, equivalent to Excel BDP() function.
 
@@ -105,12 +106,12 @@ class BQuery:
 
     def bdh(
         self,
-        securities: List[str],
-        fields: List[str],
+        securities: list[str],
+        fields: list[str],
         start_date: date,
         end_date: date,
-        overrides: Optional[Sequence] = None,
-        options: Optional[Dict] = None,
+        overrides: Sequence | None = None,
+        options: dict | None = None,
     ) -> pl.DataFrame:
         """Bloomberg Data History, equivalent to Excel BDH() function.
 
@@ -135,10 +136,10 @@ class BQuery:
     def _create_request(
         self,
         request_type: str,
-        securities: List[str],
-        fields: List[str],
-        overrides: Optional[Sequence] = None,
-        options: Optional[Dict] = None,
+        securities: list[str],
+        fields: list[str],
+        overrides: Sequence | None = None,
+        options: dict | None = None,
     ) -> blpapi.Request:
         """Create a Bloomberg request with support for overrides and additional options.
 
@@ -195,7 +196,7 @@ class BQuery:
         request.set("expression", expression)
         return request
 
-    def _send_request(self, request) -> List[Dict]:
+    def _send_request(self, request) -> list[dict]:
         """Send a Bloomberg request and collect responses with timeout handling.
 
         Returns:
@@ -228,8 +229,8 @@ class BQuery:
         return responses
 
     def _parse_bdp_responses(
-        self, responses: List[Dict], fields: List[str]
-    ) -> List[Dict]:
+        self, responses: list[dict], fields: list[str]
+    ) -> list[dict]:
         data = []
         for response in responses:
             security_data = response.get("securityData", [])
@@ -243,8 +244,8 @@ class BQuery:
         return data
 
     def _parse_bdh_responses(
-        self, responses: List[Dict], fields: List[str]
-    ) -> List[Dict]:
+        self, responses: list[dict], fields: list[str]
+    ) -> list[dict]:
         data = []
         for response in responses:
             security_data = response.get("securityData", {})
@@ -257,7 +258,7 @@ class BQuery:
                 data.append(record)
         return data
 
-    def _parse_bql_responses(self, responses: List[Any]):
+    def _parse_bql_responses(self, responses: list[Any]):
         """Parse BQL responses list.
 
         I consists of dictionaries and string with embedded json.
@@ -286,8 +287,8 @@ class BQuery:
             }
         }
         """
-        data: Dict[str, list] = {}  # Column name -> list of values
-        all_column_types: Dict[str, str] = {}  # Column name -> type
+        data: dict[str, list] = {}  # Column name -> list of values
+        all_column_types: dict[str, str] = {}  # Column name -> type
 
         # Process each response in the list
         for response in responses:
@@ -334,7 +335,7 @@ class BQuery:
 
         return data, schema
 
-    def _parse_bql_response_dict(self, results: Dict[str, Any]):
+    def _parse_bql_response_dict(self, results: dict[str, Any]):
         """Parse BQL response dictionary into a table format.
 
         Parameters
@@ -366,7 +367,7 @@ class BQuery:
 
         """
         col_types = {}  # Column name -> type
-        cols: Dict[str, list] = {}  # Column name -> list of values
+        cols: dict[str, list] = {}  # Column name -> list of values
 
         for field_name, content in results.items():
             id_column = content.get("idColumn", {})

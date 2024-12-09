@@ -7,8 +7,9 @@ The tests REQUIRE an active Bloomberg Terminal connection.
 """
 
 import json
+from collections.abc import Generator
 from datetime import date
-from typing import Final, Generator
+from typing import Final
 from unittest.mock import MagicMock, patch
 
 import blpapi
