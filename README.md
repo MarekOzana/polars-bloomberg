@@ -77,7 +77,8 @@ with BQuery() as bq:
 Overrides for dates has to be in format YYYYMMDD
 ```python
 with BQuery() as bq:
-    df = bq.bdp(["USX60003AC87 Corp"], ["SETTLE_DT"], overrides=[("USER_LOCAL_TRADE_DATE", "20241014")])
+    df = bq.bdp(["USX60003AC87 Corp"], ["SETTLE_DT"],
+                overrides=[("USER_LOCAL_TRADE_DATE", "20241014")])
 ```
 <div>
 <small>shape: (1, 2)</small><table border="1" class="dataframe"><thead><tr><th>security</th><th>SETTLE_DT</th></tr><tr><td>str</td><td>date</td></tr></thead><tbody><tr><td>&quot;USX60003AC87 Corp&quot;</td><td>2024-10-15</td></tr></tbody></table>
@@ -192,6 +193,26 @@ with BQuery() as bq:
 ```
 <div>
 <small>shape: (2, 10)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>name()</th><th>#ema20</th><th>#ema20.DATE</th><th>#ema20.CURRENCY</th><th>#ema200</th><th>#ema200.DATE</th><th>#ema200.CURRENCY</th><th>#rsi</th><th>#rsi.DATE</th></tr><tr><td>str</td><td>str</td><td>f64</td><td>date</td><td>str</td><td>f64</td><td>date</td><td>str</td><td>f64</td><td>date</td></tr></thead><tbody><tr><td>&quot;SKFB SS Equity&quot;</td><td>&quot;SKF AB&quot;</td><td>210.185019</td><td>2024-12-08</td><td>&quot;SEK&quot;</td><td>204.16756</td><td>2024-12-08</td><td>&quot;SEK&quot;</td><td>72.255568</td><td>2024-12-08</td></tr><tr><td>&quot;ABB SS Equity&quot;</td><td>&quot;ABB Ltd&quot;</td><td>623.496942</td><td>2024-12-08</td><td>&quot;SEK&quot;</td><td>561.902577</td><td>2024-12-08</td><td>&quot;SEK&quot;</td><td>72.144556</td><td>2024-12-08</td></tr></tbody></table></div>
+
+### Swedish USD AT1 Bonds with Bid Axis
+```python
+query="""
+let(#ax=axes();)
+get(ticker, cpn(), nxt_call_dt(), #ax)
+for(filter(bondsuniv(ACTIVE), 
+    crncy()=='USD' and 
+    basel_iii_designation() == 'Additional Tier 1' and 
+    country_iso() == 'SE' and 
+    is_axed('Bid') == True))
+"""
+
+with BQuery() as bq:
+    df = bq.bql(query)
+```
+<div>
+<small>shape: (8, 11)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>ticker</th><th>cpn()</th><th>cpn().MULTIPLIER</th><th>cpn().CPN_TYP</th><th>nxt_call_dt()</th><th>#ax</th><th>#ax.ASK_DEPTH</th><th>#ax.BID_DEPTH</th><th>#ax.ASK_TOTAL_SIZE</th><th>#ax.BID_TOTAL_SIZE</th></tr><tr><td>str</td><td>str</td><td>f64</td><td>f64</td><td>str</td><td>date</td><td>str</td><td>i64</td><td>i64</td><td>f64</td><td>f64</td></tr></thead><tbody><tr><td>&quot;YU819930 Corp&quot;</td><td>&quot;SEB&quot;</td><td>6.75</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2031-11-04</td><td>&quot;Y&quot;</td><td>1</td><td>1</td><td>5e6</td><td>1.8e6</td></tr><tr><td>&quot;ZQ349286 Corp&quot;</td><td>&quot;SEB&quot;</td><td>5.125</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2025-05-13</td><td>&quot;Y&quot;</td><td>3</td><td>9</td><td>6.7e6</td><td>5e7</td></tr><tr><td>&quot;ZF859199 Corp&quot;</td><td>&quot;SWEDA&quot;</td><td>7.75</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2030-03-17</td><td>&quot;Y&quot;</td><td>1</td><td>2</td><td>5e6</td><td>7e6</td></tr><tr><td>&quot;BW924993 Corp&quot;</td><td>&quot;SEB&quot;</td><td>6.875</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2027-06-30</td><td>&quot;Y&quot;</td><td>2</td><td>3</td><td>8.2e6</td><td>1.1e7</td></tr><tr><td>&quot;ZL122341 Corp&quot;</td><td>&quot;SWEDA&quot;</td><td>7.625</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2028-03-17</td><td>&quot;Y&quot;</td><td>1</td><td>6</td><td>2.6e6</td><td>2.34e7</td></tr><tr><td>&quot;ZO703956 Corp&quot;</td><td>&quot;SHBASS&quot;</td><td>4.75</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2031-03-01</td><td>&quot;Y&quot;</td><td>1</td><td>2</td><td>3.2e6</td><td>6e6</td></tr><tr><td>&quot;BR069680 Corp&quot;</td><td>&quot;SWEDA&quot;</td><td>4.0</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2029-03-17</td><td>&quot;Y&quot;</td><td>null</td><td>1</td><td>null</td><td>3e6</td></tr><tr><td>&quot;ZO703315 Corp&quot;</td><td>&quot;SHBASS&quot;</td><td>4.375</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2027-03-01</td><td>&quot;Y&quot;</td><td>1</td><td>3</td><td>3e6</td><td>7.4e6</td></tr></tbody></table>
+</div>
+
 
 </details>
 
