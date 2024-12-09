@@ -1,4 +1,4 @@
-# ![Polars Bloomberg Logo](assets/polars-bloomberg-logo.jpg)
+![Polars Bloomberg Logo](https://raw.githubusercontent.com/MarekOzana/polars-bloomberg/main/assets/polars-bloomberg-logo.jpg)
 
 # Polars + Bloomberg Open API
 [![Tests](https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml/badge.svg)](https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml)
