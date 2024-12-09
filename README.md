@@ -15,7 +15,7 @@
 
 ## Prerequisites
 
-- **Bloomberg Access:** A valid Bloomberg terminal or Bloomberg Server API (SAPI) license.
+- **Bloomberg Access:** A valid Bloomberg terminal license.
 - **Bloomberg Python API:** The `blpapi` library must be installed. See the [Bloomberg API Library](https://www.bloomberg.com/professional/support/api-library/) for guidance.
 - **Python Version:** Python 3.8+ recommended.
 - **Installation:** `pip install polars-bloomberg`
@@ -128,7 +128,8 @@ with BQuery() as bq:
 Allows to run complex `bql` queries and get result in wide `polars.DataFrame`with correct polars types
 
 ```python
-df = bq.bql("get(px_last) for(['IBM US Equity', 'OMX Index'])")
+with BQuery() as bq:
+    df = bq.bql("get(px_last) for(['IBM US Equity', 'OMX Index'])")
 ```
 <div>
 <small>shape: (2, 4)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>px_last</th><th>px_last.DATE</th><th>px_last.CURRENCY</th></tr><tr><td>str</td><td>f64</td><td>date</td><td>str</td></tr></thead><tbody><tr><td>&quot;IBM US Equity&quot;</td><td>238.04</td><td>2024-12-07</td><td>&quot;USD&quot;</td></tr><tr><td>&quot;OMX Index&quot;</td><td>2614.268</td><td>2024-12-07</td><td>&quot;SEK&quot;</td></tr></tbody></table></div>
