@@ -625,7 +625,10 @@ class TestBQuerySendRequest:
         bquery.session.nextEvent.assert_called_once_with(5000)
 
 
-class TestSchemaMapping:
+@pytest.mark.no_bbg
+class TestSchemaMappingAndDataConversion:
+    """Test suite for the BQuery._map_column_types_to_schema method."""
+
     @pytest.fixture
     def bq(self):
         """Fixture to create a BQuery instance for testing."""
@@ -692,3 +695,99 @@ class TestSchemaMapping:
         }
         result = bq._map_column_types_to_schema(input_types)
         assert result == expected_schema
+
+    def test_replace_nan_with_none_in_float_columns(self, bq):
+        """Test replacing 'NaN' strings with None in Float64 columns."""
+        data = {"float_col": [1.0, "NaN", 3.5], "int_col": [2, "NaN", 5]}
+        schema = {"float_col": pl.Float64, "int_col": pl.Int64}
+        expected_data = {"float_col": [1.0, None, 3.5], "int_col": [2, None, 5]}
+
+        result = bq._convert_dates_and_handle_nans(data, schema)
+        assert result == expected_data
+
+    def test_handle_none_in_date_columns(self, bq):
+        """Test handling None values in Date columns."""
+        data = {
+            "date_col": ["2024-12-02T00:00:00Z", None, "2024-12-03T00:00:00Z"],
+            "value_col": [10, 20, 30],
+        }
+        schema = {"date_col": pl.Date, "value_col": pl.Int64}
+        expected_data = {
+            "date_col": [date(2024, 12, 2), None, date(2024, 12, 3)],
+            "value_col": [10, 20, 30],
+        }
+
+        result = bq._convert_dates_and_handle_nans(data, schema)
+        assert result == expected_data
+
+    def test_handle_mixed_columns(self, bq):
+        """Test handling mixed data types with 'NaN' and None."""
+        data = {
+            "date_col": ["2024-12-02T00:00:00Z", None, None],
+            "float_col": [1.0, "NaN", 3.5],
+            "int_col": [2, "NaN", 5],
+            "string_col": ["foo", "NaN", "bar"],
+        }
+        schema = {
+            "date_col": pl.Date,
+            "float_col": pl.Float64,
+            "int_col": pl.Int64,
+            "string_col": pl.Utf8,
+        }
+        expected_data = {
+            "date_col": [date(2024, 12, 2), None, None],
+            "float_col": [1.0, None, 3.5],
+            "int_col": [2, None, 5],
+            "string_col": ["foo", "NaN", "bar"],  # 'NaN' should not be replaced in Utf8
+        }
+
+        result = bq._convert_dates_and_handle_nans(data, schema)
+        assert result == expected_data
+
+    def test_no_nan_or_none(self, bq):
+        """Test data without any 'NaN' or None values."""
+        data = {
+            "date_col": ["2024-12-02T00:00:00Z", "2024-12-03T00:00:00Z"],
+            "float_col": [1.0, 3.5],
+            "int_col": [2, 5],
+            "string_col": ["foo", "bar"],
+        }
+        schema = {
+            "date_col": pl.Date,
+            "float_col": pl.Float64,
+            "int_col": pl.Int64,
+            "string_col": pl.Utf8,
+        }
+        expected_data = {
+            "date_col": [date(2024, 12, 2), date(2024, 12, 3)],
+            "float_col": [1.0, 3.5],
+            "int_col": [2, 5],
+            "string_col": ["foo", "bar"],
+        }
+
+        result = bq._convert_dates_and_handle_nans(data, schema)
+        assert result == expected_data
+
+    def test_all_nan_or_none(self, bq):
+        """Test data where all entries are 'NaN' or None."""
+        data = {
+            "date_col": [None, None, None],
+            "float_col": ["NaN", "NaN", "NaN"],
+            "int_col": ["NaN", "NaN", "NaN"],
+            "string_col": ["NaN", "NaN", "NaN"],
+        }
+        schema = {
+            "date_col": pl.Date,
+            "float_col": pl.Float64,
+            "int_col": pl.Int64,
+            "string_col": pl.Utf8,
+        }
+        expected_data = {
+            "date_col": [None, None, None],
+            "float_col": [None, None, None],
+            "int_col": [None, None, None],
+            "string_col": ["NaN", "NaN", "NaN"],
+        }
+
+        result = bq._convert_dates_and_handle_nans(data, schema)
+        assert result == expected_data
