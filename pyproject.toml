@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "polars-bloomberg"
-version = "0.2.3"
+version = "0.2.4"
 description = "Python library providing a Polars DataFrame interface for easy and intuitive access to Bloomberg API."
 readme = "README.md"
 license = { text = "Apache-2.0" }
