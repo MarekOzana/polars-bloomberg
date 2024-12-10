@@ -1,0 +1,53 @@
+{
+    "#rets": {
+        "name": "#rets",
+        "offsets": [
+            2
+        ],
+        "namespace": "FUNCTION_DEFAULT",
+        "source": "BQLAnalyticsEngine",
+        "idColumn": {
+            "name": "ID",
+            "type": "STRING",
+            "rank": 0,
+            "values": [
+                "YX231113 Corp",
+                "YX231113 Corp",
+                "YX231113 Corp"
+            ]
+        },
+        "valuesColumn": {
+            "name": "VALUE",
+            "type": "DOUBLE",
+            "rank": 0,
+            "values": [
+                "NaN",
+                0.0002732545901463368,
+                -0.0008638730296779248
+            ]
+        },
+        "secondaryColumns": [
+            {
+                "name": "DATE",
+                "type": "DATE",
+                "rank": 0,
+                "values": [
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-08T00:00:00Z",
+                    "2024-12-09T00:00:00Z"
+                ],
+                "defaultDate": true
+            }
+        ],
+        "partialErrorMap": {
+            "errorIterator": null
+        },
+        "responseExceptions": [],
+        "transparency": null,
+        "forUniverse": true,
+        "bqlResponseInfo": null,
+        "defaultDateColumnName": "DATE",
+        "itemPreviewStatistics": null,
+        "indexView": null
+    }
+}
