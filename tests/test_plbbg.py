@@ -482,6 +482,19 @@ def test_parse_bql_responses():
                 "#eps.CURRENCY": "STRING",
             },
         ),
+        (
+            "tests/data/results_with_NaN_DOUBLE.json",
+            {
+                "ID": ["YX231113 Corp", "YX231113 Corp", "YX231113 Corp"],
+                "#rets": ["NaN", 0.000273, -0.000863],
+                "#rets.DATE": [
+                    "2024-12-07T00:00:00Z",
+                    "2024-12-08T00:00:00Z",
+                    "2024-12-09T00:00:00Z",
+                ],
+            },
+            {"ID": "STRING", "#rets": "DOUBLE", "#rets.DATE": "DATE"},
+        ),
     ],
 )
 def test_parse_bql_response_dict(json_file, expected_data, expected_schema):
@@ -492,7 +505,6 @@ def test_parse_bql_response_dict(json_file, expected_data, expected_schema):
 
     # Call the method to test
     cols, schema = bq._parse_bql_response_dict(results)
-
     # Assert that the data matches the expected output
     assert cols == expected_data
     # Assert that the column types match the expected schema
