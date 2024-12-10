@@ -131,7 +131,7 @@ class BQuery:
         request = self._create_bql_request(expression)
         responses = self._send_request(request)
         data, schema = self._parse_bql_responses(responses)
-        return pl.DataFrame(data, schema=schema)
+        return pl.DataFrame(data, schema=schema, strict=True)
 
     def _create_request(
         self,
@@ -315,25 +315,50 @@ class BQuery:
                 data.setdefault(col_name, []).extend(values)
             all_column_types.update(col_types)
 
-        # Map string types to Polars data types
+        schema = self._map_column_types_to_schema(all_column_types)
+        data = self._convert_dates_and_handle_nans(data, schema)
+
+        return data, schema
+
+    def _convert_dates_and_handle_nans(self, data, schema):
+        fmt = "%Y-%m-%dT%H:%M:%SZ"
+        for col, values in data.items():
+            if schema.get(col) == pl.Date:
+                data[col] = data[col] = [
+                    # 'v' can be None, need to handle it
+                    datetime.strptime(v, fmt).date() if isinstance(v, str) else None
+                    for v in values
+                ]
+            elif schema.get(col) in [pl.Float64, pl.Int64]:
+                data[col] = [None if x == "NaN" else x for x in values]
+        return data
+
+    def _map_column_types_to_schema(
+        self, all_column_types: dict[str, str]
+    ) -> dict[str, pl.DataType]:
+        """Map column types from string representation to Polars data types.
+
+        Parameters
+        ----------
+        all_column_types : dict[str, str]
+            A dictionary mapping column names to their string type representations.
+
+        Returns
+        -------
+        dict
+            A dictionary mapping column names to Polars data types.
+
+        """
         type_mapping = {
             "STRING": pl.Utf8,
             "DOUBLE": pl.Float64,
             "INT": pl.Int64,
             "DATE": pl.Date,
         }
-        schema = {
+        return {
             col_name: type_mapping.get(col_type, pl.Utf8)
             for col_name, col_type in all_column_types.items()
         }
-
-        # Convert date strings to date objects
-        fmt = "%Y-%m-%dT%H:%M:%SZ"
-        for col, values in data.items():
-            if schema.get(col) == pl.Date:
-                data[col] = [datetime.strptime(v, fmt).date() for v in values]
-
-        return data, schema
 
     def _parse_bql_response_dict(self, results: dict[str, Any]):
         """Parse BQL response dictionary into a table format.

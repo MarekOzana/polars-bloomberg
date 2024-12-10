@@ -623,3 +623,72 @@ class TestBQuerySendRequest:
         # Assertions
         bquery.session.sendRequest.assert_called_with(mock_request)
         bquery.session.nextEvent.assert_called_once_with(5000)
+
+
+class TestSchemaMapping:
+    @pytest.fixture
+    def bq(self):
+        """Fixture to create a BQuery instance for testing."""
+        return BQuery()
+
+    def test_map_all_known_types(self, bq: BQuery):
+        """Test mapping with all known column types."""
+        input_types = {
+            "name": "STRING",
+            "price": "DOUBLE",
+            "quantity": "INT",
+            "transaction_date": "DATE",
+        }
+        expected_schema = {
+            "name": pl.Utf8,
+            "price": pl.Float64,
+            "quantity": pl.Int64,
+            "transaction_date": pl.Date,
+        }
+        result = bq._map_column_types_to_schema(input_types)
+        assert result == expected_schema
+
+    def test_map_with_unknown_types(self, bq: BQuery):
+        """Test mapping with some unknown column types."""
+        input_types = {
+            "name": "STRING",
+            "price": "DOUBLE",
+            "status": "BOOLEAN",  # Unknown type
+            "transaction_date": "DATE",
+        }
+        expected_schema = {
+            "name": pl.Utf8,
+            "price": pl.Float64,
+            "status": pl.Utf8,  # Defaults to Utf8
+            "transaction_date": pl.Date,
+        }
+        result = bq._map_column_types_to_schema(input_types)
+        assert result == expected_schema
+
+    def test_map_empty_input(self, bq: BQuery):
+        """Test mapping with empty input dictionary."""
+        input_types = {}
+        expected_schema = {}
+        result = bq._map_column_types_to_schema(input_types)
+        assert result == expected_schema
+
+    def test_map_mixed_types(self, bq: BQuery):
+        """Test mapping with a mix of known and unknown column types."""
+        input_types = {
+            "name": "STRING",
+            "price": "DOUBLE",
+            "status": "BOOLEAN",
+            "quantity": "INT",
+            "transaction_date": "DATE",
+            "extra_field": "UNKNOWN_TYPE",
+        }
+        expected_schema = {
+            "name": pl.Utf8,
+            "price": pl.Float64,
+            "status": pl.Utf8,  # Defaults to Utf8
+            "quantity": pl.Int64,
+            "transaction_date": pl.Date,
+            "extra_field": pl.Utf8,  # Defaults to Utf8
+        }
+        result = bq._map_column_types_to_schema(input_types)
+        assert result == expected_schema
