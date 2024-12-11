@@ -127,11 +127,20 @@ class BQuery:
         return pl.DataFrame(data)
 
     def bql(self, expression: str) -> pl.DataFrame:
-        """Fetch data using a BQL expression."""
+        """Fetch data using a BQL expression.
+
+        Returns
+        -------
+        list[pl.DataFrame]
+
+        """
         request = self._create_bql_request(expression)
         responses = self._send_request(request)
-        data, schema = self._parse_bql_responses(responses)
-        return pl.DataFrame(data, schema=schema, strict=True)
+        data_lst, schema_lst = self._parse_bql_responses(responses)
+        return [
+            pl.DataFrame(data, schema=schema, strict=True)
+            for data, schema in zip(data_lst, schema_lst, strict=False)
+        ]
 
     def _create_request(
         self,
@@ -287,8 +296,8 @@ class BQuery:
             }
         }
         """
-        data: dict[str, list] = {}  # Column name -> list of values
-        all_column_types: dict[str, str] = {}  # Column name -> type
+        data: list[dict[str, list]] = []  # [Column name -> list of values]
+        all_column_types: list[dict[str, str]] = []  # Column name -> type
 
         # Process each response in the list
         for response in responses:
@@ -309,43 +318,43 @@ class BQuery:
                 continue
 
             # Parse the results and collect column types
-            cols, col_types = self._parse_bql_response_dict(results)
+            data_list, col_types = self._parse_bql_response_dict(results)
             # Extend existing columns in data dictionary
-            for col_name, values in cols.items():
-                data.setdefault(col_name, []).extend(values)
-            all_column_types.update(col_types)
+            data.extend(data_list)
+            all_column_types.extend(col_types)
 
         schema = self._map_column_types_to_schema(all_column_types)
         data = self._convert_dates_and_handle_nans(data, schema)
 
         return data, schema
 
-    def _convert_dates_and_handle_nans(self, data, schema):
+    def _convert_dates_and_handle_nans(self, data_lst:list[dict], schema_lst:list[dict]):
         fmt = "%Y-%m-%dT%H:%M:%SZ"
-        for col, values in data.items():
-            if schema.get(col) == pl.Date:
-                data[col] = data[col] = [
-                    # 'v' can be None, need to handle it
-                    datetime.strptime(v, fmt).date() if isinstance(v, str) else None
-                    for v in values
-                ]
-            elif schema.get(col) in [pl.Float64, pl.Int64]:
-                data[col] = [None if x == "NaN" else x for x in values]
-        return data
+        for data, schema in zip(data_lst, schema_lst, strict=True):
+            for col, values in data.items():
+                if schema.get(col) == pl.Date:
+                    data[col] = data[col] = [
+                        # 'v' can be None, need to handle it
+                        datetime.strptime(v, fmt).date() if isinstance(v, str) else None
+                        for v in values
+                    ]
+                elif schema.get(col) in [pl.Float64, pl.Int64]:
+                    data[col] = [None if x == "NaN" else x for x in values]
+        return data_lst
 
     def _map_column_types_to_schema(
-        self, all_column_types: dict[str, str]
-    ) -> dict[str, pl.DataType]:
+        self, all_column_types: list[dict[str, str]]
+    ) -> list[dict[str, pl.DataType]]:
         """Map column types from string representation to Polars data types.
 
         Parameters
         ----------
-        all_column_types : dict[str, str]
+        all_column_types : list[dict[str, str]]
             A dictionary mapping column names to their string type representations.
 
         Returns
         -------
-        dict
+        list[dict[str, plDataType]:
             A dictionary mapping column names to Polars data types.
 
         """
@@ -355,12 +364,14 @@ class BQuery:
             "INT": pl.Int64,
             "DATE": pl.Date,
         }
-        return {
-            col_name: type_mapping.get(col_type, pl.Utf8)
-            for col_name, col_type in all_column_types.items()
-        }
+        for col_types in all_column_types:
+            for col_name, col_type in col_types.items():
+                col_types[col_name] = type_mapping.get(col_type, pl.Utf8)
+        return all_column_types
 
-    def _parse_bql_response_dict(self, results: dict[str, Any]):
+    def _parse_bql_response_dict(
+        self, results: dict[str, Any]
+    ) -> tuple[list[dict], list[dict]]:
         """Parse BQL response dictionary into a table format.
 
         Parameters
@@ -373,45 +384,31 @@ class BQuery:
             List[Dict]: The list of records.
             Dict[str, str]: A dictionary mapping column names to their types.
 
-        Strategy:
-        - Iterate over all fields in 'results'.
-        - Use 'idColumn' values as primary keys.
-        - Merge data from multiple fields based on 'ID'.
-        - Include secondary columns with field-specific prefixes.
-
-        Example:
-        For each 'ID', the record will contain:
-        {
-            'ID': ...,
-            'Field1': ...,
-            'Field1.SecondaryCol1': ...,
-            'Field2': ...,
-            'Field2.SecondaryCol1': ...,
-            ...
-        }
-
         """
-        col_types = {}  # Column name -> type
-        cols: dict[str, list] = {}  # Column name -> list of values
+        col_types: list[dict[str, str]] = []  # list of dicts: col_name -> type
+        data_list: list[dict[str, list]] = []  # list of dictionaries: col_name -> values
 
         for field_name, content in results.items():
+            field_dict = {}  # data point dictionary
+            types_dict = {}  # columns types dictionary
             id_column = content.get("idColumn", {})
             value_column = content.get("valuesColumn", {})
             secondary_columns = content.get("secondaryColumns", [])
 
-            cols["ID"] = id_column.get("values", [])
-            cols[field_name] = value_column.get("values", [])
+            field_dict["ID"] = id_column.get("values", [])
+            field_dict[field_name] = value_column.get("values", [])
 
-            col_types["ID"] = id_column.get("type", str)
-            col_types[field_name] = value_column.get("type", str)
+            types_dict["ID"] = id_column.get("type", str)
+            types_dict[field_name] = value_column.get("type", str)
 
             # Process secondary columns
             for sec_col in secondary_columns:
                 sec_col_name = sec_col.get("name", "")
                 sec_col_values = sec_col.get("values", [])
                 # Use a composite key with field name to avoid conflicts
-                full_sec_col_name = f"{field_name}.{sec_col_name}"
-                cols[full_sec_col_name] = sec_col_values
-                col_types[full_sec_col_name] = sec_col.get("type", str)
+                field_dict[sec_col_name] = sec_col_values
+                types_dict[sec_col_name] = sec_col.get("type", str)
+            col_types.append(types_dict)
+            data_list.append(field_dict)
 
-        return cols, col_types
+        return data_list, col_types
