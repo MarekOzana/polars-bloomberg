@@ -9,7 +9,7 @@ The tests REQUIRE an active Bloomberg Terminal connection.
 import json
 from collections.abc import Generator
 from datetime import date
-from typing import Final, Literal
+from typing import Final
 from unittest.mock import MagicMock, patch
 
 import blpapi
@@ -18,6 +18,7 @@ import pytest
 from polars.testing import assert_frame_equal
 
 from polars_bloomberg import BQuery
+from polars_bloomberg.plbbg import SITable
 
 
 @pytest.fixture(scope="module")
@@ -335,430 +336,453 @@ def test_parse_bql_responses():
         "'valuesColumn': {'type':'DOUBLE', 'values': [125.32, 150.75]}, "
         "'secondaryColumns': [{'name': 'DATE', 'type':'DATE',"
         "'values': ['2024-12-03T00:00:00Z', '2024-12-03T00:00:00Z']}, "
-        "{'name': 'CURRENCY', 'values': ['USD', 'USD']}]}}}",
+        "{'name': 'CURRENCY', 'type':'STRING','values': ['USD', 'USD']}]}}}",
     ]
 
     # Expected output after parsing
-    expected_data_lst = [
-        {
-            "ID": ["IBM US Equity", "AAPL US Equity"],
-            "px_last": [125.32, 150.75],
-            "DATE": [date(2024, 12, 3), date(2024, 12, 3)],
-            "CURRENCY": ["USD", "USD"],
-        }
-    ]
-    expected_schema_lst = [{
+    exp_data = {
+        "ID": ["IBM US Equity", "AAPL US Equity"],
+        "px_last": [125.32, 150.75],
+        "DATE": [date(2024, 12, 3), date(2024, 12, 3)],
+        "CURRENCY": ["USD", "USD"],
+    }
+    exp_schema = {
         "ID": pl.String,
         "px_last": pl.Float64,
         "DATE": pl.Date,
         "CURRENCY": pl.String,
-    }]
+    }
 
     # Call the _parse_bql_responses function with mock data
-    data_lst, schema_lst = bq._parse_bql_responses(mock_responses)
-
+    tables: list[SITable] = bq._parse_bql_responses(mock_responses)
+    assert len(tables) == 1
+    tbl = tables[0]
     # Assert that the parsed result matches the expected output
-    assert data_lst == expected_data_lst
-    assert schema_lst == expected_schema_lst
+    assert tbl.data == exp_data
+    assert tbl.schema == exp_schema
 
 
 @pytest.mark.no_bbg
 @pytest.mark.parametrize(
-    "json_file, expected_data, expected_schema",
+    "json_file, exp_table_list",
     [
         (
             "tests/data/results_last_px.json",
             [
-                {
-                    "ID": ["IBM US Equity", "AAPL US Equity"],
-                    "px_last": [227.02, 241.31],
-                    "DATE": ["2024-12-03T00:00:00Z", "2024-12-03T00:00:00Z"],
-                    "CURRENCY": ["USD", "USD"],
-                }
-            ],
-            [
-                {
-                    "ID": "STRING",
-                    "px_last": "DOUBLE",
-                    "DATE": "DATE",
-                    "CURRENCY": "STRING",
-                }
+                SITable(
+                    name="px_last",
+                    data={
+                        "ID": ["IBM US Equity", "AAPL US Equity"],
+                        "px_last": [227.02, 241.31],
+                        "DATE": ["2024-12-03T00:00:00Z", "2024-12-03T00:00:00Z"],
+                        "CURRENCY": ["USD", "USD"],
+                    },
+                    schema={
+                        "ID": pl.Utf8,
+                        "px_last": pl.Float64,
+                        "DATE": pl.Date,
+                        "CURRENCY": pl.Utf8,
+                    },
+                )
             ],
         ),
         (
             "tests/data/results_dur_zspread.json",
             [
-                {
-                    "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
-                    "name()": ["SEB 6 ⅞ PERP", "NDAFH 6.3 PERP"],
-                },
-                {
-                    "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
-                    "#dur": [2.26, 5.36],
-                    "DATE": ["2024-12-03T00:00:00Z", "2024-12-03T00:00:00Z"],
-                },
-                {
-                    "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
-                    "#zsprd": [244.5, 331.1],
-                    "DATE": ["2024-12-03T00:00:00Z", "2024-12-03T00:00:00Z"],
-                },
-            ],
-            [
-                {"ID": "STRING", "name()": "STRING"},
-                {"ID": "STRING", "#dur": "DOUBLE", "DATE": "DATE"},
-                {"ID": "STRING", "#zsprd": "DOUBLE", "DATE": "DATE"},
+                SITable(
+                    name="name()",
+                    data={
+                        "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
+                        "name()": ["SEB 6 ⅞ PERP", "NDAFH 6.3 PERP"],
+                    },
+                    schema={"ID": pl.String, "name()": pl.String},
+                ),
+                SITable(
+                    name="#dur",
+                    data={
+                        "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
+                        "#dur": [2.26, 5.36],
+                        "DATE": ["2024-12-03T00:00:00Z", "2024-12-03T00:00:00Z"],
+                    },
+                    schema={"ID": pl.String, "#dur": pl.Float64, "DATE": pl.Date},
+                ),
+                SITable(
+                    name="#zsprd",
+                    data={
+                        "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
+                        "#zsprd": [244.5, 331.1],
+                        "DATE": ["2024-12-03T00:00:00Z", "2024-12-03T00:00:00Z"],
+                    },
+                    schema={"ID": pl.String, "#zsprd": pl.Float64, "DATE": pl.Date},
+                ),
             ],
         ),
         (
             "tests/data/results_cpn.json",
             [
-                {
-                    "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
-                    "name()": ["SEB 6 ⅞ PERP", "NDAFH 6.3 PERP"],
-                },
-                {
-                    "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
-                    "cpn()": [6.875, 6.3],
-                    "MULTIPLIER": [1.0, 1.0],
-                    "CPN_TYP": ["VARIABLE", "VARIABLE"],
-                },
-            ],
-            [
-                {"ID": "STRING", "name()": "STRING"},
-                {
-                    "ID": "STRING",
-                    "cpn()": "DOUBLE",
-                    "MULTIPLIER": "DOUBLE",
-                    "CPN_TYP": "ENUM",
-                },
+                SITable(
+                    name="name()",
+                    data={
+                        "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
+                        "name()": ["SEB 6 ⅞ PERP", "NDAFH 6.3 PERP"],
+                    },
+                    schema={"ID": pl.String, "name()": pl.String},
+                ),
+                SITable(
+                    name="cpn()",
+                    data={
+                        "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
+                        "cpn()": [6.875, 6.3],
+                        "MULTIPLIER": [1.0, 1.0],
+                        "CPN_TYP": ["VARIABLE", "VARIABLE"],
+                    },
+                    schema={
+                        "ID": pl.String,
+                        "cpn()": pl.Float64,
+                        "MULTIPLIER": pl.Float64,
+                        "CPN_TYP": pl.String,
+                    },
+                ),
             ],
         ),
         (
             "tests/data/results_axes.json",
             [
-                {
-                    "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
-                    "name()": ["SEB 6 ⅞ PERP", "NDAFH 6.3 PERP"],
-                },
-                {
-                    "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
-                    "axes()": ["Y", "Y"],
-                    "ASK_DEPTH": [3, 1],
-                    "BID_DEPTH": [4, 3],
-                    "ASK_TOTAL_SIZE": [11200000.0, 2000000.0],
-                    "BID_TOTAL_SIZE": [15000000.0, 13000000.0],
-                },
-            ],
-            [
-                {"ID": "STRING", "name()": "STRING"},
-                {
-                    "ID": "STRING",
-                    "axes()": "STRING",
-                    "ASK_DEPTH": "INT",
-                    "BID_DEPTH": "INT",
-                    "ASK_TOTAL_SIZE": "DOUBLE",
-                    "BID_TOTAL_SIZE": "DOUBLE",
-                },
+                SITable(
+                    name="name()",
+                    data={
+                        "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
+                        "name()": ["SEB 6 ⅞ PERP", "NDAFH 6.3 PERP"],
+                    },
+                    schema={"ID": pl.String, "name()": pl.String},
+                ),
+                SITable(
+                    name="axes()",
+                    data={
+                        "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
+                        "axes()": ["Y", "Y"],
+                        "ASK_DEPTH": [3, 1],
+                        "BID_DEPTH": [4, 3],
+                        "ASK_TOTAL_SIZE": [11200000.0, 2000000.0],
+                        "BID_TOTAL_SIZE": [15000000.0, 13000000.0],
+                    },
+                    schema={
+                        "ID": pl.String,
+                        "axes()": pl.String,
+                        "ASK_DEPTH": pl.Int64,
+                        "BID_DEPTH": pl.Int64,
+                        "ASK_TOTAL_SIZE": pl.Float64,
+                        "BID_TOTAL_SIZE": pl.Float64,
+                    },
+                ),
             ],
         ),
         (
             "tests/data/results_eps_range.json",
             [
-                {
-                    "ID": [
-                        "IBM US Equity",
-                        "IBM US Equity",
-                        "IBM US Equity",
-                        "IBM US Equity",
-                        "IBM US Equity",
-                        "IBM US Equity",
-                        "IBM US Equity",
-                    ],
-                    "#eps": [10.63, 6.28, 6.41, 1.82, 8.23, 7.89, 9.236],
-                    "REVISION_DATE": [
-                        "2022-02-22T00:00:00Z",
-                        "2023-02-28T00:00:00Z",
-                        "2023-02-28T00:00:00Z",
-                        "2024-03-18T00:00:00Z",
-                        "2024-03-18T00:00:00Z",
-                        "2024-12-07T00:00:00Z",
-                        "2024-12-07T00:00:00Z",
-                    ],
-                    "AS_OF_DATE": [
-                        "2024-12-07T00:00:00Z",
-                        "2024-12-07T00:00:00Z",
-                        "2024-12-07T00:00:00Z",
-                        "2024-12-07T00:00:00Z",
-                        "2024-12-07T00:00:00Z",
-                        "2024-12-07T00:00:00Z",
-                        "2024-12-07T00:00:00Z",
-                    ],
-                    "PERIOD_END_DATE": [
-                        "2019-12-31T00:00:00Z",
-                        "2020-12-31T00:00:00Z",
-                        "2021-12-31T00:00:00Z",
-                        "2022-12-31T00:00:00Z",
-                        "2023-12-31T00:00:00Z",
-                        "2024-12-31T00:00:00Z",
-                        "2025-12-31T00:00:00Z",
-                    ],
-                    "CURRENCY": ["USD", "USD", "USD", "USD", "USD", "USD", "USD"],
-                }
-            ],
-            [
-                {
-                    "ID": "STRING",
-                    "#eps": "DOUBLE",
-                    "REVISION_DATE": "DATE",
-                    "AS_OF_DATE": "DATE",
-                    "PERIOD_END_DATE": "DATE",
-                    "CURRENCY": "STRING",
-                }
+                SITable(
+                    name="#eps",
+                    data={
+                        "ID": [
+                            "IBM US Equity",
+                            "IBM US Equity",
+                            "IBM US Equity",
+                            "IBM US Equity",
+                            "IBM US Equity",
+                            "IBM US Equity",
+                            "IBM US Equity",
+                        ],
+                        "#eps": [10.63, 6.28, 6.41, 1.82, 8.23, 7.89, 9.236],
+                        "REVISION_DATE": [
+                            "2022-02-22T00:00:00Z",
+                            "2023-02-28T00:00:00Z",
+                            "2023-02-28T00:00:00Z",
+                            "2024-03-18T00:00:00Z",
+                            "2024-03-18T00:00:00Z",
+                            "2024-12-07T00:00:00Z",
+                            "2024-12-07T00:00:00Z",
+                        ],
+                        "AS_OF_DATE": [
+                            "2024-12-07T00:00:00Z",
+                            "2024-12-07T00:00:00Z",
+                            "2024-12-07T00:00:00Z",
+                            "2024-12-07T00:00:00Z",
+                            "2024-12-07T00:00:00Z",
+                            "2024-12-07T00:00:00Z",
+                            "2024-12-07T00:00:00Z",
+                        ],
+                        "PERIOD_END_DATE": [
+                            "2019-12-31T00:00:00Z",
+                            "2020-12-31T00:00:00Z",
+                            "2021-12-31T00:00:00Z",
+                            "2022-12-31T00:00:00Z",
+                            "2023-12-31T00:00:00Z",
+                            "2024-12-31T00:00:00Z",
+                            "2025-12-31T00:00:00Z",
+                        ],
+                        "CURRENCY": ["USD", "USD", "USD", "USD", "USD", "USD", "USD"],
+                    },
+                    schema={
+                        "ID": pl.String,
+                        "#eps": pl.Float64,
+                        "REVISION_DATE": pl.Date,
+                        "AS_OF_DATE": pl.Date,
+                        "PERIOD_END_DATE": pl.Date,
+                        "CURRENCY": pl.String,
+                    },
+                )
             ],
         ),
         (
             "tests/data/results_with_NaN_DOUBLE.json",
             [
-                {
-                    "ID": ["YX231113 Corp", "YX231113 Corp", "YX231113 Corp"],
-                    "#rets": ["NaN", 0.000273, -0.000863],
-                    "DATE": [
-                        "2024-12-07T00:00:00Z",
-                        "2024-12-08T00:00:00Z",
-                        "2024-12-09T00:00:00Z",
-                    ],
-                }
+                SITable(
+                    name="#rets",
+                    data={
+                        "ID": ["YX231113 Corp", "YX231113 Corp", "YX231113 Corp"],
+                        "#rets": ["NaN", 0.000273, -0.000863],
+                        "DATE": [
+                            "2024-12-07T00:00:00Z",
+                            "2024-12-08T00:00:00Z",
+                            "2024-12-09T00:00:00Z",
+                        ],
+                    },
+                    schema={"ID": pl.String, "#rets": pl.Float64, "DATE": pl.Date},
+                )
             ],
-            [{"ID": "STRING", "#rets": "DOUBLE", "DATE": "DATE"}],
         ),
         (
             "tests/data/results_segment.json",
             [
-                {
-                    "ID": [
-                        "SEG0000524428 Segment",
-                        "SEG0000524437 Segment",
-                        "SEG0000795330 Segment",
-                        "SEG8339225113 Segment",
-                    ],
-                    "#segment": [
-                        "Broadcasting",
-                        "Production Companies",
-                        "Other ",
-                        "Adjustment",
-                    ],
-                    "ORDER": ["1", "2", "3", "4"],
-                    "FUNDAMENTAL_TICKER": [
-                        "GTN US Equity",
-                        "GTN US Equity",
-                        "GTN US Equity",
-                        "GTN US Equity",
-                    ],
-                    "AS_OF_DATE": [
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                    ],
-                    "ID_DATE": [
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                    ],
-                },
-                {
-                    "ID": [
-                        "SEG0000524428 Segment",
-                        "SEG0000524428 Segment",
-                        "SEG0000524428 Segment",
-                        "SEG0000524428 Segment",
-                        "SEG0000524428 Segment",
-                        "SEG0000524437 Segment",
-                        "SEG0000524437 Segment",
-                        "SEG0000524437 Segment",
-                        "SEG0000524437 Segment",
-                        "SEG0000524437 Segment",
-                        "SEG0000795330 Segment",
-                        "SEG0000795330 Segment",
-                        "SEG0000795330 Segment",
-                        "SEG0000795330 Segment",
-                        "SEG0000795330 Segment",
-                        "SEG8339225113 Segment",
-                        "SEG8339225113 Segment",
-                        "SEG8339225113 Segment",
-                        "SEG8339225113 Segment",
-                        "SEG8339225113 Segment",
-                    ],
-                    "#revenue": [
-                        783000000.0,
-                        813000000.0,
-                        780000000.0,
-                        808000000.0,
-                        924000000.0,
-                        20000000.0,
-                        32000000.0,
-                        24000000.0,
-                        18000000.0,
-                        26000000.0,
-                        16000000.0,
-                        19000000.0,
-                        19000000.0,
-                        0.0,
-                        17000000.0,
-                        None,
-                        None,
-                        None,
-                        None,
-                        None,
-                    ],
-                    "REVISION_DATE": [
-                        "2023-11-08T00:00:00Z",
-                        "2024-02-23T00:00:00Z",
-                        "2024-05-07T00:00:00Z",
-                        "2024-08-08T00:00:00Z",
-                        "2024-11-08T00:00:00Z",
-                        "2023-11-08T00:00:00Z",
-                        "2024-02-23T00:00:00Z",
-                        "2024-05-07T00:00:00Z",
-                        "2024-08-08T00:00:00Z",
-                        "2024-11-08T00:00:00Z",
-                        "2023-11-08T00:00:00Z",
-                        "2024-02-23T00:00:00Z",
-                        "2024-05-07T00:00:00Z",
-                        "2024-08-08T00:00:00Z",
-                        "2024-11-08T00:00:00Z",
-                        None,
-                        None,
-                        None,
-                        None,
-                        None,
-                    ],
-                    "AS_OF_DATE": [
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                    ],
-                    "PERIOD_END_DATE": [
-                        "2023-09-30T00:00:00Z",
-                        "2023-12-31T00:00:00Z",
-                        "2024-03-31T00:00:00Z",
-                        "2024-06-30T00:00:00Z",
-                        "2024-09-30T00:00:00Z",
-                        "2023-09-30T00:00:00Z",
-                        "2023-12-31T00:00:00Z",
-                        "2024-03-31T00:00:00Z",
-                        "2024-06-30T00:00:00Z",
-                        "2024-09-30T00:00:00Z",
-                        "2023-09-30T00:00:00Z",
-                        "2023-12-31T00:00:00Z",
-                        "2024-03-31T00:00:00Z",
-                        "2024-06-30T00:00:00Z",
-                        "2024-09-30T00:00:00Z",
-                        "2023-09-30T00:00:00Z",
-                        "2023-12-31T00:00:00Z",
-                        "2024-03-31T00:00:00Z",
-                        "2024-06-30T00:00:00Z",
-                        "2024-09-30T00:00:00Z",
-                    ],
-                    "CURRENCY": [
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                        "USD",
-                    ],
-                    "ID_DATE": [
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                        "2024-12-10T00:00:00Z",
-                    ],
-                },
-            ],
-            [
-                {
-                    "ID": "STRING",
-                    "#segment": "STRING",
-                    "ORDER": "STRING",
-                    "FUNDAMENTAL_TICKER": "STRING",
-                    "AS_OF_DATE": "DATE",
-                    "ID_DATE": "DATE",
-                },
-                {
-                    "ID": "STRING",
-                    "#revenue": "DOUBLE",
-                    "REVISION_DATE": "DATE",
-                    "AS_OF_DATE": "DATE",
-                    "PERIOD_END_DATE": "DATE",
-                    "CURRENCY": "STRING",
-                    "ID_DATE": "DATE",
-                },
+                SITable(
+                    name="#segment",
+                    data={
+                        "ID": [
+                            "SEG0000524428 Segment",
+                            "SEG0000524437 Segment",
+                            "SEG0000795330 Segment",
+                            "SEG8339225113 Segment",
+                        ],
+                        "#segment": [
+                            "Broadcasting",
+                            "Production Companies",
+                            "Other ",
+                            "Adjustment",
+                        ],
+                        "ORDER": ["1", "2", "3", "4"],
+                        "FUNDAMENTAL_TICKER": [
+                            "GTN US Equity",
+                            "GTN US Equity",
+                            "GTN US Equity",
+                            "GTN US Equity",
+                        ],
+                        "AS_OF_DATE": [
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                        ],
+                        "ID_DATE": [
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                        ],
+                    },
+                    schema={
+                        "ID": pl.String,
+                        "#segment": pl.String,
+                        "ORDER": pl.String,
+                        "FUNDAMENTAL_TICKER": pl.String,
+                        "AS_OF_DATE": pl.Date,
+                        "ID_DATE": pl.Date,
+                    },
+                ),
+                SITable(
+                    name="#revenue",
+                    data={
+                        "ID": [
+                            "SEG0000524428 Segment",
+                            "SEG0000524428 Segment",
+                            "SEG0000524428 Segment",
+                            "SEG0000524428 Segment",
+                            "SEG0000524428 Segment",
+                            "SEG0000524437 Segment",
+                            "SEG0000524437 Segment",
+                            "SEG0000524437 Segment",
+                            "SEG0000524437 Segment",
+                            "SEG0000524437 Segment",
+                            "SEG0000795330 Segment",
+                            "SEG0000795330 Segment",
+                            "SEG0000795330 Segment",
+                            "SEG0000795330 Segment",
+                            "SEG0000795330 Segment",
+                            "SEG8339225113 Segment",
+                            "SEG8339225113 Segment",
+                            "SEG8339225113 Segment",
+                            "SEG8339225113 Segment",
+                            "SEG8339225113 Segment",
+                        ],
+                        "#revenue": [
+                            783000000.0,
+                            813000000.0,
+                            780000000.0,
+                            808000000.0,
+                            924000000.0,
+                            20000000.0,
+                            32000000.0,
+                            24000000.0,
+                            18000000.0,
+                            26000000.0,
+                            16000000.0,
+                            19000000.0,
+                            19000000.0,
+                            0.0,
+                            17000000.0,
+                            None,
+                            None,
+                            None,
+                            None,
+                            None,
+                        ],
+                        "REVISION_DATE": [
+                            "2023-11-08T00:00:00Z",
+                            "2024-02-23T00:00:00Z",
+                            "2024-05-07T00:00:00Z",
+                            "2024-08-08T00:00:00Z",
+                            "2024-11-08T00:00:00Z",
+                            "2023-11-08T00:00:00Z",
+                            "2024-02-23T00:00:00Z",
+                            "2024-05-07T00:00:00Z",
+                            "2024-08-08T00:00:00Z",
+                            "2024-11-08T00:00:00Z",
+                            "2023-11-08T00:00:00Z",
+                            "2024-02-23T00:00:00Z",
+                            "2024-05-07T00:00:00Z",
+                            "2024-08-08T00:00:00Z",
+                            "2024-11-08T00:00:00Z",
+                            None,
+                            None,
+                            None,
+                            None,
+                            None,
+                        ],
+                        "AS_OF_DATE": [
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                        ],
+                        "PERIOD_END_DATE": [
+                            "2023-09-30T00:00:00Z",
+                            "2023-12-31T00:00:00Z",
+                            "2024-03-31T00:00:00Z",
+                            "2024-06-30T00:00:00Z",
+                            "2024-09-30T00:00:00Z",
+                            "2023-09-30T00:00:00Z",
+                            "2023-12-31T00:00:00Z",
+                            "2024-03-31T00:00:00Z",
+                            "2024-06-30T00:00:00Z",
+                            "2024-09-30T00:00:00Z",
+                            "2023-09-30T00:00:00Z",
+                            "2023-12-31T00:00:00Z",
+                            "2024-03-31T00:00:00Z",
+                            "2024-06-30T00:00:00Z",
+                            "2024-09-30T00:00:00Z",
+                            "2023-09-30T00:00:00Z",
+                            "2023-12-31T00:00:00Z",
+                            "2024-03-31T00:00:00Z",
+                            "2024-06-30T00:00:00Z",
+                            "2024-09-30T00:00:00Z",
+                        ],
+                        "CURRENCY": [
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                            "USD",
+                        ],
+                        "ID_DATE": [
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                            "2024-12-10T00:00:00Z",
+                        ],
+                    },
+                    schema={
+                        "ID": pl.String,
+                        "#revenue": pl.Float64,
+                        "REVISION_DATE": pl.Date,
+                        "AS_OF_DATE": pl.Date,
+                        "PERIOD_END_DATE": pl.Date,
+                        "CURRENCY": pl.String,
+                        "ID_DATE": pl.Date,
+                    },
+                ),
             ],
         ),
     ],
 )
-def test_parse_bql_response_dict(json_file, expected_data, expected_schema):
-    """Test the _parse_bql_response_dict method with various input files."""
+def test__parse_result(json_file, exp_table_list):
+    """Test the _parse_result method with various input files."""
     bq = BQuery()
     with open(json_file) as f:
-        results = json.load(f)
+        result = json.load(f)
 
     # Call the method to test
-    data_list, col_types = bq._parse_bql_response_dict(results)
+    tables = bq._parse_result(result)
 
-    # Assert that the data matches the expected output
-    assert data_list == expected_data
-    # Assert that the column types match the expected schema
-    assert col_types == expected_schema
+    assert len(tables) == len(exp_table_list)
+    for i, table in enumerate(tables):
+        assert table.data == exp_table_list[i].data
+        assert table.schema == exp_table_list[i].schema
 
 
 @pytest.mark.no_bbg
@@ -897,104 +921,91 @@ class TestSchemaMappingAndDataConversion:
         return BQuery()
 
     @pytest.mark.parametrize(
-        "column_types_list, expected_schema_list",
+        "schema_str, schema_exp",
         [
             (
-                [{"col1": "STRING", "col2": "DOUBLE"}],
-                [{"col1": pl.Utf8, "col2": pl.Float64}],
+                {"col1": "STRING", "col2": "DOUBLE"},
+                {"col1": pl.Utf8, "col2": pl.Float64},
             ),
             (
-                [{"col1": "INT", "col2": "DATE"}, {"col3": "DOUBLE"}],
-                [{"col1": pl.Int64, "col2": pl.Date}, {"col3": pl.Float64}],
+                {"col1": "INT", "col2": "DATE", "col3": "DOUBLE"},
+                {"col1": pl.Int64, "col2": pl.Date, "col3": pl.Float64},
             ),
             (
-                [{"col1": "UNKNOWN_TYPE"}],
-                [{"col1": pl.Utf8}],
+                {"col1": "UNKNOWN_TYPE"},
+                {"col1": pl.Utf8},
             ),
         ],
     )
-    def test_map_column_types_to_schema(
-        self, column_types_list, expected_schema_list, bq: BQuery
-    ):
+    def test__map_types(self, schema_str, schema_exp, bq: BQuery):
         """Test mapping column types to schema."""
-        schema_list = bq._map_column_types_to_schema(column_types_list)
-        assert schema_list == expected_schema_list
-
-    def test_convert_dates_and_handle_nans(self, bq: BQuery):
-        """Conversion if date-str to date and handling of NaN values."""
-        data_list = [
-            {
-                "date_col": ["2023-01-01T00:00:00Z", "2023-01-02T00:00:00Z"],
-                "number_col": ["NaN", 3.14],
-            },
-            {
-                "date_col": ["2023-01-03T00:00:00Z"],
-                "number_col": ["NaN"],
-            },
-        ]
-        schema_list = [
-            {"date_col": pl.Date, "number_col": pl.Float64},
-            {"date_col": pl.Date, "number_col": pl.Float64},
-        ]
-        data_converted_list = bq._convert_dates_and_handle_nans(data_list, schema_list)
-        expected_list = [
-            {
-                "date_col": [date(2023, 1, 1), date(2023, 1, 2)],
-                "number_col": [None, 3.14],
-            },
-            {
-                "date_col": [date(2023, 1, 3)],
-                "number_col": [None],
-            },
-        ]
-        assert data_converted_list == expected_list
+        schema = bq._map_types(schema_str)
+        assert schema_exp == schema
 
     @pytest.mark.parametrize(
-        "data_list, schema_list, expected_list",
+        "data, schema, exp_data",
         [
             # Test with empty data list and schema list
-            ([], [], []),
+            ({}, {}, {}),
             # Test with date strings in various formats
             (
-                [
-                    {
-                        "date_col": ["2023-01-01T00:00:00Z", "2023-01-02T00:00:00Z"],
-                        "number_col": [1, 2.5],
-                    }
-                ],
-                [{"date_col": pl.Date, "number_col": pl.Float64}],
-                [
-                    {
-                        "date_col": [date(2023, 1, 1), date(2023, 1, 2)],
-                        "number_col": [1.0, 2.5],
-                    }
-                ],
+                {
+                    "date_col": ["2023-01-01T00:00:00Z", "2023-01-02T00:00:00Z"],
+                    "number_col": [1, 2.5],
+                },
+                {"date_col": pl.Date, "number_col": pl.Float64},
+                {
+                    "date_col": [date(2023, 1, 1), date(2023, 1, 2)],
+                    "number_col": [1.0, 2.5],
+                },
             ),
             # Test with invalid date strings
             (
-                [{"date_col": [None], "number_col": ["NaN"]}],
-                [{"date_col": pl.Date, "number_col": pl.Float64}],
-                [{"date_col": [None], "number_col": [None]}],
+                {"date_col": [None], "number_col": ["NaN"]},
+                {"date_col": pl.Date, "number_col": pl.Float64},
+                {"date_col": [None], "number_col": [None]},
             ),
-            # Test with multiple dictionaries in the list
+            # Test with data having 5 columns each of different type
             (
-                [
-                    {"date_col": ["2023-01-01T00:00:00Z"], "number_col": [None]},
-                    {"date_col": ["2023-01-02T00:00:00Z"], "number_col": [42]},
-                ],
-                [
-                    {"date_col": pl.Date, "number_col": pl.Float64},
-                    {"date_col": pl.Date, "number_col": pl.Float64},
-                ],
-                [
-                    {"date_col": [date(2023, 1, 1)], "number_col": [None]},
-                    {"date_col": [date(2023, 1, 2)], "number_col": [42.0]},
-                ],
+                {
+                    "string_col": ["a", "b"],
+                    "int_col": [1, 2],
+                    "float_col": [1.1, "NaN"],
+                    "bool_col": [True, False],
+                    "date_col": ["2023-01-01T00:00:00Z", "2023-01-02T00:00:00Z"],
+                },
+                {
+                    "string_col": pl.Utf8,
+                    "int_col": pl.Int64,
+                    "float_col": pl.Float64,
+                    "bool_col": pl.Boolean,
+                    "date_col": pl.Date,
+                },
+                {
+                    "string_col": ["a", "b"],
+                    "int_col": [1, 2],
+                    "float_col": [1.1, None],
+                    "bool_col": [True, False],
+                    "date_col": [date(2023, 1, 1), date(2023, 1, 2)],
+                },
+            ),
+            # Test with NaN values and date conversion
+            (
+                {
+                    "date_col": ["2023-01-01T00:00:00Z", "2023-01-02T00:00:00Z"],
+                    "number_col": ["NaN", 3.14],
+                },
+                {"date_col": pl.Date, "number_col": pl.Float64},
+                {
+                    "date_col": [date(2023, 1, 1), date(2023, 1, 2)],
+                    "number_col": [None, 3.14],
+                },
             ),
         ],
     )
-    def test_convert_dates_and_handle_nans_extended(
-        self, data_list, schema_list, expected_list, bq: BQuery
-    ):
-        data_converted_list = bq._convert_dates_and_handle_nans(data_list, schema_list)
-        assert data_converted_list == expected_list
+    def test__apply_schema(self, data, schema, exp_data, bq: BQuery):
+        """Test the _apply_schema method with various data and schema inputs."""
+        in_table = SITable(name="test", data=data, schema=schema)
+        out_table = bq._apply_schema(in_table)
+        assert out_table.data == exp_data
+        assert out_table.schema == schema

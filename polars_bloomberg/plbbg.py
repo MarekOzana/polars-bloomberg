@@ -31,6 +31,7 @@ Usage
 import json
 import logging
 from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Any
 
@@ -40,6 +41,15 @@ import polars as pl
 # Configure logging
 # logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class SITable:
+    """Holds data and schema for a Single Item response Table."""
+
+    name: str  # data item name
+    data: dict[str, list[Any]]  # column_name -> list of values
+    schema: dict[str, pl.DataType]  # column_name -> Polars datatype
 
 
 class BQuery:
@@ -136,10 +146,10 @@ class BQuery:
         """
         request = self._create_bql_request(expression)
         responses = self._send_request(request)
-        data_lst, schema_lst = self._parse_bql_responses(responses)
+        tables = self._parse_bql_responses(responses)
         return [
-            pl.DataFrame(data, schema=schema, strict=True)
-            for data, schema in zip(data_lst, schema_lst, strict=False)
+            pl.DataFrame(table.data, schema=table.schema, strict=True)
+            for table in tables
         ]
 
     def _create_request(
@@ -268,147 +278,74 @@ class BQuery:
         return data
 
     def _parse_bql_responses(self, responses: list[Any]):
-        """Parse BQL responses list.
+        """Parse BQL responses into a list of SITable objects."""
+        tables: list[SITable] = []
+        results: list[dict] = self._extract_results(responses)
 
-        I consists of dictionaries and string with embedded json.
+        for result in results:
+            tables.extend(self._parse_result(result))
+        return [self._apply_schema(table) for table in tables]
 
-        1. Iterate over list of responses and only extract those with 'results' key.
-        Example responses: [
-        {...},
-        {...},
-        "{'results': {'px_last': {}, 'valuesColumn': {}, "
-        "'secondaryColumns': [{}]}}, 'error': None}"]
-        ]
-
-        2. pass results dictionary to _parse_bql_response_dict method
-        Example results:
-        {
-            'px_last': {
-                'idColumn': {'values': ['IBM US Equity', 'AAPL US Equity']},
-                'valuesColumn': {'values': [227.615, 239.270]},
-                'secondaryColumns': [
-                    {'name': 'DATE', 'values': [
-                        '2024-12-02T00:00:00Z',
-                        '2024-12-02T00:00:00Z'
-                    ]},
-                    {'name': 'CURRENCY', 'values': ['USD', 'USD']}
+    def _apply_schema(self, table: SITable) -> SITable:
+        """Convert data based on the schema (e.g., str -> date, 'NaN' -> None)."""
+        date_format = "%Y-%m-%dT%H:%M:%SZ"
+        for col, dtype in table.schema.items():
+            if dtype == pl.Date:
+                table.data[col] = [
+                    datetime.strptime(v, date_format).date()
+                    if isinstance(v, str)
+                    else None
+                    for v in table.data[col]
                 ]
-            }
-        }
-        """
-        data: list[dict[str, list]] = []  # [Column name -> list of values]
-        all_column_types: list[dict[str, str]] = []  # Column name -> type
+            elif dtype in {pl.Float64, pl.Int64}:
+                table.data[col] = [None if x == "NaN" else x for x in table.data[col]]
+        return table
 
-        # Process each response in the list
+    def _extract_results(self, responses: list[Any]) -> list[dict]:
+        """Extract the 'results' section from each response, handling JSON strings."""
+        extracted = []
         for response in responses:
-            response_dict = response
-            # Parse string responses as JSON
+            resp_dict = response
             if isinstance(response, str):
                 try:
-                    response_dict = json.loads(response.replace("'", '"'))
+                    resp_dict = json.loads(response.replace("'", '"'))
                 except json.JSONDecodeError as e:
-                    logger.error(
-                        "JSON decoding failed for response: %s. Error: %s", response, e
-                    )
+                    logger.error("Failed to decode JSON: %s. Error: %s", response, e)
                     continue
+            results = resp_dict.get("results")
+            if results:
+                extracted.append(results)
+        return extracted
 
-            # Get the 'results' section from the response
-            results = response_dict.get("results")
-            if not results:
-                continue
+    def _parse_result(self, results: dict[str, Any]) -> list[SITable]:
+        """Convert a single BQL results dictionary into a list[SITable]."""
+        tables: list[SITable] = []
+        for field, content in results.items():
+            data = {}
+            schema_str = {}
 
-            # Parse the results and collect column types
-            data_list, col_types = self._parse_bql_response_dict(results)
-            # Extend existing columns in data dictionary
-            data.extend(data_list)
-            all_column_types.extend(col_types)
+            data["ID"] = content.get("idColumn", {}).get("values", [])
+            data[field] = content.get("valuesColumn", {}).get("values", [])
 
-        schema = self._map_column_types_to_schema(all_column_types)
-        data = self._convert_dates_and_handle_nans(data, schema)
+            schema_str["ID"] = content.get("idColumn", {}).get("type", "STRING")
+            schema_str[field] = content.get("valuesColumn", {}).get("type", "STRING")
 
-        return data, schema
+            # Process secondary columns
+            for sec_col in content.get("secondaryColumns", []):
+                name = sec_col.get("name", "")
+                data[name] = sec_col.get("values", [])
+                schema_str[name] = sec_col.get("type", str)
+            schema = self._map_types(schema_str)
+            tables.append(SITable(name=field, data=data, schema=schema))
 
-    def _convert_dates_and_handle_nans(self, data_lst:list[dict], schema_lst:list[dict]):
-        fmt = "%Y-%m-%dT%H:%M:%SZ"
-        for data, schema in zip(data_lst, schema_lst, strict=True):
-            for col, values in data.items():
-                if schema.get(col) == pl.Date:
-                    data[col] = data[col] = [
-                        # 'v' can be None, need to handle it
-                        datetime.strptime(v, fmt).date() if isinstance(v, str) else None
-                        for v in values
-                    ]
-                elif schema.get(col) in [pl.Float64, pl.Int64]:
-                    data[col] = [None if x == "NaN" else x for x in values]
-        return data_lst
+        return tables
 
-    def _map_column_types_to_schema(
-        self, all_column_types: list[dict[str, str]]
-    ) -> list[dict[str, pl.DataType]]:
-        """Map column types from string representation to Polars data types.
-
-        Parameters
-        ----------
-        all_column_types : list[dict[str, str]]
-            A dictionary mapping column names to their string type representations.
-
-        Returns
-        -------
-        list[dict[str, plDataType]:
-            A dictionary mapping column names to Polars data types.
-
-        """
-        type_mapping = {
+    def _map_types(self, type_map: dict[str, str]) -> dict[str, pl.DataType]:
+        """Map string-based types to Polars data types. Default to Utf8."""
+        mapping = {
             "STRING": pl.Utf8,
             "DOUBLE": pl.Float64,
             "INT": pl.Int64,
             "DATE": pl.Date,
         }
-        for col_types in all_column_types:
-            for col_name, col_type in col_types.items():
-                col_types[col_name] = type_mapping.get(col_type, pl.Utf8)
-        return all_column_types
-
-    def _parse_bql_response_dict(
-        self, results: dict[str, Any]
-    ) -> tuple[list[dict], list[dict]]:
-        """Parse BQL response dictionary into a table format.
-
-        Parameters
-        ----------
-        results: Dict[str, Any]
-            The 'results' dictionary from the BQL response.
-
-        Returns
-        -------
-            List[Dict]: The list of records.
-            Dict[str, str]: A dictionary mapping column names to their types.
-
-        """
-        col_types: list[dict[str, str]] = []  # list of dicts: col_name -> type
-        data_list: list[dict[str, list]] = []  # list of dictionaries: col_name -> values
-
-        for field_name, content in results.items():
-            field_dict = {}  # data point dictionary
-            types_dict = {}  # columns types dictionary
-            id_column = content.get("idColumn", {})
-            value_column = content.get("valuesColumn", {})
-            secondary_columns = content.get("secondaryColumns", [])
-
-            field_dict["ID"] = id_column.get("values", [])
-            field_dict[field_name] = value_column.get("values", [])
-
-            types_dict["ID"] = id_column.get("type", str)
-            types_dict[field_name] = value_column.get("type", str)
-
-            # Process secondary columns
-            for sec_col in secondary_columns:
-                sec_col_name = sec_col.get("name", "")
-                sec_col_values = sec_col.get("values", [])
-                # Use a composite key with field name to avoid conflicts
-                field_dict[sec_col_name] = sec_col_values
-                types_dict[sec_col_name] = sec_col.get("type", str)
-            col_types.append(types_dict)
-            data_list.append(field_dict)
-
-        return data_list, col_types
+        return {col: mapping.get(t.upper(), pl.Utf8) for col, t in type_map.items()}
