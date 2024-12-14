@@ -100,7 +100,7 @@ class BQuery:
         self,
         securities: list[str],
         fields: list[str],
-        overrides: Sequence | None = None,
+        overrides: list[tuple] | None = None,
         options: dict | None = None,
     ) -> pl.DataFrame:
         """Bloomberg Data Point, equivalent to Excel BDP() function.
@@ -120,7 +120,7 @@ class BQuery:
         fields: list[str],
         start_date: date,
         end_date: date,
-        overrides: Sequence | None = None,
+        overrides: list[tuple] | None = None,
         options: dict | None = None,
     ) -> pl.DataFrame:
         """Bloomberg Data History, equivalent to Excel BDH() function.

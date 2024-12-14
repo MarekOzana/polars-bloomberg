@@ -24,7 +24,7 @@ If you’re a quant financial analyst, data scientist, or quant developer workin
 5. [Core Methods](#core-methods)
     - [BDP (Bloomberg Data Point)](#bdp)
     - [BDH (Bloomberg Data History)](#bdh)
-    - [BQL (Bloomberg Query Language)](#bql)
+    - [BQL (Bloomberg Query Language)](#bql) <details><summary>BQL Examples</summary>
         - [Single Data Item and Single Security](#simple-bql-example)
         - [Single Item and Multiple Securities](#single-item-with-multiple-securities)
         - [Multiple Items](#multiple-data-items-in-get)
@@ -33,7 +33,11 @@ If you’re a quant financial analyst, data scientist, or quant developer workin
         - [Axes](#axes)
         - [Segments](#segments)
         - [Average Spread per Bucket](#average-issuer-oas-spread-per-maturity-bucket)
-        
+        - [Technical Analysis Screening](#technical-analysis-stocks-with-20d-ema--200d-ema-and-rsi--55)
+        - [Bonds Universe from Equity](#bond-universe-from-equity-ticker)
+        - [Bonds Total Return](#bonds-total-returns)
+        </details>
+6. [Additional Documentation and Resources](#additional-documentation--resources)
 
 ## Introduction
 Working with Bloomberg data in Python often feels more complicated than using their well-known Excel interface.
@@ -571,11 +575,9 @@ with BQuery() as bq:
 └─────────────────┴──────────────────┴────────────┴────────────┴──────────┴────────────┴───────────┘
 ```
 
-
-
-### Bond universe from Equity Ticker
+### Bond Universe from Equity Ticker
 ```python
-query="""
+query = """
 let(#rank=normalized_payment_rank();
     #oas=spread(st=oas);
     #nxt_call=nxt_call_dt();
@@ -583,67 +585,67 @@ let(#rank=normalized_payment_rank();
 get(name(), #rank, #nxt_call, #oas)
 for(filter(bonds('GTN US Equity'), series() == '144A'))
 """
-with BQuery() as bq:
-    df = bq.bql(query)
-```
 
-```plaintext
+with BQuery() as bq:
+    df_lst = bq.bql(query)
+
+    df = (
+        df_lst[0]
+        .join(df_lst[1], on="ID")
+        .join(df_lst[2], on="ID")
+        .join(df_lst[3], on="ID")
+    )
+    print(df)
+
 ┌───────────────┬───────────────────┬──────────────────┬────────────┬─────────────┬────────────┐
-│ ID            ┆ name()            ┆ #rank            ┆ #nxt_call  ┆ #oas        ┆ #oas.DATE  │
+│ ID            ┆ name()            ┆ #rank            ┆ #nxt_call  ┆ #oas        ┆ DATE       │
 │ ---           ┆ ---               ┆ ---              ┆ ---        ┆ ---         ┆ ---        │
 │ str           ┆ str               ┆ str              ┆ date       ┆ f64         ┆ date       │
 ╞═══════════════╪═══════════════════╪══════════════════╪════════════╪═════════════╪════════════╡
-│ YX231113 Corp ┆ GTN 10 ½ 07/15/29 ┆ 1st Lien Secured ┆ 2026-07-15 ┆ 615.798149  ┆ 2024-12-10 │
-│ BS116983 Corp ┆ GTN 5 ⅜ 11/15/31  ┆ Sr Unsecured     ┆ 2026-11-15 ┆ 1144.393892 ┆ 2024-12-10 │
-│ AV438089 Corp ┆ GTN 7 05/15/27    ┆ Sr Unsecured     ┆ 2024-12-17 ┆ 389.022271  ┆ 2024-12-10 │
-│ ZO860846 Corp ┆ GTN 4 ¾ 10/15/30  ┆ Sr Unsecured     ┆ 2025-10-15 ┆ 1184.969597 ┆ 2024-12-10 │
-│ LW375188 Corp ┆ GTN 5 ⅞ 07/15/26  ┆ Sr Unsecured     ┆ 2025-01-06 ┆ 185.544312  ┆ 2024-12-10 │
+│ YX231113 Corp ┆ GTN 10 ½ 07/15/29 ┆ 1st Lien Secured ┆ 2026-07-15 ┆ 597.329513  ┆ 2024-12-14 │
+│ BS116983 Corp ┆ GTN 5 ⅜ 11/15/31  ┆ Sr Unsecured     ┆ 2026-11-15 ┆ 1192.83614  ┆ 2024-12-14 │
+│ AV438089 Corp ┆ GTN 7 05/15/27    ┆ Sr Unsecured     ┆ 2024-12-23 ┆ 391.133436  ┆ 2024-12-14 │
+│ ZO860846 Corp ┆ GTN 4 ¾ 10/15/30  ┆ Sr Unsecured     ┆ 2025-10-15 ┆ 1232.554695 ┆ 2024-12-14 │
+│ LW375188 Corp ┆ GTN 5 ⅞ 07/15/26  ┆ Sr Unsecured     ┆ 2025-01-12 ┆ 171.708702  ┆ 2024-12-14 │
 └───────────────┴───────────────────┴──────────────────┴────────────┴─────────────┴────────────┘
 ```
 
-### Weekly (total) Returns
+### Bonds Total Returns
+This is example of a single-item query returning total return for all GTN bonds in a long dataframe.
+We can easily pivot it into wide format, as in the example below
 ```python
+# Total Return of GTN Bonds
 query="""
-let(#rng = range(-3M, 0D);
-    #rets = return_series(calc_interval=#rng,per=W);
-    )
+let(#rng = range(-1M, 0D);
+    #rets = return_series(calc_interval=#rng,per=W);)
 get(#rets)
 for(filter(bonds('GTN US Equity'), series() == '144A'))
 """
+
 with BQuery() as bq:
-    df = bq.bql(query)
-```
-```plaintext
-shape: (20, 3)
-┌───────────────┬───────────┬────────────┐
-│ ID            ┆ #rets     ┆ #rets.DATE │
-│ ---           ┆ ---       ┆ ---        │
-│ str           ┆ f64       ┆ date       │
-╞═══════════════╪═══════════╪════════════╡
-│ YX231113 Corp ┆ null      ┆ 2024-11-19 │
-│ YX231113 Corp ┆ 0.005028  ┆ 2024-11-26 │
-│ YX231113 Corp ┆ 0.000326  ┆ 2024-12-03 │
-│ YX231113 Corp ┆ 0.000414  ┆ 2024-12-10 │
-│ BS116983 Corp ┆ null      ┆ 2024-11-19 │
-│ …             ┆ …         ┆ …          │
-│ ZO860846 Corp ┆ -0.010198 ┆ 2024-12-10 │
-│ LW375188 Corp ┆ null      ┆ 2024-11-19 │
-│ LW375188 Corp ┆ -0.000997 ┆ 2024-11-26 │
-│ LW375188 Corp ┆ 0.001294  ┆ 2024-12-03 │
-│ LW375188 Corp ┆ 0.0011    ┆ 2024-12-10 │
-└───────────────┴───────────┴────────────┘
+    df_lst = bq.bql(query)
+    df = df_lst[0].pivot(on='ID', index='DATE', values='#rets')
+    print(df)
+
+┌────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐
+│ DATE       ┆ YX231113 Corp ┆ BS116983 Corp ┆ AV438089 Corp ┆ ZO860846 Corp ┆ LW375188 Corp │
+│ ---        ┆ ---           ┆ ---           ┆ ---           ┆ ---           ┆ ---           │
+│ date       ┆ f64           ┆ f64           ┆ f64           ┆ f64           ┆ f64           │
+╞════════════╪═══════════════╪═══════════════╪═══════════════╪═══════════════╪═══════════════╡
+│ 2024-11-14 ┆ null          ┆ null          ┆ null          ┆ null          ┆ null          │
+│ 2024-11-21 ┆ -0.002378     ┆ 0.016565      ┆ 0.022831      ┆ 0.000987      ┆ -0.002815     │
+│ 2024-11-28 ┆ 0.002345      ┆ -0.005489     ┆ -0.004105     ┆ 0.011748      ┆ 0.00037       │
+│ 2024-12-05 ┆ 0.001403      ┆ 0.016999      ┆ 0.002058      ┆ 0.013095      ┆ 0.001003      │
+│ 2024-12-12 ┆ -0.000485     ┆ -0.040228     ┆ -0.000872     ┆ -0.038048     ┆ 0.001122      │
+│ 2024-12-14 ┆ 0.000988      ┆ -0.003833     ┆ 0.000247      ┆ -0.004818     ┆ 0.00136       │
+└────────────┴───────────────┴───────────────┴───────────────┴───────────────┴───────────────┘
 ```
 
-## API Documentation
-Read the [API documentation](examples/API-docs.md) in `examples/` directory
 
-## More Examples
-Explore additional [usage examples](examples/Examples-1.ipynb) in the `examples/` directory.
+## Additional Documentation & Resources
 
-## Bloomberg Documentation
+- *API Documentation*: Detailed documentation and function references are available in the [API documentation](examples/API-docs.md) file within the `examples/` directory.
 
-For documentation on the Bloomberg API, check out the [Bloomberg Developer's page](https://developer.bloomberg.com/).
+- *Additional Examples*: Check out (examples/Examples.ipynb) for hands-on notebooks demonstrating a variety of use cases.
 
-
-
-
+- *Bloomberg Developer Resources*: For more details on the Bloomberg API itself, visit the [Bloomberg Developer's page](https://developer.bloomberg.com/).
