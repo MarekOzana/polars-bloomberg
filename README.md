@@ -23,6 +23,17 @@ If you’re a quant financial analyst, data scientist, or quant developer workin
 4. [Quick Start](#quick-start)
 5. [Core Methods](#core-methods)
     - [BDP (Bloomberg Data Point)](#bdp)
+    - [BDH (Bloomberg Data History)](#bdh)
+    - [BQL (Bloomberg Query Language)](#bql)
+        - [Single Data Item and Single Security](#simple-bql-example)
+        - [Single Item and Multiple Securities](#single-item-with-multiple-securities)
+        - [Multiple Items](#multiple-data-items-in-get)
+        - [SRCH](#zspread-vs-duration-on-seb-and-shbass-coco-bonds-from-srch)
+        - [Aggregation (AVG)](#average-pe-per-sector)
+        - [Axes](#axes)
+        - [Segments](#segments)
+        - [Average Spread per Bucket](#average-issuer-oas-spread-per-maturity-bucket)
+        
 
 ## Introduction
 Working with Bloomberg data in Python often feels more complicated than using their well-known Excel interface.
@@ -95,7 +106,7 @@ with BQuery() as bq:
 └────────────────┴─────────┴───────┘
 ```
 
-<details><summary>More BDP Examples</summary>
+<details><summary>Expand for more BDP Examples</summary>
 
 ### BDP with different column types
 
@@ -170,18 +181,63 @@ with BQuery() as bq:
 
 </details>
 
-## BDH - Bloomberg Data History
+## BDH
+Use Case: Retrieve historical data over a date range, such as daily closing prices or volumes.
 ```python
 with BQuery() as bq:
-    df = bq.bdh(['AAPL US Equity', 'TSLA US Equity'], 
-                ['PX_LAST', 'VOLUME'], 
-                start_date=date(2019, 1, 1), 
-                end_date=date(2019, 1, 10))
-```
-<div>
-<small>shape: (14, 4)</small><table border="1" class="dataframe"><thead><tr><th>security</th><th>date</th><th>PX_LAST</th><th>VOLUME</th></tr><tr><td>str</td><td>date</td><td>f64</td><td>f64</td></tr></thead><tbody><tr><td>&quot;AAPL US Equity&quot;</td><td>2019-01-02</td><td>39.48</td><td>1.48158948e8</td></tr><tr><td>&quot;AAPL US Equity&quot;</td><td>2019-01-03</td><td>35.548</td><td>3.6524878e8</td></tr><tr><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td></tr><tr><td>&quot;TSLA US Equity&quot;</td><td>2019-01-09</td><td>22.5687</td><td>8.1494175e7</td></tr><tr><td>&quot;TSLA US Equity&quot;</td><td>2019-01-10</td><td>22.998</td><td>9.084531e7</td></tr></tbody></table></div>
+    df = bq.bdh(
+        ["TLT US Equity"],
+        ["PX_LAST"],
+        start_date=date(2019, 1, 1),
+        end_date=date(2019, 1, 7),
+    )
+    print(df)
 
-<details><summary>More BDH Examples</summary>
+┌───────────────┬────────────┬─────────┐
+│ security      ┆ date       ┆ PX_LAST │
+│ ---           ┆ ---        ┆ ---     │
+│ str           ┆ date       ┆ f64     │
+╞═══════════════╪════════════╪═════════╡
+│ TLT US Equity ┆ 2019-01-02 ┆ 122.15  │
+│ TLT US Equity ┆ 2019-01-03 ┆ 123.54  │
+│ TLT US Equity ┆ 2019-01-04 ┆ 122.11  │
+│ TLT US Equity ┆ 2019-01-07 ┆ 121.75  │
+└───────────────┴────────────┴─────────┘
+```
+
+<details><summary>Expand for more BDH examples</summary>
+
+### BDH with multiple securities / fields
+```python
+with BQuery() as bq:
+    df = bq.bdh(
+        securities=["SPY US Equity", "TLT US Equity"],
+        fields=["PX_LAST", "VOLUME"],
+        start_date=date(2019, 1, 1),
+        end_date=date(2019, 1, 10),
+        options={"adjustmentSplit": True},
+    )
+    print(df)
+
+shape: (14, 4)
+┌───────────────┬────────────┬─────────┬──────────────┐
+│ security      ┆ date       ┆ PX_LAST ┆ VOLUME       │
+│ ---           ┆ ---        ┆ ---     ┆ ---          │
+│ str           ┆ date       ┆ f64     ┆ f64          │
+╞═══════════════╪════════════╪═════════╪══════════════╡
+│ SPY US Equity ┆ 2019-01-02 ┆ 250.18  ┆ 1.26925199e8 │
+│ SPY US Equity ┆ 2019-01-03 ┆ 244.21  ┆ 1.44140692e8 │
+│ SPY US Equity ┆ 2019-01-04 ┆ 252.39  ┆ 1.42628834e8 │
+│ SPY US Equity ┆ 2019-01-07 ┆ 254.38  ┆ 1.031391e8   │
+│ SPY US Equity ┆ 2019-01-08 ┆ 256.77  ┆ 1.02512587e8 │
+│ …             ┆ …          ┆ …       ┆ …            │
+│ TLT US Equity ┆ 2019-01-04 ┆ 122.11  ┆ 1.2970226e7  │
+│ TLT US Equity ┆ 2019-01-07 ┆ 121.75  ┆ 8.498104e6   │
+│ TLT US Equity ┆ 2019-01-08 ┆ 121.43  ┆ 7.737103e6   │
+│ TLT US Equity ┆ 2019-01-09 ┆ 121.24  ┆ 9.349245e6   │
+│ TLT US Equity ┆ 2019-01-10 ┆ 120.46  ┆ 8.22286e6    │
+└───────────────┴────────────┴─────────┴──────────────┘
+```
 
 ### BDH with options - periodicitySelection: Monthly
 ```python
@@ -191,85 +247,266 @@ with BQuery() as bq:
                 start_date=date(2019, 1, 1), 
                 end_date=date(2019, 3, 29),
                 options={"periodicitySelection": "MONTHLY"})
-```
-<div>
-<small>shape: (3, 3)</small><table border="1" class="dataframe"><thead><tr><th>security</th><th>date</th><th>PX_LAST</th></tr><tr><td>str</td><td>date</td><td>f64</td></tr></thead><tbody><tr><td>&quot;AAPL US Equity&quot;</td><td>2019-01-31</td><td>41.61</td></tr><tr><td>&quot;AAPL US Equity&quot;</td><td>2019-02-28</td><td>43.288</td></tr><tr><td>&quot;AAPL US Equity&quot;</td><td>2019-03-29</td><td>47.488</td></tr></tbody></table>
-</div>
 
+┌────────────────┬────────────┬─────────┐
+│ security       ┆ date       ┆ PX_LAST │
+│ ---            ┆ ---        ┆ ---     │
+│ str            ┆ date       ┆ f64     │
+╞════════════════╪════════════╪═════════╡
+│ AAPL US Equity ┆ 2019-01-31 ┆ 41.61   │
+│ AAPL US Equity ┆ 2019-02-28 ┆ 43.288  │
+│ AAPL US Equity ┆ 2019-03-29 ┆ 47.488  │
+└────────────────┴────────────┴─────────┘
+```
 </details>
 
 
-## BQL - Bloomberg Query Language
-Allows to run complex `bql` queries and get result in wide `polars.DataFrame`with correct polars types
+## BQL
+*Use Case*: Run more advanced queries to screen securities, calculate analytics (like moving averages), or pull fundamental data with complex conditions.
 
+*Returns*: list of polars dataframes, one per each data-item in `get()`statement.
+
+### Simple BQL Example
+```python
+# resulting object is list of pl.DataFrames, extract and print the first one
+with BQuery() as bq:
+    df_lst = bq.bql("get(px_last) for(['IBM US Equity'])")
+    print(df_lst[0])
+┌───────────────┬─────────┬────────────┬──────────┐
+│ ID            ┆ px_last ┆ DATE       ┆ CURRENCY │
+│ ---           ┆ ---     ┆ ---        ┆ ---      │
+│ str           ┆ f64     ┆ date       ┆ str      │
+╞═══════════════╪═════════╪════════════╪══════════╡
+│ IBM US Equity ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
+└───────────────┴─────────┴────────────┴──────────┘
+```
+    
+### Single Item with Multiple Securities
+Another example with single data item but two securities. Still only one pl.DataFrame in 
+resulting list (only one data item in `get()`)
 ```python
 with BQuery() as bq:
-    df = bq.bql("get(px_last) for(['IBM US Equity', 'OMX Index'])")
-```
-```plaintext
-┌───────────────┬────────────┬──────────────┬──────────────────┐
-│ ID            ┆ px_last    ┆ px_last.DATE ┆ px_last.CURRENCY │
-│ ---           ┆ ---        ┆ ---          ┆ ---              │
-│ str           ┆ f64        ┆ date         ┆ str              │
-╞═══════════════╪════════════╪══════════════╪══════════════════╡
-│ IBM US Equity ┆ 231.024994 ┆ 2024-12-10   ┆ USD              │
-│ OMX Index     ┆ 2602.806   ┆ 2024-12-10   ┆ SEK              │
-└───────────────┴────────────┴──────────────┴──────────────────┘
+    df_lst = bq.bql("get(px_last) for(['IBM US Equity', 'SEBA SS Equity'])")
+
+> print(f"n={len(df_lst)}")
+n=1
+
+> print(df_lst[0])
+┌────────────────┬─────────┬────────────┬──────────┐
+│ ID             ┆ px_last ┆ DATE       ┆ CURRENCY │
+│ ---            ┆ ---     ┆ ---        ┆ ---      │
+│ str            ┆ f64     ┆ date       ┆ str      │
+╞════════════════╪═════════╪════════════╪══════════╡
+│ IBM US Equity  ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
+│ SEBA SS Equity ┆ 155.2   ┆ 2024-12-14 ┆ SEK      │
+└────────────────┴─────────┴────────────┴──────────┘
 ```
 
-<details><summary>More BQL Examples</summary>
-    
-### Actual and Forward EPS Estimates
+### Multiple data-items in `get`
+Lets consider example with two data-items in get statement. Note that the resulting list has two pl.DataFrames.
 ```python
-df = bq.bql("""
-    let(#eps=is_eps(fa_period_type='A',
-                    fa_period_offset=range(-4,2));)
-    get(#eps)
-    for(['IBM US Equity'])
-""")
-```
-<div>
-<small>shape: (7, 6)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>#eps</th><th>#eps.REVISION_DATE</th><th>#eps.AS_OF_DATE</th><th>#eps.PERIOD_END_DATE</th><th>#eps.CURRENCY</th></tr><tr><td>str</td><td>f64</td><td>date</td><td>date</td><td>date</td><td>str</td></tr></thead><tbody>
-<tr><td>&quot;IBM US Equity&quot;</td><td>10.63</td><td>2022-02-22</td><td>2024-12-07</td><td>2019-12-31</td><td>&quot;USD&quot;</td></tr>
-<tr><td>&quot;IBM US Equity&quot;</td><td>6.28</td><td>2023-02-28</td><td>2024-12-07</td><td>2020-12-31</td><td>&quot;USD&quot;</td></tr>
-<tr><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td><td>&hellip;</td></tr>
-<tr><td>&quot;IBM US Equity&quot;</td><td>9.236</td><td>2024-12-07</td><td>2024-12-07</td><td>2025-12-31</td><td>&quot;USD&quot;</td></tr>
-</tbody></table>
-</div>
 
-### ZSpread vs Duration on bonds from SRCH
+with BQuery() as bq:
+    df_lst = bq.bql("get(name, px_last) for(['IBM US Equity'])")
+    
+> print(f"n={len(df_lst)}")
+n=2
+
+> print(df_lst[0])
+┌───────────────┬────────────────────────────────┐
+│ ID            ┆ name                           │
+│ ---           ┆ ---                            │
+│ str           ┆ str                            │
+╞═══════════════╪════════════════════════════════╡
+│ IBM US Equity ┆ International Business Machine │
+└───────────────┴────────────────────────────────┘
+
+> print(df_lst[1])
+shape: (1, 4)
+┌───────────────┬─────────┬────────────┬──────────┐
+│ ID            ┆ px_last ┆ DATE       ┆ CURRENCY │
+│ ---           ┆ ---     ┆ ---        ┆ ---      │
+│ str           ┆ f64     ┆ date       ┆ str      │
+╞═══════════════╪═════════╪════════════╪══════════╡
+│ IBM US Equity ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
+└───────────────┴─────────┴────────────┴──────────┘
+```
+
+Since both DataFrames have teh same index `ID` one can join the results into single table.
+```python
+>>> print(df_lst[0].join(df_lst[1], on='ID'))
+
+┌───────────────┬────────────────────────────────┬─────────┬────────────┬──────────┐
+│ ID            ┆ name                           ┆ px_last ┆ DATE       ┆ CURRENCY │
+│ ---           ┆ ---                            ┆ ---     ┆ ---        ┆ ---      │
+│ str           ┆ str                            ┆ f64     ┆ date       ┆ str      │
+╞═══════════════╪════════════════════════════════╪═════════╪════════════╪══════════╡
+│ IBM US Equity ┆ International Business Machine ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
+└───────────────┴────────────────────────────────┴─────────┴────────────┴──────────┘
+```
+
+### ZSpread vs Duration on SEB and SHBASS CoCo bonds from SRCH
+In this example we have three data-items in `get`statement. The universe is from Bloomberg SRCH function
+filtered only on tickers 'SEB' and 'SHBASS'.
 ```python
 query="""
-let(#dur=duration(duration_type=MODIFIED); 
-    #zsprd=spread(spread_type=Z);) 
-get(name(), #dur, #zsprd) 
-for(filter(screenresults(type=SRCH, screen_name='@COCO'), 
-           ticker in ['SEB', 'SHBASS']))
+    let(#dur=duration(duration_type=MODIFIED); 
+        #zsprd=spread(spread_type=Z);) 
+    get(name(), #dur, #zsprd) 
+    for(filter(screenresults(type=SRCH, screen_name='@COCO'), 
+            ticker in ['SEB', 'SHBASS']))
 """
 
 with BQuery() as bq:
-    df = bq.bql(query)
+    df_lst = bq.bql(query)
+
+    df = df_lst[0].join(df_lst[1], on='ID').join(df_lst[2], on=['ID', 'DATE'])
+    print(df)
+
+┌───────────────┬─────────────────┬──────────┬────────────┬────────────┐
+│ ID            ┆ name()          ┆ #dur     ┆ DATE       ┆ #zsprd     │
+│ ---           ┆ ---             ┆ ---      ┆ ---        ┆ ---        │
+│ str           ┆ str             ┆ f64      ┆ date       ┆ f64        │
+╞═══════════════╪═════════════════╪══════════╪════════════╪════════════╡
+│ ZQ349286 Corp ┆ SEB 5 ⅛ PERP    ┆ 0.395636 ┆ 2024-12-14 ┆ 185.980438 │
+│ YV402592 Corp ┆ SEB Float PERP  ┆ 0.212973 ┆ 2024-12-14 ┆ 232.71     │
+│ YU819930 Corp ┆ SEB 6 ¾ PERP    ┆ 5.37363  ┆ 2024-12-14 ┆ 308.810572 │
+│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP ┆ 4.946231 ┆ 2024-12-14 ┆ 255.85428  │
+│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP ┆ 1.956536 ┆ 2024-12-14 ┆ 213.358921 │
+│ BW924993 Corp ┆ SEB 6 ⅞ PERP    ┆ 2.231859 ┆ 2024-12-14 ┆ 211.55125  │
+└───────────────┴─────────────────┴──────────┴────────────┴────────────┘
 ```
-```plaintext
-shape: (6, 6)
-┌───────────────┬─────────────────┬──────────┬────────────┬────────────┬─────────────┐
-│ ID            ┆ name()          ┆ #dur     ┆ #dur.DATE  ┆ #zsprd     ┆ #zsprd.DATE │
-│ ---           ┆ ---             ┆ ---      ┆ ---        ┆ ---        ┆ ---         │
-│ str           ┆ str             ┆ f64      ┆ date       ┆ f64        ┆ date        │
-╞═══════════════╪═════════════════╪══════════╪════════════╪════════════╪═════════════╡
-│ BW924993 Corp ┆ SEB 6 ⅞ PERP    ┆ 2.244382 ┆ 2024-12-10 ┆ 229.930933 ┆ 2024-12-10  │
-│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP ┆ 4.958582 ┆ 2024-12-10 ┆ 269.963777 ┆ 2024-12-10  │
-│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP ┆ 1.968658 ┆ 2024-12-10 ┆ 232.839648 ┆ 2024-12-10  │
-│ YU819930 Corp ┆ SEB 6 ¾ PERP    ┆ 5.388785 ┆ 2024-12-10 ┆ 324.70196  ┆ 2024-12-10  │
-│ ZQ349286 Corp ┆ SEB 5 ⅛ PERP    ┆ 0.409083 ┆ 2024-12-10 ┆ 165.405465 ┆ 2024-12-10  │
-│ YV402592 Corp ┆ SEB Float PERP  ┆ 0.22527  ┆ 2024-12-10 ┆ 248.756    ┆ 2024-12-10  │
-└───────────────┴─────────────────┴──────────┴────────────┴────────────┴─────────────┘
+
+### Average PE per Sector
+This example shows aggregation (average) per group (sector) for members of an index.
+The reulting list has only one element since there is only one data-item in `get`
+```python
+query = """
+    let(#avg_pe=avg(group(pe_ratio(), gics_sector_name()));)
+    get(#avg_pe)
+    for(members('OMX Index'))
+"""
+with BQuery() as bq:
+    df_lst = bq.bql(query)
+    print(df_lst[0].head(5))
+
+┌──────────────┬───────────┬──────────────┬────────────┬──────────────┬──────────────┬─────────────┐
+│ ID           ┆ #avg_pe   ┆ REVISION_DAT ┆ AS_OF_DATE ┆ PERIOD_END_D ┆ ORIG_IDS     ┆ GICS_SECTOR │
+│ ---          ┆ ---       ┆ E            ┆ ---        ┆ ATE          ┆ ---          ┆ _NAME()     │
+│ str          ┆ f64       ┆ ---          ┆ date       ┆ ---          ┆ str          ┆ ---         │
+│              ┆           ┆ date         ┆            ┆ date         ┆              ┆ str         │
+╞══════════════╪═══════════╪══════════════╪════════════╪══════════════╪══════════════╪═════════════╡
+│ Communicatio ┆ 19.561754 ┆ 2024-10-24   ┆ 2024-12-14 ┆ 2024-09-30   ┆ null         ┆ Communicati │
+│ n Services   ┆           ┆              ┆            ┆              ┆              ┆ on Services │
+│ Consumer Dis ┆ 19.117295 ┆ 2024-10-24   ┆ 2024-12-14 ┆ 2024-09-30   ┆ null         ┆ Consumer    │
+│ cretionary   ┆           ┆              ┆            ┆              ┆              ┆ Discretiona │
+│              ┆           ┆              ┆            ┆              ┆              ┆ ry          │
+│ Consumer     ┆ 15.984743 ┆ 2024-10-24   ┆ 2024-12-14 ┆ 2024-09-30   ┆ ESSITYB SS   ┆ Consumer    │
+│ Staples      ┆           ┆              ┆            ┆              ┆ Equity       ┆ Staples     │
+│ Financials   ┆ 6.815895  ┆ 2024-10-24   ┆ 2024-12-14 ┆ 2024-09-30   ┆ null         ┆ Financials  │
+│ Health Care  ┆ 22.00628  ┆ 2024-11-12   ┆ 2024-12-14 ┆ 2024-09-30   ┆ null         ┆ Health Care │
+└──────────────┴───────────┴──────────────┴────────────┴──────────────┴──────────────┴─────────────┘
+```
+
+### Axes
+Get current axes of all Swedish USD AT1 bonds
+```python
+# Get current axes for Swedish AT1 bonds in USD
+query="""
+    let(#ax=axes();)
+    get(security_des, #ax)
+    for(filter(bondsuniv(ACTIVE),
+        crncy()=='USD' and
+        basel_iii_designation() == 'Additional Tier 1' and
+        country_iso() == 'SE'))
+"""
+
+with BQuery() as bq:
+    df_lst = bq.bql(query)
+    print(df_lst[0].join(df_lst[1], on='ID'))
+
+┌───────────────┬─────────────────┬─────┬───────────┬───────────┬────────────────┬────────────────┐
+│ ID            ┆ security_des    ┆ #ax ┆ ASK_DEPTH ┆ BID_DEPTH ┆ ASK_TOTAL_SIZE ┆ BID_TOTAL_SIZE │
+│ ---           ┆ ---             ┆ --- ┆ ---       ┆ ---       ┆ ---            ┆ ---            │
+│ str           ┆ str             ┆ str ┆ i64       ┆ i64       ┆ f64            ┆ f64            │
+╞═══════════════╪═════════════════╪═════╪═══════════╪═══════════╪════════════════╪════════════════╡
+│ YU819930 Corp ┆ SEB 6 ¾ PERP    ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
+│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
+│ BR069680 Corp ┆ SWEDA 4 PERP    ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
+│ ZL122341 Corp ┆ SWEDA 7 ⅝ PERP  ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
+│ ZQ349286 Corp ┆ SEB 5 ⅛ PERP    ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
+│ ZF859199 Corp ┆ SWEDA 7 ¾ PERP  ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
+│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
+│ BW924993 Corp ┆ SEB 6 ⅞ PERP    ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
+└───────────────┴─────────────────┴─────┴───────────┴───────────┴────────────────┴────────────────┘
+```
+
+### Segments
+The following example shows handling of two data-items with different length. Teh first dataframe 
+describes the segments (and has length 5 in this case), while the second dataframe contains time series.
+One can join teh dataframes on common columns and pivot the segments into columns as shown below:
+```python
+# revenue per segment
+query = """
+    let(#segment=segment_name();
+        #revenue=sales_Rev_turn(fpt=q, fpr=range(2023Q3, 2024Q3));
+        )
+    get(#segment, #revenue)
+    for(segments('GTN US Equity',type=reported,hierarchy=PRODUCT, level=1))
+"""
+with BQuery() as bq:
+    df_lst = bq.bql(query)
+    df = (
+        df_lst[0]
+        .join(df_lst[1], on=["ID", "ID_DATE", "AS_OF_DATE"])
+        .pivot(index="PERIOD_END_DATE", on="#segment", values="#revenue")
+    )
+    print(df)
+
+┌─────────────────┬──────────────┬──────────────────────┬────────┬────────────┐
+│ PERIOD_END_DATE ┆ Broadcasting ┆ Production Companies ┆ Other  ┆ Adjustment │
+│ ---             ┆ ---          ┆ ---                  ┆ ---    ┆ ---        │
+│ date            ┆ f64          ┆ f64                  ┆ f64    ┆ f64        │
+╞═════════════════╪══════════════╪══════════════════════╪════════╪════════════╡
+│ 2023-09-30      ┆ 7.83e8       ┆ 2e7                  ┆ 1.6e7  ┆ null       │
+│ 2023-12-31      ┆ 8.13e8       ┆ 3.2e7                ┆ 1.9e7  ┆ null       │
+│ 2024-03-31      ┆ 7.8e8        ┆ 2.4e7                ┆ 1.9e7  ┆ null       │
+│ 2024-06-30      ┆ 8.08e8       ┆ 1.8e7                ┆ 0.0    ┆ null       │
+│ 2024-09-30      ┆ 9.24e8       ┆ 2.6e7                ┆ 1.7e7  ┆ null       │
+└─────────────────┴──────────────┴──────────────────────┴────────┴────────────┘
+```
+
+### Actual and Forward EPS Estimates
+```python
+with BQuery() as bq:
+    df_lst = bq.bql("""
+        let(#eps=is_eps(fa_period_type='A',
+                        fa_period_offset=range(-4,2));)
+        get(#eps)
+        for(['IBM US Equity'])
+    """)
+    print(df_lst[0])
+
+┌───────────────┬───────┬───────────────┬────────────┬─────────────────┬──────────┐
+│ ID            ┆ #eps  ┆ REVISION_DATE ┆ AS_OF_DATE ┆ PERIOD_END_DATE ┆ CURRENCY │
+│ ---           ┆ ---   ┆ ---           ┆ ---        ┆ ---             ┆ ---      │
+│ str           ┆ f64   ┆ date          ┆ date       ┆ date            ┆ str      │
+╞═══════════════╪═══════╪═══════════════╪════════════╪═════════════════╪══════════╡
+│ IBM US Equity ┆ 10.63 ┆ 2022-02-22    ┆ 2024-12-14 ┆ 2019-12-31      ┆ USD      │
+│ IBM US Equity ┆ 6.28  ┆ 2023-02-28    ┆ 2024-12-14 ┆ 2020-12-31      ┆ USD      │
+│ IBM US Equity ┆ 6.41  ┆ 2023-02-28    ┆ 2024-12-14 ┆ 2021-12-31      ┆ USD      │
+│ IBM US Equity ┆ 1.82  ┆ 2024-03-18    ┆ 2024-12-14 ┆ 2022-12-31      ┆ USD      │
+│ IBM US Equity ┆ 8.23  ┆ 2024-03-18    ┆ 2024-12-14 ┆ 2023-12-31      ┆ USD      │
+│ IBM US Equity ┆ 7.891 ┆ 2024-12-13    ┆ 2024-12-14 ┆ 2024-12-31      ┆ USD      │
+│ IBM US Equity ┆ 9.236 ┆ 2024-12-13    ┆ 2024-12-14 ┆ 2025-12-31      ┆ USD      │
+└───────────────┴───────┴───────────────┴────────────┴─────────────────┴──────────┘
 ```
 
 ### Average issuer OAS spread per maturity bucket
 ```python
+# Example: Average OAS-spread per maturity bucket
 query = """
-let( 
+let(
     #bins = bins(maturity_years,
                  [3,9,18,30],
                  ['(1) 0-3','(2) 3-9','(3) 9-18','(4) 18-30','(5) 30+']);
@@ -281,59 +518,60 @@ for(filter(bonds('NVDA US Equity', issuedby = 'ENTITY'),
 """
 
 with BQuery() as bq:
-    df = bq.bql(query)
-```
-```plaintext
-┌───────────┬─────────────────┬──────────────────────┬──────────────────────┬──────────────────────┐
-│ ID        ┆ #average_spread ┆ #average_spread.DATE ┆ #average_spread.ORIG ┆ #average_spread.#BIN │
-│ ---       ┆ ---             ┆ ---                  ┆ _IDS                 ┆ S                    │
-│ str       ┆ f64             ┆ date                 ┆ ---                  ┆ ---                  │
-│           ┆                 ┆                      ┆ str                  ┆ str                  │
-╞═══════════╪═════════════════╪══════════════════════╪══════════════════════╪══════════════════════╡
-│ (1) 0-3   ┆ 30.638311       ┆ 2024-12-10           ┆ QZ552396 Corp        ┆ (1) 0-3              │
-│ (2) 3-9   ┆ 59.772151       ┆ 2024-12-10           ┆ null                 ┆ (2) 3-9              │
-│ (3) 9-18  ┆ 106.722341      ┆ 2024-12-10           ┆ BH393780 Corp        ┆ (3) 9-18             │
-│ (4) 18-30 ┆ 129.945414      ┆ 2024-12-10           ┆ BH393781 Corp        ┆ (4) 18-30            │
-│ (5) 30+   ┆ 151.318634      ┆ 2024-12-10           ┆ BH393782 Corp        ┆ (5) 30+              │
-└───────────┴─────────────────┴──────────────────────┴──────────────────────┴──────────────────────┘
+    df_lst = bq.bql(query)
+    print(df_lst[0])
 
+┌───────────┬─────────────────┬────────────┬───────────────┬───────────┐
+│ ID        ┆ #average_spread ┆ DATE       ┆ ORIG_IDS      ┆ #BINS     │
+│ ---       ┆ ---             ┆ ---        ┆ ---           ┆ ---       │
+│ str       ┆ f64             ┆ date       ┆ str           ┆ str       │
+╞═══════════╪═════════════════╪════════════╪═══════════════╪═══════════╡
+│ (1) 0-3   ┆ 31.195689       ┆ 2024-12-14 ┆ QZ552396 Corp ┆ (1) 0-3   │
+│ (2) 3-9   ┆ 59.580383       ┆ 2024-12-14 ┆ null          ┆ (2) 3-9   │
+│ (3) 9-18  ┆ 110.614416      ┆ 2024-12-14 ┆ BH393780 Corp ┆ (3) 9-18  │
+│ (4) 18-30 ┆ 135.160279      ┆ 2024-12-14 ┆ BH393781 Corp ┆ (4) 18-30 │
+│ (5) 30+   ┆ 150.713405      ┆ 2024-12-14 ┆ BH393782 Corp ┆ (5) 30+   │
+└───────────┴─────────────────┴────────────┴───────────────┴───────────┘
 ```
 
-### Technical Analysis: stocks with 20d EMA > 200d EMA and RSI > 70
+### Technical Analysis: stocks with 20d EMA > 200d EMA and RSI > 55
 ```python
 with BQuery() as bq:
-    df = bq.bql(
+    df_lst = bq.bql(
         """
-        let(#ema20=emavg(period=20); 
-            #ema200=emavg(period=200); 
+        let(#ema20=emavg(period=20);
+            #ema200=emavg(period=200);
             #rsi=rsi(close=px_last());)
         get(name(), #ema20, #ema200, #rsi)
-        for(filter(members('OMX Index'), 
-                    and(#ema20 > #ema200, #rsi > 70)))
+        for(filter(members('OMX Index'),
+                    and(#ema20 > #ema200, #rsi > 55)))
         with(fill=PREV)
         """
     )
-```
-<div>
-<small>shape: (2, 10)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>name()</th><th>#ema20</th><th>#ema20.DATE</th><th>#ema20.CURRENCY</th><th>#ema200</th><th>#ema200.DATE</th><th>#ema200.CURRENCY</th><th>#rsi</th><th>#rsi.DATE</th></tr><tr><td>str</td><td>str</td><td>f64</td><td>date</td><td>str</td><td>f64</td><td>date</td><td>str</td><td>f64</td><td>date</td></tr></thead><tbody><tr><td>&quot;SKFB SS Equity&quot;</td><td>&quot;SKF AB&quot;</td><td>210.185019</td><td>2024-12-08</td><td>&quot;SEK&quot;</td><td>204.16756</td><td>2024-12-08</td><td>&quot;SEK&quot;</td><td>72.255568</td><td>2024-12-08</td></tr><tr><td>&quot;ABB SS Equity&quot;</td><td>&quot;ABB Ltd&quot;</td><td>623.496942</td><td>2024-12-08</td><td>&quot;SEK&quot;</td><td>561.902577</td><td>2024-12-08</td><td>&quot;SEK&quot;</td><td>72.144556</td><td>2024-12-08</td></tr></tbody></table></div>
+    df = (
+        df_lst[0]
+        .join(df_lst[1], on="ID")
+        .join(df_lst[2], on=["ID", "DATE", "CURRENCY"])
+        .join(df_lst[3], on=["ID", "DATE"])
+    )
+    print(df)
 
-### Swedish USD AT1 Bonds with Bid Axis
-```python
-query="""
-let(#ax=axes();)
-get(ticker, cpn(), nxt_call_dt(), #ax)
-for(filter(bondsuniv(ACTIVE), 
-    crncy()=='USD' and 
-    basel_iii_designation() == 'Additional Tier 1' and 
-    country_iso() == 'SE' and 
-    is_axed('Bid') == True))
-"""
-with BQuery() as bq:
-    df = bq.bql(query)
+┌─────────────────┬──────────────────┬────────────┬────────────┬──────────┬────────────┬───────────┐
+│ ID              ┆ name()           ┆ #ema20     ┆ DATE       ┆ CURRENCY ┆ #ema200    ┆ #rsi      │
+│ ---             ┆ ---              ┆ ---        ┆ ---        ┆ ---      ┆ ---        ┆ ---       │
+│ str             ┆ str              ┆ f64        ┆ date       ┆ str      ┆ f64        ┆ f64       │
+╞═════════════════╪══════════════════╪════════════╪════════════╪══════════╪════════════╪═══════════╡
+│ ERICB SS Equity ┆ Telefonaktiebola ┆ 90.094984  ┆ 2024-12-14 ┆ SEK      ┆ 74.917219  ┆ 57.454412 │
+│                 ┆ get LM Ericsso   ┆            ┆            ┆          ┆            ┆           │
+│ SKFB SS Equity  ┆ SKF AB           ┆ 214.383743 ┆ 2024-12-14 ┆ SEK      ┆ 205.174139 ┆ 58.403269 │
+│ SEBA SS Equity  ┆ Skandinaviska    ┆ 153.680261 ┆ 2024-12-14 ┆ SEK      ┆ 150.720922 ┆ 57.692703 │
+│                 ┆ Enskilda Banken  ┆            ┆            ┆          ┆            ┆           │
+│ ASSAB SS Equity ┆ Assa Abloy AB    ┆ 338.829971 ┆ 2024-12-14 ┆ SEK      ┆ 316.8212   ┆ 55.467329 │
+│ SWEDA SS Equity ┆ Swedbank AB      ┆ 217.380431 ┆ 2024-12-14 ┆ SEK      ┆ 213.776784 ┆ 56.303481 │
+└─────────────────┴──────────────────┴────────────┴────────────┴──────────┴────────────┴───────────┘
 ```
-<div>
-<small>shape: (8, 11)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>ticker</th><th>cpn()</th><th>cpn().MULTIPLIER</th><th>cpn().CPN_TYP</th><th>nxt_call_dt()</th><th>#ax</th><th>#ax.ASK_DEPTH</th><th>#ax.BID_DEPTH</th><th>#ax.ASK_TOTAL_SIZE</th><th>#ax.BID_TOTAL_SIZE</th></tr><tr><td>str</td><td>str</td><td>f64</td><td>f64</td><td>str</td><td>date</td><td>str</td><td>i64</td><td>i64</td><td>f64</td><td>f64</td></tr></thead><tbody><tr><td>&quot;YU819930 Corp&quot;</td><td>&quot;SEB&quot;</td><td>6.75</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2031-11-04</td><td>&quot;Y&quot;</td><td>1</td><td>1</td><td>5e6</td><td>1.8e6</td></tr><tr><td>&quot;ZQ349286 Corp&quot;</td><td>&quot;SEB&quot;</td><td>5.125</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2025-05-13</td><td>&quot;Y&quot;</td><td>3</td><td>9</td><td>6.7e6</td><td>5e7</td></tr><tr><td>&quot;ZF859199 Corp&quot;</td><td>&quot;SWEDA&quot;</td><td>7.75</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2030-03-17</td><td>&quot;Y&quot;</td><td>1</td><td>2</td><td>5e6</td><td>7e6</td></tr><tr><td>&quot;BW924993 Corp&quot;</td><td>&quot;SEB&quot;</td><td>6.875</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2027-06-30</td><td>&quot;Y&quot;</td><td>2</td><td>3</td><td>8.2e6</td><td>1.1e7</td></tr><tr><td>&quot;ZL122341 Corp&quot;</td><td>&quot;SWEDA&quot;</td><td>7.625</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2028-03-17</td><td>&quot;Y&quot;</td><td>1</td><td>6</td><td>2.6e6</td><td>2.34e7</td></tr><tr><td>&quot;ZO703956 Corp&quot;</td><td>&quot;SHBASS&quot;</td><td>4.75</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2031-03-01</td><td>&quot;Y&quot;</td><td>1</td><td>2</td><td>3.2e6</td><td>6e6</td></tr><tr><td>&quot;BR069680 Corp&quot;</td><td>&quot;SWEDA&quot;</td><td>4.0</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2029-03-17</td><td>&quot;Y&quot;</td><td>null</td><td>1</td><td>null</td><td>3e6</td></tr><tr><td>&quot;ZO703315 Corp&quot;</td><td>&quot;SHBASS&quot;</td><td>4.375</td><td>1.0</td><td>&quot;VARIABLE&quot;</td><td>2027-03-01</td><td>&quot;Y&quot;</td><td>1</td><td>3</td><td>3e6</td><td>7.4e6</td></tr></tbody></table>
-</div>
+
+
 
 ### Bond universe from Equity Ticker
 ```python
@@ -395,8 +633,6 @@ shape: (20, 3)
 │ LW375188 Corp ┆ 0.0011    ┆ 2024-12-10 │
 └───────────────┴───────────┴────────────┘
 ```
-
-</details>
 
 ## API Documentation
 Read the [API documentation](examples/API-docs.md) in `examples/` directory
