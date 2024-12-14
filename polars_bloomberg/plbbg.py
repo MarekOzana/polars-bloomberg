@@ -320,7 +320,7 @@ class BQuery:
 
 
 def chain(dataframes: list[pl.DataFrame]) -> pl.DataFrame:
-    """Chain full outer join a list of Polars DataFrames on their common columns.
+    """Chain join list of DataFrames on their common columns.
 
     Parameters
     ----------
@@ -341,9 +341,10 @@ def chain(dataframes: list[pl.DataFrame]) -> pl.DataFrame:
     >>> df = plbbg.chain(df_lst)
 
     TODO: test
+
     """
 
-    def _get_common_cols(left: pl.DataFrame, right: pl.DataFrame) -> List[str]:
+    def _get_common_cols(left: pl.DataFrame, right: pl.DataFrame) -> list[str]:
         """Return a list of common column names between two DataFrames."""
         return list(set(left.columns) & set(right.columns))
 

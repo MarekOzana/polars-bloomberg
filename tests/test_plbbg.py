@@ -18,7 +18,7 @@ import pytest
 from polars.testing import assert_frame_equal
 
 from polars_bloomberg import BQuery
-from polars_bloomberg.plbbg import SITable
+from polars_bloomberg.plbbg import SITable, chain
 
 
 @pytest.fixture(scope="module")
@@ -1009,3 +1009,88 @@ class TestSchemaMappingAndDataConversion:
         out_table = bq._apply_schema(in_table)
         assert out_table.data == exp_data
         assert out_table.schema == schema
+
+
+@pytest.mark.no_bbg
+class TestChain:
+    """Unit tests on chain() function."""
+
+    # Test 1: Empty Input List
+    def test_chain_empty_input(self):
+        """Test that a ValueError is raised when input list is empty."""
+        with pytest.raises(ValueError, match="The list of DataFrames is empty."):
+            chain([])
+
+    # Test 2: Single DataFrame in List
+    def test_chain_single_dataframe(self):
+        """Return the DataFrame itself when only one DataFrame is provided."""
+        df = pl.DataFrame({"id": [1, 2, 3], "value": ["A", "B", "C"]})
+        result = chain([df])
+        assert_frame_equal(result, df), "should be identical to the input."
+
+    # Test 3: No Common Columns Between DataFrames
+    def test_chain_no_common_columns(self):
+        """Test ValueError when there are no common columns to join on."""
+        df1 = pl.DataFrame({"id": [1, 2, 3], "value1": ["A", "B", "C"]})
+        df2 = pl.DataFrame({"key": [1, 2, 4], "value2": ["D", "E", "F"]})
+        with pytest.raises(ValueError, match="No common columns to join on."):
+            chain([df1, df2])
+
+    # Test 4: Multiple DataFrames with Common Columns
+    def test_chain_multiple_common_columns(self):
+        """Test joining multiple DataFrames with at least one common column."""
+        df1 = pl.DataFrame({"id": [1, 2, 3], "value1": ["A", "B", "C"]})
+        df2 = pl.DataFrame({"id": [2, 3, 4], "value2": ["D", "E", "F"]})
+        df3 = pl.DataFrame({"id": [3, 4, 5], "value3": ["G", "H", "I"]})
+        expected = pl.DataFrame(
+            {
+                "id": [1, 2, 3, 4, 5],
+                "value1": ["A", "B", "C", None, None],
+                "value2": [None, "D", "E", "F", None],
+                "value3": [None, None, "G", "H", "I"],
+            }
+        )
+        result = chain([df1, df2, df3]).sort(by="id")
+        assert_frame_equal(result, expected), "The chained DataFrame does not match."
+
+    # Test 5: DataFrames with Different Schemas
+    def test_chain_different_schemas(self):
+        """Test joining DataFrames with different columns, some overlapping."""
+        df1 = pl.DataFrame({"id": [1, 2], "name": ["Alice", "Bob"]})
+        df2 = pl.DataFrame({"id": [2, 3], "age": [30, 25]})
+        df3 = pl.DataFrame({"id": [1, 3], "city": ["New York", "Los Angeles"]})
+        expected = pl.DataFrame(
+            {
+                "id": [1, 2, 3],
+                "name": ["Alice", "Bob", None],
+                "age": [None, 30, 25],
+                "city": ["New York", None, "Los Angeles"],
+            }
+        )
+        result = chain([df1, df2, df3]).sort(by="id")
+        assert_frame_equal(result, expected), "different schemas is incorrect."
+
+    # Test 6: DataFrames with Missing Values
+    def test_chain_missing_values(self):
+        """Test joining DataFrames that contain missing (null) values."""
+        df1 = pl.DataFrame({"id": [1, 2, 3], "value1": ["A", None, "C"]})
+        df2 = pl.DataFrame({"id": [2, 3, 4], "value2": [None, "E", "F"]})
+        expected = pl.DataFrame(
+            {
+                "id": [1, 2, 3, 4],
+                "value1": ["A", None, "C", None],
+                "value2": [None, None, "E", "F"],
+            }
+        )
+        result = chain([df1, df2]).sort(by="id")
+        assert_frame_equal(result, expected), "Missing values"
+
+    def test_chain(self):
+        """Test real-life cases based on yaml files.
+
+        Creation of test case
+        >>> with BQuery() as bq:
+        >>>     df_lst = bq.bql(query)
+        >>> with open("data/df_lst_<case name>.yaml", "w") as f:
+        >>>    yaml.dump([d.to_dict(as_series=False) for d in df_lst], f)
+        """

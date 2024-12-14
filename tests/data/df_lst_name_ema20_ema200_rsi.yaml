@@ -1,0 +1,78 @@
+- ID:
+  - ERICB SS Equity
+  - SKFB SS Equity
+  - SEBA SS Equity
+  - ASSAB SS Equity
+  - SWEDA SS Equity
+  name():
+  - Telefonaktiebolaget LM Ericsso
+  - SKF AB
+  - Skandinaviska Enskilda Banken
+  - Assa Abloy AB
+  - Swedbank AB
+- '#ema20':
+  - 90.09498400689236
+  - 214.3837429922651
+  - 153.68026081642967
+  - 338.82997079422995
+  - 217.38043140295338
+  CURRENCY:
+  - SEK
+  - SEK
+  - SEK
+  - SEK
+  - SEK
+  DATE:
+  - 2024-12-14
+  - 2024-12-14
+  - 2024-12-14
+  - 2024-12-14
+  - 2024-12-14
+  ID:
+  - ERICB SS Equity
+  - SKFB SS Equity
+  - SEBA SS Equity
+  - ASSAB SS Equity
+  - SWEDA SS Equity
+- '#ema200':
+  - 74.91721862955906
+  - 205.17413920943687
+  - 150.72092192828126
+  - 316.82119963630123
+  - 213.77678421934095
+  CURRENCY:
+  - SEK
+  - SEK
+  - SEK
+  - SEK
+  - SEK
+  DATE:
+  - 2024-12-14
+  - 2024-12-14
+  - 2024-12-14
+  - 2024-12-14
+  - 2024-12-14
+  ID:
+  - ERICB SS Equity
+  - SKFB SS Equity
+  - SEBA SS Equity
+  - ASSAB SS Equity
+  - SWEDA SS Equity
+- '#rsi':
+  - 57.45441228362786
+  - 58.40326879575384
+  - 57.692703405947924
+  - 55.46732869649847
+  - 56.30348054568751
+  DATE:
+  - 2024-12-14
+  - 2024-12-14
+  - 2024-12-14
+  - 2024-12-14
+  - 2024-12-14
+  ID:
+  - ERICB SS Equity
+  - SKFB SS Equity
+  - SEBA SS Equity
+  - ASSAB SS Equity
+  - SWEDA SS Equity
