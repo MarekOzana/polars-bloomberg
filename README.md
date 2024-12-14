@@ -4,46 +4,96 @@
 [![Tests](https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml/badge.svg)](https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
-**Polars + Bloomberg Open API** is a Python library that facilitates integration of Bloomberg data into Polars DataFrames. Designed for users familiar with Pandas or Excel, it offers minimal-boilerplate functions such as `bdp()`, `bdh()`, and `bql()`. Leverage Polars' high-performance capabilities alongside the Bloomberg API for lightning-fast DataFrame operations and a minimal memory footprint.
+**polars-bloomberg** is a Python library that extracts Bloomberg’s financial data directly into [Polars](https://www.pola.rs/) DataFrames.   
+If you’re a quant financial analyst, data scientist, or quant developer working in capital markets, this library makes it easy to fetch, transform, and analyze Bloomberg data right in Polars—offering speed, efficient memory usage, and a lot of fun to use!
 
+**Why use polars-bloomberg?**
 
-*Key Benefits:*
-- Intuitive "Excel-like" methods: `bdp()`, `bdh()`, `bql()`
-- Outputs data as Polars DataFrames
-- Lightweight design with no dependency on `pandas`
-- Quickly prototype, test, and scale complex financial analyses.
+- **User-Friendly Functions:** Shortcuts like `bdp()`, `bdh()`, and `bql()` (inspired by Excel-like Bloomberg calls) let you pull data with minimal boilerplate.
+- **High-Performance Analytics:** Polars is a lightning-fast DataFrame library. Combined with Bloomberg’s rich dataset, you get efficient data retrieval and minimal memory footprint
+- **No Pandas Dependency:** Enjoy a clean integration that relies solely on Polars for speed and simplicity.
+
+---
+
+## Table of Contents
+
+1. [Introduction](#introduction)
+2. [Prerequisites](#prerequisites)
+3. [Installation](#installation)
+4. [Quick Start](#quick-start)
+5. [Core Methods](#core-methods)
+    - [BDP (Bloomberg Data Point)](#bdp)
+
+## Introduction
+Working with Bloomberg data in Python often feels more complicated than using their well-known Excel interface.
+Great projects like [blp](https://github.com/matthewgilbert/blp), [xbbg](https://github.com/alpha-xone/xbbg), and [pdblp](https://github.com/matthewgilbert/pdblp) have made this easier by pulling data directly into pandas. 
+
+With polars-bloomberg, you can enjoy the speed and simplicity of [Polars](https://www.pola.rs/) DataFrames—accessing both familiar Excel-style calls (`bdp`, `bdh`) and advanced `bql` queries—without extra pandas conversions. 
+
+I hope you enjoy using it as much as I had fun building it!
+
 
 ## Prerequisites
 
 - **Bloomberg Access:** A valid Bloomberg terminal license.
 - **Bloomberg Python API:** The `blpapi` library must be installed. See the [Bloomberg API Library](https://www.bloomberg.com/professional/support/api-library/) for guidance.
 - **Python Version:** Python 3.8+ recommended.
-- **Installation:** `pip install polars-bloomberg`
 
+## Installation
 
-## Quick Start Guide (5 Minutes)
+```bash
+pip install polars-bloomberg
+```
 
-Below is a simple example to get you started. For more comprehensive examples, please see the [examples/](examples/) directory.
+# Quick Start
+"Hello World" Example (under 1 minute):
+```python
+from polars_bloomberg import BQuery
 
-**Concept:**  
+# Fetch the latest price for Apple (AAPL US Equity)
+with BQuery() as bq:
+    df = bq.bdp(["AAPL US Equity"], ["PX_LAST"])
+    print(df)
+
+┌────────────────┬─────────┐
+│ security       ┆ PX_LAST │
+│ ---            ┆ ---     │
+│ str            ┆ f64     │
+╞════════════════╪═════════╡
+│ AAPL US Equity ┆ 248.13  │
+└────────────────┴─────────┘
+```
+What this does:
+- Establishes a Bloomberg connection using the context manager.
+- Retrieves the last price of Apple shares.
+- Returns the result as a Polars DataFrame.
+
+If you see a price in `df`, your setup is working 🤩!!!
+
+## Core Methods
 `BQuery` is your main interface. Using a context manager ensures the connection opens and closes cleanly. Within this session, you can use:
 - `bq.bdp()` for Bloomberg Data Points (single-value fields).
 - `bq.bdh()` for Historical Data (time series).
 - `bq.bql()` for complex Bloomberg Query Language requests.
 
-## BDP - Bloomberg Data Point
+## BDP
+Use Case: Fetch the latest single-value data points (like last price, currency, or descriptive fields).
 
-### Example: Fetching the Last Price of Apple and Microsoft
+### Example: Fetching the Last Price & Currency of Apple and SEB
 ```python
-from polars_bloomberg import BQuery
-
 with BQuery() as bq:
-    df = bq.bdp(['AAPL US Equity', 'MSFT US Equity'], ['PX_LAST'])
-```
+    df = bq.bdp(["AAPL US Equity", "SEBA SS Equity"], ["PX_LAST", "CRNCY"])
+    print(df)
 
-<div>
-<small>shape: (2, 2)</small><table border="1" class="dataframe"><thead><tr><th>security</th><th>PX_LAST</th></tr><tr><td>str</td><td>f64</td></tr></thead><tbody><tr><td>&quot;AAPL US Equity&quot;</td><td>242.84</td></tr><tr><td>&quot;MSFT US Equity&quot;</td><td>443.57</td></tr></tbody></table>
-</div>
+┌────────────────┬─────────┬───────┐
+│ security       ┆ PX_LAST ┆ CRNCY │
+│ ---            ┆ ---     ┆ ---   │
+│ str            ┆ f64     ┆ str   │
+╞════════════════╪═════════╪═══════╡
+│ AAPL US Equity ┆ 248.13  ┆ USD   │
+│ SEBA SS Equity ┆ 155.2   ┆ SEK   │
+└────────────────┴─────────┴───────┘
+```
 
 <details><summary>More BDP Examples</summary>
 
@@ -55,23 +105,35 @@ with BQuery() as bq:
 with BQuery() as bq:
     df = bq.bdp(["XS2930103580 Corp", "USX60003AC87 Corp"],
                 ["SECURITY_DES", "YAS_ZSPREAD", "CRNCY", "NXT_CALL_DT"])
+
+┌───────────────────┬────────────────┬─────────────┬───────┬─────────────┐
+│ security          ┆ SECURITY_DES   ┆ YAS_ZSPREAD ┆ CRNCY ┆ NXT_CALL_DT │
+│ ---               ┆ ---            ┆ ---         ┆ ---   ┆ ---         │
+│ str               ┆ str            ┆ f64         ┆ str   ┆ date        │
+╞═══════════════════╪════════════════╪═════════════╪═══════╪═════════════╡
+│ XS2930103580 Corp ┆ SEB 6 3/4 PERP ┆ 304.676112  ┆ USD   ┆ 2031-11-04  │
+│ USX60003AC87 Corp ┆ NDAFH 6.3 PERP ┆ 292.477506  ┆ USD   ┆ 2031-09-25  │
+└───────────────────┴────────────────┴─────────────┴───────┴─────────────┘
 ```
-<div>
-<small>shape: (2, 5)</small>
-<table border="1" class="dataframe"><thead><tr><th>security</th><th>SECURITY_DES</th><th>YAS_ZSPREAD</th><th>CRNCY</th><th>NXT_CALL_DT</th></tr><tr><td>str</td><td>str</td><td>f64</td><td>str</td><td>date</td></tr></thead><tbody><tr><td>&quot;XS2930103580 Corp&quot;</td><td>&quot;SEB 6 3/4 PERP&quot;</td><td>327.309349</td><td>&quot;USD&quot;</td><td>2031-11-04</td></tr><tr><td>&quot;USX60003AC87 Corp&quot;</td><td>&quot;NDAFH 6.3 PERP&quot;</td><td>315.539222</td><td>&quot;USD&quot;</td><td>2031-09-25</td></tr></tbody></table>
-</div>
 
 ### BDP with overrides
 User can submit list of tuples with overrides
 ```python
 with BQuery() as bq:
-    df = bq.bdp(["IBM US Equity"], ["PX_LAST", "CRNCY_ADJ_PX_LAST"], 
-                overrides=[("EQY_FUND_CRNCY", "SEK")])
+    df = bq.bdp(
+        ["IBM US Equity"],
+        ["PX_LAST", "CRNCY_ADJ_PX_LAST"],
+        overrides=[("EQY_FUND_CRNCY", "SEK")],
+    )
+
+┌───────────────┬─────────┬───────────────────┐
+│ security      ┆ PX_LAST ┆ CRNCY_ADJ_PX_LAST │
+│ ---           ┆ ---     ┆ ---               │
+│ str           ┆ f64     ┆ f64               │
+╞═══════════════╪═════════╪═══════════════════╡
+│ IBM US Equity ┆ 230.82  ┆ 2535.174          │
+└───────────────┴─────────┴───────────────────┘
 ```
-<div>
-</style>
-<small>shape: (1, 3)</small><table border="1" class="dataframe"><thead><tr><th>security</th><th>PX_LAST</th><th>CRNCY_ADJ_PX_LAST</th></tr><tr><td>str</td><td>f64</td><td>f64</td></tr></thead><tbody><tr><td>&quot;IBM US Equity&quot;</td><td>238.04</td><td>2607.401</td></tr></tbody></table>
-</div>
 
 ### BDP with date overrides
 Overrides for dates has to be in format YYYYMMDD
@@ -79,10 +141,15 @@ Overrides for dates has to be in format YYYYMMDD
 with BQuery() as bq:
     df = bq.bdp(["USX60003AC87 Corp"], ["SETTLE_DT"],
                 overrides=[("USER_LOCAL_TRADE_DATE", "20241014")])
+
+┌───────────────────┬────────────┐
+│ security          ┆ SETTLE_DT  │
+│ ---               ┆ ---        │
+│ str               ┆ date       │
+╞═══════════════════╪════════════╡
+│ USX60003AC87 Corp ┆ 2024-10-15 │
+└───────────────────┴────────────┘
 ```
-<div>
-<small>shape: (1, 2)</small><table border="1" class="dataframe"><thead><tr><th>security</th><th>SETTLE_DT</th></tr><tr><td>str</td><td>date</td></tr></thead><tbody><tr><td>&quot;USX60003AC87 Corp&quot;</td><td>2024-10-15</td></tr></tbody></table>
-</div>
 
 ```python
 with BQuery() as bq:
@@ -90,9 +157,16 @@ with BQuery() as bq:
                 ['SETTLE_DT', 'PX_LAST'], 
                 overrides=[('REFERENCE_DATE', '20200715')]
                )
+
+┌───────────────┬────────────┬─────────┐
+│ security      ┆ SETTLE_DT  ┆ PX_LAST │
+│ ---           ┆ ---        ┆ ---     │
+│ str           ┆ date       ┆ f64     │
+╞═══════════════╪════════════╪═════════╡
+│ USDSEK Curncy ┆ 2020-07-17 ┆ 10.9778 │
+│ SEKCZK Curncy ┆ 2020-07-17 ┆ 2.1698  │
+└───────────────┴────────────┴─────────┘
 ```
-<div>
-<small>shape: (2, 3)</small><table border="1" class="dataframe"><thead><tr><th>security</th><th>SETTLE_DT</th><th>PX_LAST</th></tr><tr><td>str</td><td>date</td><td>f64</td></tr></thead><tbody><tr><td>&quot;USDSEK Curncy&quot;</td><td>2020-07-17</td><td>10.9343</td></tr><tr><td>&quot;SEKCZK Curncy&quot;</td><td>2020-07-17</td><td>2.1718</td></tr></tbody></table></div>
 
 </details>
 
