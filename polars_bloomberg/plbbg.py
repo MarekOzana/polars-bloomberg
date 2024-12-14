@@ -11,11 +11,6 @@ Usage
 
     with BQuery() as bq:
         df_ref = bq.bdp(['AAPL US Equity', 'MSFT US Equity'], ['PX_LAST'])
-        df_rf2 = bq.bdp(
-            ["OMX Index", "SPX Index", "SEBA SS Equity"],
-            ["PX_LAST", "SECURITY_DES", "DVD_EX_DT", "CRNCY_ADJ_PX_LAST"],
-            overrides=[("EQY_FUND_CRNCY", "SEK")]
-        )
         df_hist = bq.bdh(
             ['AAPL US Equity'],
             ['PX_LAST'],
@@ -160,26 +155,7 @@ class BQuery:
         overrides: Sequence | None = None,
         options: dict | None = None,
     ) -> blpapi.Request:
-        """Create a Bloomberg request with support for overrides and additional options.
-
-        Parameters
-        ----------
-        request_type: str
-            Type of the request (e.g., 'ReferenceDataRequest').
-        securities: List[str]
-            List of securities to include in the request.
-        fields: List[str]
-            List of fields to include in the request.
-        overrides: Optional[Sequence]
-            List of overrides.
-        options: Optional[Dict]
-            Additional options as key-value pairs.
-
-        Returns
-        -------
-            blpapi.Request: The constructed Bloomberg request.
-
-        """
+        """Create a Bloomberg request with support for overrides and additional options."""
         service = self.session.getService("//blp/refdata")
         request = service.createRequest(request_type)
 
@@ -216,15 +192,7 @@ class BQuery:
         return request
 
     def _send_request(self, request) -> list[dict]:
-        """Send a Bloomberg request and collect responses with timeout handling.
-
-        Returns:
-            List[Dict]: The list of responses.
-
-        Raises:
-            TimeoutError: If the request times out.
-
-        """
+        """Send a Bloomberg request and collect responses with timeout handling."""
         self.session.sendRequest(request)
         responses = []
         while True:
@@ -349,3 +317,44 @@ class BQuery:
             "DATE": pl.Date,
         }
         return {col: mapping.get(t.upper(), pl.Utf8) for col, t in type_map.items()}
+
+
+def chain(dataframes: list[pl.DataFrame]) -> pl.DataFrame:
+    """Chain full outer join a list of Polars DataFrames on their common columns.
+
+    Parameters
+    ----------
+    dataframes: list[pl.DataFrame]
+        A list of Polars DataFrames to join.
+
+    Returns
+    -------
+        pl.DataFrame: The resulting DataFrame after chaining full outer joins.
+
+    Raises
+    ------
+        ValueError: If the input list is empty or if no common columns are found during a join.
+
+    Usage
+    -----
+    >>> df_lst = bq.bql("get(px_last, name) for(members('OMX Index')))
+    >>> df = plbbg.chain(df_lst)
+
+    TODO: test
+    """
+
+    def _get_common_cols(left: pl.DataFrame, right: pl.DataFrame) -> List[str]:
+        """Return a list of common column names between two DataFrames."""
+        return list(set(left.columns) & set(right.columns))
+
+    if not dataframes:
+        raise ValueError("The list of DataFrames is empty.")
+
+    result_df: pl.DataFrame = dataframes[0]  # Initialize with the first DataFrame
+    for df in dataframes[1:]:
+        common_cols: list[str] = _get_common_cols(result_df, df)  # Find common columns
+        if not common_cols:
+            raise ValueError("No common columns to join on.")
+        # Perform full outer join on common columns with coalescence
+        result_df = result_df.join(df, on=common_cols, how="full", coalesce=True)
+    return result_df
