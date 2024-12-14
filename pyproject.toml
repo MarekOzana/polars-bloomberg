@@ -61,7 +61,7 @@ lint.select = [
   "R", # Refactor suggestions
   "G", # General best practices
 ]
-lint.ignore = ["D211", "D213", "D203"] # No blank lines before class (Removed)
+lint.ignore = ["D211", "D213", "D203", "T201"] # No blank lines before class (Removed)
 
 [tool.ruff.lint.pylint]
 max-args = 6
