@@ -1322,5 +1322,4 @@ class TestChain:
         df_lst = [pl.DataFrame(dct) for dct in d_lst]
 
         df = chain(df_lst).to_dict(as_series=False)
-        print(df)
         assert df == exp_df
