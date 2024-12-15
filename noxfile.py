@@ -18,7 +18,7 @@ def tests(session):
     """
     # Install dependencies from requirements.txt
     session.install("-r", "requirements.txt")
-    session.install("pytest", "pytest-cov", "yaml")
+    session.install("pytest", "pytest-cov", "pyyaml")
     # Install the package itself if needed
     session.install(".")
 

@@ -27,7 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install pytest build ruff
+        python -m pip install pytest pyyaml build ruff
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         python -m build .
         python -m pip install dist/*.whl
