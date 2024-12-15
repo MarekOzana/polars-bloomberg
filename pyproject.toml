@@ -24,7 +24,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "jupyter", "altair", "nox"]
+dev = ["pytest", "pytest-cov", "jupyter", "altair", "nox", "yaml"]
 
 [project.urls]
 Homepage = "https://github.com/MarekOzana/polars-bloomberg"

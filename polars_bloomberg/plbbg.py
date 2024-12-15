@@ -155,7 +155,7 @@ class BQuery:
         overrides: Sequence | None = None,
         options: dict | None = None,
     ) -> blpapi.Request:
-        """Create a Bloomberg request with support for overrides and additional options."""
+        """Create a Bloomberg request with support for overrides and options."""
         service = self.session.getService("//blp/refdata")
         request = service.createRequest(request_type)
 
@@ -260,9 +260,11 @@ class BQuery:
         for col, dtype in table.schema.items():
             if dtype == pl.Date:
                 table.data[col] = [
-                    datetime.strptime(v, date_format).date()
-                    if isinstance(v, str)
-                    else None
+                    (
+                        datetime.strptime(v, date_format).date()
+                        if isinstance(v, str)
+                        else None
+                    )
                     for v in table.data[col]
                 ]
             elif dtype in {pl.Float64, pl.Int64}:
@@ -333,7 +335,7 @@ def chain(dataframes: list[pl.DataFrame]) -> pl.DataFrame:
 
     Raises
     ------
-        ValueError: If the input list is empty or if no common columns are found during a join.
+        ValueError: If the input list is empty or if no common columns are found.
 
     Usage
     -----
