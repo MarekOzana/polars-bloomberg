@@ -1,23 +1,30 @@
 """Polars interface to Bloomberg Open API.
 
-This module provides a Polars-based interface to interact with the Bloomberg Open API.
+polars-bloomberg is a Python library that fetches Bloomberg financial data directly into
+Polars DataFrames. It offers user-friendly methods such as `bdp()`, `bdh()`, and `bql()`
+for efficient data retrieval and analysis.
 
 Usage
 -----
-.. code-block:: python
+```python
+from datetime import date
+from polars_bloomberg import BQuery
 
-    from datetime import date
-    from polars_bloomberg import BQuery
+with BQuery() as bq:
+    # Fetch reference data
+    df_ref = bq.bdp(['AAPL US Equity', 'MSFT US Equity'], ['PX_LAST'])
 
-    with BQuery() as bq:
-        df_ref = bq.bdp(['AAPL US Equity', 'MSFT US Equity'], ['PX_LAST'])
-        df_hist = bq.bdh(
-            ['AAPL US Equity'],
-            ['PX_LAST'],
-            date(2020, 1, 1),
-            date(2020, 1, 30)
-        )
-        df_px = bq.bql("get(px_last) for(['IBM US Equity', 'AAPL US Equity'])")
+    # Fetch historical data
+    df_hist = bq.bdh(
+        ['AAPL US Equity'],
+        ['PX_LAST'],
+        date(2020, 1, 1),
+        date(2020, 1, 30)
+    )
+
+    # Execute BQL query
+    df_lst = bq.bql("get(px_last) for(['IBM US Equity', 'AAPL US Equity'])")
+```
 
 :author: Marek Ozana
 :date: 2024-12
@@ -45,6 +52,46 @@ class SITable:
     name: str  # data item name
     data: dict[str, list[Any]]  # column_name -> list of values
     schema: dict[str, pl.DataType]  # column_name -> Polars datatype
+
+
+@dataclass
+class BqlResult:
+    """Holds the result of a BQL query: list of Polars DataFrames."""
+
+    dataframes: list[pl.DataFrame]
+    names: list[str]  # data-item names
+
+    def combine(self) -> pl.DataFrame:
+        """Combine all dataframes into one by joining on common columns.
+
+        Raises
+        ------
+        ValueError:
+            If no common columns exist or no dataframes are present.
+
+        """
+        if not self.dataframes:
+            raise ValueError("No DataFrames to combine.")
+
+        result = self.dataframes[0]  # Initialize with the first DataFrame
+        for df in self.dataframes[1:]:
+            common_cols = set(result.columns) & set(df.columns)
+            if not common_cols:
+                raise ValueError("No common columns found to join on.")
+            result = result.join(df, on=list(common_cols), how="full", coalesce=True)
+        return result
+
+    def __getitem__(self, idx: int) -> pl.DataFrame:
+        """Access individual DataFrames by index."""
+        return self.dataframes[idx]
+
+    def __len__(self) -> int:
+        """Return the number of dataframes."""
+        return len(self.dataframes)
+
+    def __iter__(self):
+        """Return an iterator over the dataframes."""
+        return iter(self.dataframes)
 
 
 class BQuery:
@@ -142,10 +189,12 @@ class BQuery:
         request = self._create_bql_request(expression)
         responses = self._send_request(request)
         tables = self._parse_bql_responses(responses)
-        return [
+        dataframes = [
             pl.DataFrame(table.data, schema=table.schema, strict=True)
             for table in tables
         ]
+        names = [table.name for table in tables]
+        return BqlResult(dataframes, names)
 
     def _create_request(
         self,
