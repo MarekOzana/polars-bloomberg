@@ -380,7 +380,7 @@ class BQuery:
             "DOUBLE": pl.Float64,
             "INT": pl.Int64,
             "DATE": pl.Date,
-            "BOOLEAN": pl.Boolean
+            "BOOLEAN": pl.Boolean,
         }
         return {col: mapping.get(t.upper(), pl.Utf8) for col, t in type_map.items()}
 
