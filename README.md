@@ -33,7 +33,7 @@ If you’re a quant financial analyst, data scientist, or quant developer workin
         - [Axes](#axes)
         - [Segments](#segments)
         - [Average Spread per Bucket](#average-issuer-oas-spread-per-maturity-bucket)
-        - [Technical Analysis Screening](#technical-analysis-stocks-with-20d-ema--200d-ema-and-rsi--55)
+        - [Technical Analysis Screening](#technical-analysis-stocks-with-20d-ema--200d-ema-and-rsi--53)
         - [Bonds Universe from Equity](#bond-universe-from-equity-ticker)
         - [Bonds Total Return](#bonds-total-returns)
         </details>
@@ -336,7 +336,7 @@ shape: (1, 4)
 └───────────────┴─────────┴────────────┴──────────┘
 ```
 
-Since both DataFrames have teh same index `ID` one can join the results into single table.
+Since both DataFrames have the same index `ID` one can join the results into single table.
 ```python
 >>> print(df_lst[0].join(df_lst[1], on='ID'))
 
@@ -348,6 +348,20 @@ Since both DataFrames have teh same index `ID` one can join the results into sin
 │ IBM US Equity ┆ International Business Machine ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
 └───────────────┴────────────────────────────────┴─────────┴────────────┴──────────┘
 ```
+
+As alternative one can use method `combine` on BqlResult which attempts to combine all dataframes in the list on common columns:
+```python
+>>> print(df_lst.combine())
+┌───────────────┬────────────────────────────────┬────────────┬────────────┬──────────┐
+│ ID            ┆ name                           ┆ px_last    ┆ DATE       ┆ CURRENCY │
+│ ---           ┆ ---                            ┆ ---        ┆ ---        ┆ ---      │
+│ str           ┆ str                            ┆ f64        ┆ date       ┆ str      │
+╞═══════════════╪════════════════════════════════╪════════════╪════════════╪══════════╡
+│ IBM US Equity ┆ International Business Machine ┆ 229.429993 ┆ 2024-12-16 ┆ USD      │
+└───────────────┴────────────────────────────────┴────────────┴────────────┴──────────┘
+```
+
+
 
 ### ZSpread vs Duration on SEB and SHBASS CoCo bonds from SRCH
 In this example we have three data-items in `get`statement. The universe is from Bloomberg SRCH function
@@ -363,22 +377,20 @@ query="""
 
 with BQuery() as bq:
     df_lst = bq.bql(query)
+    print(df_lst.combine())
 
-    df = df_lst[0].join(df_lst[1], on='ID').join(df_lst[2], on=['ID', 'DATE'])
-    print(df)
-
-┌───────────────┬─────────────────┬──────────┬────────────┬────────────┐
-│ ID            ┆ name()          ┆ #dur     ┆ DATE       ┆ #zsprd     │
-│ ---           ┆ ---             ┆ ---      ┆ ---        ┆ ---        │
-│ str           ┆ str             ┆ f64      ┆ date       ┆ f64        │
-╞═══════════════╪═════════════════╪══════════╪════════════╪════════════╡
-│ ZQ349286 Corp ┆ SEB 5 ⅛ PERP    ┆ 0.395636 ┆ 2024-12-14 ┆ 185.980438 │
-│ YV402592 Corp ┆ SEB Float PERP  ┆ 0.212973 ┆ 2024-12-14 ┆ 232.71     │
-│ YU819930 Corp ┆ SEB 6 ¾ PERP    ┆ 5.37363  ┆ 2024-12-14 ┆ 308.810572 │
-│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP ┆ 4.946231 ┆ 2024-12-14 ┆ 255.85428  │
-│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP ┆ 1.956536 ┆ 2024-12-14 ┆ 213.358921 │
-│ BW924993 Corp ┆ SEB 6 ⅞ PERP    ┆ 2.231859 ┆ 2024-12-14 ┆ 211.55125  │
-└───────────────┴─────────────────┴──────────┴────────────┴────────────┘
+┌───────────────┬─────────────────┬──────┬────────────┬────────┐
+│ ID            ┆ name()          ┆ #dur ┆ DATE       ┆ #zsprd │
+│ ---           ┆ ---             ┆ ---  ┆ ---        ┆ ---    │
+│ str           ┆ str             ┆ f64  ┆ date       ┆ f64    │
+╞═══════════════╪═════════════════╪══════╪════════════╪════════╡
+│ BW924993 Corp ┆ SEB 6 ⅞ PERP    ┆ 2.23 ┆ 2024-12-16 ┆ 212.0  │
+│ YV402592 Corp ┆ SEB Float PERP  ┆ 0.21 ┆ 2024-12-16 ┆ 233.0  │
+│ ZQ349286 Corp ┆ SEB 5 ⅛ PERP    ┆ 0.39 ┆ 2024-12-16 ┆ 186.0  │
+│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP ┆ 1.95 ┆ 2024-12-16 ┆ 213.0  │
+│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP ┆ 4.94 ┆ 2024-12-16 ┆ 256.0  │
+│ YU819930 Corp ┆ SEB 6 ¾ PERP    ┆ 5.37 ┆ 2024-12-16 ┆ 309.0  │
+└───────────────┴─────────────────┴──────┴────────────┴────────┘
 ```
 
 ### Average PE per Sector
@@ -427,28 +439,28 @@ query="""
 
 with BQuery() as bq:
     df_lst = bq.bql(query)
-    print(df_lst[0].join(df_lst[1], on='ID'))
+    print(df_lst.combine())
 
 ┌───────────────┬─────────────────┬─────┬───────────┬───────────┬────────────────┬────────────────┐
 │ ID            ┆ security_des    ┆ #ax ┆ ASK_DEPTH ┆ BID_DEPTH ┆ ASK_TOTAL_SIZE ┆ BID_TOTAL_SIZE │
 │ ---           ┆ ---             ┆ --- ┆ ---       ┆ ---       ┆ ---            ┆ ---            │
 │ str           ┆ str             ┆ str ┆ i64       ┆ i64       ┆ f64            ┆ f64            │
 ╞═══════════════╪═════════════════╪═════╪═══════════╪═══════════╪════════════════╪════════════════╡
-│ YU819930 Corp ┆ SEB 6 ¾ PERP    ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
-│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
-│ BR069680 Corp ┆ SWEDA 4 PERP    ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
-│ ZL122341 Corp ┆ SWEDA 7 ⅝ PERP  ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
-│ ZQ349286 Corp ┆ SEB 5 ⅛ PERP    ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
-│ ZF859199 Corp ┆ SWEDA 7 ¾ PERP  ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
-│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
-│ BW924993 Corp ┆ SEB 6 ⅞ PERP    ┆ N   ┆ null      ┆ null      ┆ null           ┆ null           │
+│ YU819930 Corp ┆ SEB 6 ¾ PERP    ┆ Y   ┆ 2         ┆ null      ┆ 5.6e6          ┆ null           │
+│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP ┆ Y   ┆ 1         ┆ 2         ┆ 5e6            ┆ 6e6            │
+│ BR069680 Corp ┆ SWEDA 4 PERP    ┆ Y   ┆ null      ┆ 1         ┆ null           ┆ 3e6            │
+│ ZL122341 Corp ┆ SWEDA 7 ⅝ PERP  ┆ Y   ┆ null      ┆ 6         ┆ null           ┆ 2.04e7         │
+│ ZQ349286 Corp ┆ SEB 5 ⅛ PERP    ┆ Y   ┆ 2         ┆ 4         ┆ 5.5e6          ┆ 3e7            │
+│ ZF859199 Corp ┆ SWEDA 7 ¾ PERP  ┆ Y   ┆ 1         ┆ 1         ┆ 2e6            ┆ 2e6            │
+│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP ┆ Y   ┆ 1         ┆ 3         ┆ 1.2e6          ┆ 1.1e7          │
+│ BW924993 Corp ┆ SEB 6 ⅞ PERP    ┆ Y   ┆ 1         ┆ 3         ┆ 5e6            ┆ 1.1e7          │
 └───────────────┴─────────────────┴─────┴───────────┴───────────┴────────────────┴────────────────┘
 ```
 
 ### Segments
-The following example shows handling of two data-items with different length. Teh first dataframe 
+The following example shows handling of two data-items with different length. The first dataframe 
 describes the segments (and has length 5 in this case), while the second dataframe contains time series.
-One can join teh dataframes on common columns and pivot the segments into columns as shown below:
+One can join the dataframes on common columns and pivot the segments into columns as shown below:
 ```python
 # revenue per segment
 query = """
@@ -538,7 +550,7 @@ with BQuery() as bq:
 └───────────┴─────────────────┴────────────┴───────────────┴───────────┘
 ```
 
-### Technical Analysis: stocks with 20d EMA > 200d EMA and RSI > 55
+### Technical Analysis: stocks with 20d EMA > 200d EMA and RSI > 53
 ```python
 with BQuery() as bq:
     df_lst = bq.bql(
@@ -548,30 +560,23 @@ with BQuery() as bq:
             #rsi=rsi(close=px_last());)
         get(name(), #ema20, #ema200, #rsi)
         for(filter(members('OMX Index'),
-                    and(#ema20 > #ema200, #rsi > 55)))
+                    and(#ema20 > #ema200, #rsi > 53)))
         with(fill=PREV)
         """
     )
-    df = (
-        df_lst[0]
-        .join(df_lst[1], on="ID")
-        .join(df_lst[2], on=["ID", "DATE", "CURRENCY"])
-        .join(df_lst[3], on=["ID", "DATE"])
-    )
-    print(df)
+    print(df_lst.combine())
 
 ┌─────────────────┬──────────────────┬────────────┬────────────┬──────────┬────────────┬───────────┐
 │ ID              ┆ name()           ┆ #ema20     ┆ DATE       ┆ CURRENCY ┆ #ema200    ┆ #rsi      │
 │ ---             ┆ ---              ┆ ---        ┆ ---        ┆ ---      ┆ ---        ┆ ---       │
 │ str             ┆ str              ┆ f64        ┆ date       ┆ str      ┆ f64        ┆ f64       │
 ╞═════════════════╪══════════════════╪════════════╪════════════╪══════════╪════════════╪═══════════╡
-│ ERICB SS Equity ┆ Telefonaktiebola ┆ 90.094984  ┆ 2024-12-14 ┆ SEK      ┆ 74.917219  ┆ 57.454412 │
+│ ERICB SS Equity ┆ Telefonaktiebola ┆ 90.152604  ┆ 2024-12-16 ┆ SEK      ┆ 75.072151  ┆ 56.010028 │
 │                 ┆ get LM Ericsso   ┆            ┆            ┆          ┆            ┆           │
-│ SKFB SS Equity  ┆ SKF AB           ┆ 214.383743 ┆ 2024-12-14 ┆ SEK      ┆ 205.174139 ┆ 58.403269 │
-│ SEBA SS Equity  ┆ Skandinaviska    ┆ 153.680261 ┆ 2024-12-14 ┆ SEK      ┆ 150.720922 ┆ 57.692703 │
+│ ABB SS Equity   ┆ ABB Ltd          ┆ 630.622469 ┆ 2024-12-16 ┆ SEK      ┆ 566.571183 ┆ 53.763102 │
+│ SEBA SS Equity  ┆ Skandinaviska    ┆ 153.80595  ┆ 2024-12-16 ┆ SEK      ┆ 150.742394 ┆ 56.460733 │
 │                 ┆ Enskilda Banken  ┆            ┆            ┆          ┆            ┆           │
-│ ASSAB SS Equity ┆ Assa Abloy AB    ┆ 338.829971 ┆ 2024-12-14 ┆ SEK      ┆ 316.8212   ┆ 55.467329 │
-│ SWEDA SS Equity ┆ Swedbank AB      ┆ 217.380431 ┆ 2024-12-14 ┆ SEK      ┆ 213.776784 ┆ 56.303481 │
+│ ASSAB SS Equity ┆ Assa Abloy AB    ┆ 339.017591 ┆ 2024-12-16 ┆ SEK      ┆ 317.057573 ┆ 53.351619 │
 └─────────────────┴──────────────────┴────────────┴────────────┴──────────┴────────────┴───────────┘
 ```
 

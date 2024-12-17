@@ -19,7 +19,7 @@ import yaml
 from polars.testing import assert_frame_equal
 
 from polars_bloomberg import BQuery
-from polars_bloomberg.plbbg import BqlResult, SITable, chain
+from polars_bloomberg.plbbg import BqlResult, SITable
 
 
 @pytest.fixture(scope="module")
@@ -1015,78 +1015,166 @@ class TestSchemaMappingAndDataConversion:
 
 
 @pytest.mark.no_bbg
-class TestChain:
-    """Unit tests on chain() function."""
+class TestBqlResult:
+    """Unit tests for the BqlResult class."""
 
-    # Test 1: Empty Input List
-    def test_chain_empty_input(self):
-        """Test that a ValueError is raised when input list is empty."""
-        with pytest.raises(ValueError, match="The list of DataFrames is empty."):
-            chain([])
+    def test_initialization(self):
+        """Test initializing BqlResult with dataframes and names."""
+        df1 = pl.DataFrame({"ID": ["A", "B"], "Value1": [1, 2]})
+        df2 = pl.DataFrame({"ID": ["A", "B"], "Value2": [3, 4]})
+        names = ["Data1", "Data2"]
+        bql_result = BqlResult(dataframes=[df1, df2], names=names)
 
-    # Test 2: Single DataFrame in List
-    def test_chain_single_dataframe(self):
-        """Return the DataFrame itself when only one DataFrame is provided."""
-        df = pl.DataFrame({"id": [1, 2, 3], "value": ["A", "B", "C"]})
-        result = chain([df])
-        assert_frame_equal(result, df), "should be identical to the input."
+        assert bql_result.dataframes == [df1, df2]
+        assert bql_result.names == names
 
-    # Test 3: No Common Columns Between DataFrames
-    def test_chain_no_common_columns(self):
-        """Test ValueError when there are no common columns to join on."""
-        df1 = pl.DataFrame({"id": [1, 2, 3], "value1": ["A", "B", "C"]})
-        df2 = pl.DataFrame({"key": [1, 2, 4], "value2": ["D", "E", "F"]})
-        with pytest.raises(ValueError, match="No common columns to join on."):
-            chain([df1, df2])
+    def test_combine_success(self):
+        """Test combining dataframes with common columns."""
+        df1 = pl.DataFrame({"ID": ["A", "B"], "Value1": [1, 2]})
+        df2 = pl.DataFrame({"ID": ["A", "B"], "Value2": [3, 4]})
+        bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
 
-    # Test 4: Multiple DataFrames with Common Columns
-    def test_chain_multiple_common_columns(self):
-        """Test joining multiple DataFrames with at least one common column."""
-        df1 = pl.DataFrame({"id": [1, 2, 3], "value1": ["A", "B", "C"]})
-        df2 = pl.DataFrame({"id": [2, 3, 4], "value2": ["D", "E", "F"]})
-        df3 = pl.DataFrame({"id": [3, 4, 5], "value3": ["G", "H", "I"]})
-        expected = pl.DataFrame(
+        combined_df = bql_result.combine()
+
+        expected_df = pl.DataFrame(
+            {"ID": ["A", "B"], "Value1": [1, 2], "Value2": [3, 4]}
+        )
+
+        pl.testing.assert_frame_equal(combined_df, expected_df)
+
+    def test_combine_no_common_columns(self):
+        """Test combining dataframes with no common columns raises ValueError."""
+        df1 = pl.DataFrame({"ID1": ["A", "B"], "Value1": [1, 2]})
+        df2 = pl.DataFrame({"ID2": ["A", "B"], "Value2": [3, 4]})
+        bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
+
+        with pytest.raises(ValueError, match="No common columns found to join on."):
+            bql_result.combine()
+
+    def test_combine_empty_dataframes(self):
+        """Test combining with no dataframes raises ValueError."""
+        bql_result = BqlResult(dataframes=[], names=[])
+
+        with pytest.raises(ValueError, match="No DataFrames to combine."):
+            bql_result.combine()
+
+    def test_getitem(self):
+        """Test accessing dataframes by index."""
+        df1 = pl.DataFrame({"ID": ["A"], "Value1": [1]})
+        df2 = pl.DataFrame({"ID": ["B"], "Value2": [2]})
+        bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
+
+        assert_frame_equal(df1, bql_result[0])
+        assert_frame_equal(df2, bql_result[1])
+
+    def test_len(self):
+        """Test the length of BqlResult."""
+        df1 = pl.DataFrame({"ID": ["A"], "Value1": [1]})
+        df2 = pl.DataFrame({"ID": ["B"], "Value1": [2]})
+        bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
+        exp_length = 2
+        assert len(bql_result) == exp_length
+
+    def test_iter(self):
+        """Test iterating over BqlResult dataframes."""
+        df1 = pl.DataFrame({"ID": ["A"], "Value1": [1]})
+        df2 = pl.DataFrame({"ID": ["B"], "Value1": [2]})
+        bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
+
+        dataframes: list[pl.DataFrame] = list(bql_result)
+        assert dataframes == [df1, df2]
+
+    def test_combine_multiple_dataframes(self):
+        """Test combining multiple dataframes with common columns."""
+        df1 = pl.DataFrame({"ID": ["A", "B"], "Value1": [1, 2]})
+        df2 = pl.DataFrame({"ID": ["A", "B"], "Value2": [3, 4]})
+        df3 = pl.DataFrame({"ID": ["A", "B"], "Value3": [5, 6]})
+        bql_result = BqlResult(
+            dataframes=[df1, df2, df3], names=["Data1", "Data2", "Data3"]
+        )
+
+        combined_df = bql_result.combine()
+
+        expected_df = pl.DataFrame(
+            {"ID": ["A", "B"], "Value1": [1, 2], "Value2": [3, 4], "Value3": [5, 6]}
+        )
+
+        pl.testing.assert_frame_equal(combined_df, expected_df)
+
+    def test_combine_with_duplicate_ids(self):
+        """Test combining dataframes with duplicate IDs."""
+        df1 = pl.DataFrame({"ID": ["A", "A"], "Value1": [1, 2]})
+        df2 = pl.DataFrame({"ID": ["A", "A"], "Value2": [3, 4]})
+        bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
+
+        combined_df = bql_result.combine()
+
+        expected_df = pl.DataFrame(
+            {"ID": ["A", "A", "A", "A"], "Value1": [1, 2, 1, 2], "Value2": [3, 3, 4, 4]}
+        )
+
+        pl.testing.assert_frame_equal(combined_df, expected_df)
+
+    def test_combine_with_different_row_counts(self):
+        """Test combining dataframes with different numbers of rows."""
+        df1 = pl.DataFrame({"ID": ["A", "B", "C"], "Value1": [1, 2, 3]})
+        df2 = pl.DataFrame({"ID": ["A", "B"], "Value2": [4, 5]})
+        bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
+
+        combined_df = bql_result.combine()
+
+        expected_df = pl.DataFrame(
+            {"ID": ["A", "B", "C"], "Value1": [1, 2, 3], "Value2": [4, 5, None]}
+        )
+
+        pl.testing.assert_frame_equal(combined_df, expected_df)
+
+    def test_combine_single_dataframe(self):
+        """Test that combining a single DataFrame returns the DataFrame itself."""
+        df = pl.DataFrame({"ID": ["A", "B", "C"], "Value": [1, 2, 3]})
+        bql_result = BqlResult(dataframes=[df], names=["Data1"])
+
+        combined_df = bql_result.combine()
+
+        assert_frame_equal(combined_df, df)
+
+    def test_combine_different_schemas(self):
+        """Test combining DataFrames with different columns, some overlapping."""
+        df1 = pl.DataFrame({"ID": ["A", "B"], "Name": ["Alice", "Bob"]})
+        df2 = pl.DataFrame({"ID": ["B", "C"], "Age": [30, 25]})
+        df3 = pl.DataFrame({"ID": ["A", "C"], "City": ["New York", "Los Angeles"]})
+        bql_result = BqlResult(dataframes=[df1, df2, df3], names=["DF1", "DF2", "DF3"])
+
+        combined_df = bql_result.combine().sort("ID")
+
+        expected_df = pl.DataFrame(
             {
-                "id": [1, 2, 3, 4, 5],
-                "value1": ["A", "B", "C", None, None],
-                "value2": [None, "D", "E", "F", None],
-                "value3": [None, None, "G", "H", "I"],
+                "ID": ["A", "B", "C"],
+                "Name": ["Alice", "Bob", None],
+                "Age": [None, 30, 25],
+                "City": ["New York", None, "Los Angeles"],
             }
         )
-        result = chain([df1, df2, df3]).sort(by="id")
-        assert_frame_equal(result, expected), "The chained DataFrame does not match."
 
-    # Test 5: DataFrames with Different Schemas
-    def test_chain_different_schemas(self):
-        """Test joining DataFrames with different columns, some overlapping."""
-        df1 = pl.DataFrame({"id": [1, 2], "name": ["Alice", "Bob"]})
-        df2 = pl.DataFrame({"id": [2, 3], "age": [30, 25]})
-        df3 = pl.DataFrame({"id": [1, 3], "city": ["New York", "Los Angeles"]})
-        expected = pl.DataFrame(
+        assert_frame_equal(combined_df, expected_df)
+
+    def test_combine_with_missing_values(self):
+        """Test combining DataFrames that contain missing (null) values."""
+        df1 = pl.DataFrame({"ID": ["A", "B", "C"], "Value1": [1, None, 3]})
+        df2 = pl.DataFrame({"ID": ["B", "C", "D"], "Value2": [None, 4, 5]})
+        bql_result = BqlResult(dataframes=[df1, df2], names=["DF1", "DF2"])
+
+        combined_df = bql_result.combine().sort("ID")
+
+        expected_df = pl.DataFrame(
             {
-                "id": [1, 2, 3],
-                "name": ["Alice", "Bob", None],
-                "age": [None, 30, 25],
-                "city": ["New York", None, "Los Angeles"],
+                "ID": ["A", "B", "C", "D"],
+                "Value1": [1, None, 3, None],
+                "Value2": [None, None, 4, 5],
             }
         )
-        result = chain([df1, df2, df3]).sort(by="id")
-        assert_frame_equal(result, expected), "different schemas is incorrect."
 
-    # Test 6: DataFrames with Missing Values
-    def test_chain_missing_values(self):
-        """Test joining DataFrames that contain missing (null) values."""
-        df1 = pl.DataFrame({"id": [1, 2, 3], "value1": ["A", None, "C"]})
-        df2 = pl.DataFrame({"id": [2, 3, 4], "value2": [None, "E", "F"]})
-        expected = pl.DataFrame(
-            {
-                "id": [1, 2, 3, 4],
-                "value1": ["A", None, "C", None],
-                "value2": [None, None, "E", "F"],
-            }
-        )
-        result = chain([df1, df2]).sort(by="id")
-        assert_frame_equal(result, expected), "Missing values"
+        assert_frame_equal(combined_df, expected_df)
 
     @pytest.mark.parametrize(
         "yaml_file, exp_df",
@@ -1310,7 +1398,7 @@ class TestChain:
             ),
         ],
     )
-    def test_chain(self, yaml_file, exp_df):
+    def test_real_life_cases(self, yaml_file, exp_df):
         """Test real-life cases based on yaml files.
 
         Creation of test case
@@ -1322,169 +1410,7 @@ class TestChain:
         with open(yaml_file) as f:
             d_lst = yaml.safe_load(f)
         df_lst = [pl.DataFrame(dct) for dct in d_lst]
+        bql_result = BqlResult(df_lst, names=list(range(len(df_lst))))
 
-        df = chain(df_lst).to_dict(as_series=False)
+        df = bql_result.combine().to_dict(as_series=False)
         assert df == exp_df
-
-
-@pytest.mark.no_bbg
-class TestBqlResult:
-    """Unit tests for the BqlResult class."""
-
-    def test_initialization(self):
-        """Test initializing BqlResult with dataframes and names."""
-        df1 = pl.DataFrame({"ID": ["A", "B"], "Value1": [1, 2]})
-        df2 = pl.DataFrame({"ID": ["A", "B"], "Value2": [3, 4]})
-        names = ["Data1", "Data2"]
-        bql_result = BqlResult(dataframes=[df1, df2], names=names)
-
-        assert bql_result.dataframes == [df1, df2]
-        assert bql_result.names == names
-
-    def test_combine_success(self):
-        """Test combining dataframes with common columns."""
-        df1 = pl.DataFrame({"ID": ["A", "B"], "Value1": [1, 2]})
-        df2 = pl.DataFrame({"ID": ["A", "B"], "Value2": [3, 4]})
-        bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
-
-        combined_df = bql_result.combine()
-
-        expected_df = pl.DataFrame(
-            {"ID": ["A", "B"], "Value1": [1, 2], "Value2": [3, 4]}
-        )
-
-        pl.testing.assert_frame_equal(combined_df, expected_df)
-
-    def test_combine_no_common_columns(self):
-        """Test combining dataframes with no common columns raises ValueError."""
-        df1 = pl.DataFrame({"ID1": ["A", "B"], "Value1": [1, 2]})
-        df2 = pl.DataFrame({"ID2": ["A", "B"], "Value2": [3, 4]})
-        bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
-
-        with pytest.raises(ValueError, match="No common columns found to join on."):
-            bql_result.combine()
-
-    def test_combine_empty_dataframes(self):
-        """Test combining with no dataframes raises ValueError."""
-        bql_result = BqlResult(dataframes=[], names=[])
-
-        with pytest.raises(ValueError, match="No DataFrames to combine."):
-            bql_result.combine()
-
-    def test_getitem(self):
-        """Test accessing dataframes by index."""
-        df1 = pl.DataFrame({"ID": ["A"], "Value1": [1]})
-        df2 = pl.DataFrame({"ID": ["B"], "Value2": [2]})
-        bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
-
-        assert_frame_equal(df1, bql_result[0])
-        assert_frame_equal(df2, bql_result[1])
-
-    def test_len(self):
-        """Test the length of BqlResult."""
-        df1 = pl.DataFrame({"ID": ["A"], "Value1": [1]})
-        df2 = pl.DataFrame({"ID": ["B"], "Value1": [2]})
-        bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
-        exp_length = 2
-        assert len(bql_result) == exp_length
-
-    def test_iter(self):
-        """Test iterating over BqlResult dataframes."""
-        df1 = pl.DataFrame({"ID": ["A"], "Value1": [1]})
-        df2 = pl.DataFrame({"ID": ["B"], "Value1": [2]})
-        bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
-
-        dataframes: list[pl.DataFrame] = list(bql_result)
-        assert dataframes == [df1, df2]
-
-    def test_combine_multiple_dataframes(self):
-        """Test combining multiple dataframes with common columns."""
-        df1 = pl.DataFrame({"ID": ["A", "B"], "Value1": [1, 2]})
-        df2 = pl.DataFrame({"ID": ["A", "B"], "Value2": [3, 4]})
-        df3 = pl.DataFrame({"ID": ["A", "B"], "Value3": [5, 6]})
-        bql_result = BqlResult(
-            dataframes=[df1, df2, df3], names=["Data1", "Data2", "Data3"]
-        )
-
-        combined_df = bql_result.combine()
-
-        expected_df = pl.DataFrame(
-            {"ID": ["A", "B"], "Value1": [1, 2], "Value2": [3, 4], "Value3": [5, 6]}
-        )
-
-        pl.testing.assert_frame_equal(combined_df, expected_df)
-
-    def test_combine_with_duplicate_ids(self):
-        """Test combining dataframes with duplicate IDs."""
-        df1 = pl.DataFrame({"ID": ["A", "A"], "Value1": [1, 2]})
-        df2 = pl.DataFrame({"ID": ["A", "A"], "Value2": [3, 4]})
-        bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
-
-        combined_df = bql_result.combine()
-
-        expected_df = pl.DataFrame(
-            {"ID": ["A", "A", "A", "A"], "Value1": [1, 2, 1, 2], "Value2": [3, 3, 4, 4]}
-        )
-
-        pl.testing.assert_frame_equal(combined_df, expected_df)
-
-    def test_combine_with_different_row_counts(self):
-        """Test combining dataframes with different numbers of rows."""
-        df1 = pl.DataFrame({"ID": ["A", "B", "C"], "Value1": [1, 2, 3]})
-        df2 = pl.DataFrame({"ID": ["A", "B"], "Value2": [4, 5]})
-        bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
-
-        combined_df = bql_result.combine()
-
-        expected_df = pl.DataFrame(
-            {"ID": ["A", "B", "C"], "Value1": [1, 2, 3], "Value2": [4, 5, None]}
-        )
-
-        pl.testing.assert_frame_equal(combined_df, expected_df)
-
-    def test_combine_single_dataframe(self):
-        """Test that combining a single DataFrame returns the DataFrame itself."""
-        df = pl.DataFrame({"ID": ["A", "B", "C"], "Value": [1, 2, 3]})
-        bql_result = BqlResult(dataframes=[df], names=["Data1"])
-
-        combined_df = bql_result.combine()
-
-        assert_frame_equal(combined_df, df)
-
-    def test_combine_different_schemas(self):
-        """Test combining DataFrames with different columns, some overlapping."""
-        df1 = pl.DataFrame({"ID": ["A", "B"], "Name": ["Alice", "Bob"]})
-        df2 = pl.DataFrame({"ID": ["B", "C"], "Age": [30, 25]})
-        df3 = pl.DataFrame({"ID": ["A", "C"], "City": ["New York", "Los Angeles"]})
-        bql_result = BqlResult(dataframes=[df1, df2, df3], names=["DF1", "DF2", "DF3"])
-
-        combined_df = bql_result.combine().sort("ID")
-
-        expected_df = pl.DataFrame(
-            {
-                "ID": ["A", "B", "C"],
-                "Name": ["Alice", "Bob", None],
-                "Age": [None, 30, 25],
-                "City": ["New York", None, "Los Angeles"],
-            }
-        )
-
-        assert_frame_equal(combined_df, expected_df)
-
-    def test_combine_with_missing_values(self):
-        """Test combining DataFrames that contain missing (null) values."""
-        df1 = pl.DataFrame({"ID": ["A", "B", "C"], "Value1": [1, None, 3]})
-        df2 = pl.DataFrame({"ID": ["B", "C", "D"], "Value2": [None, 4, 5]})
-        bql_result = BqlResult(dataframes=[df1, df2], names=["DF1", "DF2"])
-
-        combined_df = bql_result.combine().sort("ID")
-
-        expected_df = pl.DataFrame(
-            {
-                "ID": ["A", "B", "C", "D"],
-                "Value1": [1, None, 3, None],
-                "Value2": [None, None, 4, 5],
-            }
-        )
-
-        assert_frame_equal(combined_df, expected_df)
