@@ -25,12 +25,13 @@ If you’re a quant financial analyst, data scientist, or quant developer workin
     - [BDP (Bloomberg Data Point)](#bdp)
     - [BDH (Bloomberg Data History)](#bdh)
     - [BQL (Bloomberg Query Language)](#bql) <details><summary>BQL Examples</summary>
-        - [Single Data Item and Single Security](#simple-bql-example)
-        - [Single Item and Multiple Securities](#single-item-with-multiple-securities)
-        - [Multiple Items](#multiple-data-items-in-get)
-        - [SRCH](#zspread-vs-duration-on-seb-and-shbass-coco-bonds-from-srch)
+        - [Single Item and Single Security](#1-basic-example-single-item-and-single-security)
+        - [Multiple Securities with Single Item](#2-multiple-securities-with-a-single-item)
+        - [Multiple Items](#3-multiple-items)
+        - [SRCH](#4-advanced-example-screening-securities)
         - [Aggregation (AVG)](#average-pe-per-sector)
         - [Axes](#axes)
+        - [Axes with All Columns](#axes-with-all-columns)
         - [Segments](#segments)
         - [Average Spread per Bucket](#average-issuer-oas-spread-per-maturity-bucket)
         - [Technical Analysis Screening](#technical-analysis-stocks-with-20d-ema--200d-ema-and-rsi--53)
@@ -268,14 +269,19 @@ with BQuery() as bq:
 ## BQL
 *Use Case*: Run more advanced queries to screen securities, calculate analytics (like moving averages), or pull fundamental data with complex conditions.
 
-*Returns*: list of polars dataframes, one per each data-item in `get()`statement.
+*Returns*: The `bql()` method returns a `BqlResult` object, which:
+- Acts like a list of Polars DataFrames (one for each item in BQL `get` statement).
+- Provides a `.combine()` method to merge DataFrames on common columns.
 
-### Simple BQL Example
+### 1. Basic Example: Single Item and Single Security
 ```python
-# resulting object is list of pl.DataFrames, extract and print the first one
+# Fetch the last price of IBM stock
 with BQuery() as bq:
-    df_lst = bq.bql("get(px_last) for(['IBM US Equity'])")
-    print(df_lst[0])
+    results = bq.bql("get(px_last) for(['IBM US Equity'])")
+    print(results[0])  # Access the first DataFrame
+```
+Output:
+```python
 ┌───────────────┬─────────┬────────────┬──────────┐
 │ ID            ┆ px_last ┆ DATE       ┆ CURRENCY │
 │ ---           ┆ ---     ┆ ---        ┆ ---      │
@@ -285,17 +291,15 @@ with BQuery() as bq:
 └───────────────┴─────────┴────────────┴──────────┘
 ```
     
-### Single Item with Multiple Securities
-Another example with single data item but two securities. Still only one pl.DataFrame in 
-resulting list (only one data item in `get()`)
+### 2. Multiple Securities with a Single Item
 ```python
+# Fetch the last price for IBM and SEB
 with BQuery() as bq:
-    df_lst = bq.bql("get(px_last) for(['IBM US Equity', 'SEBA SS Equity'])")
-
-> print(f"n={len(df_lst)}")
-n=1
-
-> print(df_lst[0])
+    results = bq.bql("get(px_last) for(['IBM US Equity', 'SEBA SS Equity'])")
+    print(results[0])
+```
+Output:
+```python
 ┌────────────────┬─────────┬────────────┬──────────┐
 │ ID             ┆ px_last ┆ DATE       ┆ CURRENCY │
 │ ---            ┆ ---     ┆ ---        ┆ ---      │
@@ -306,17 +310,19 @@ n=1
 └────────────────┴─────────┴────────────┴──────────┘
 ```
 
-### Multiple data-items in `get`
-Lets consider example with two data-items in get statement. Note that the resulting list has two pl.DataFrames.
+### 3. Multiple Items
+When querying for multiple items, `bql()` returns a list of DataFrames
 ```python
-
+# Fetch name and last price of IBM (two items)
 with BQuery() as bq:
-    df_lst = bq.bql("get(name, px_last) for(['IBM US Equity'])")
-    
-> print(f"n={len(df_lst)}")
+    results = bq.bql("get(name, px_last) for(['IBM US Equity'])")
+```
+Output:
+```python
+>>> print(len(results))  # 2 DataFrames
 n=2
 
-> print(df_lst[0])
+>>> print(results[0])    # First DataFrame: 'name'
 ┌───────────────┬────────────────────────────────┐
 │ ID            ┆ name                           │
 │ ---           ┆ ---                            │
@@ -325,8 +331,7 @@ n=2
 │ IBM US Equity ┆ International Business Machine │
 └───────────────┴────────────────────────────────┘
 
-> print(df_lst[1])
-shape: (1, 4)
+>>> print(results[1])    # Second DataFrame: 'px_last'
 ┌───────────────┬─────────┬────────────┬──────────┐
 │ ID            ┆ px_last ┆ DATE       ┆ CURRENCY │
 │ ---           ┆ ---     ┆ ---        ┆ ---      │
@@ -336,10 +341,13 @@ shape: (1, 4)
 └───────────────┴─────────┴────────────┴──────────┘
 ```
 
-Since both DataFrames have the same index `ID` one can join the results into single table.
+#### Combining Results
 ```python
->>> print(df_lst[0].join(df_lst[1], on='ID'))
-
+>>> combined_df = results.combine()
+>>> print(combined_df)
+```
+Output:
+```python
 ┌───────────────┬────────────────────────────────┬─────────┬────────────┬──────────┐
 │ ID            ┆ name                           ┆ px_last ┆ DATE       ┆ CURRENCY │
 │ ---           ┆ ---                            ┆ ---     ┆ ---        ┆ ---      │
@@ -349,23 +357,8 @@ Since both DataFrames have the same index `ID` one can join the results into sin
 └───────────────┴────────────────────────────────┴─────────┴────────────┴──────────┘
 ```
 
-As alternative one can use method `combine` on BqlResult which attempts to combine all dataframes in the list on common columns:
-```python
->>> print(df_lst.combine())
-┌───────────────┬────────────────────────────────┬────────────┬────────────┬──────────┐
-│ ID            ┆ name                           ┆ px_last    ┆ DATE       ┆ CURRENCY │
-│ ---           ┆ ---                            ┆ ---        ┆ ---        ┆ ---      │
-│ str           ┆ str                            ┆ f64        ┆ date       ┆ str      │
-╞═══════════════╪════════════════════════════════╪════════════╪════════════╪══════════╡
-│ IBM US Equity ┆ International Business Machine ┆ 229.429993 ┆ 2024-12-16 ┆ USD      │
-└───────────────┴────────────────────────────────┴────────────┴────────────┴──────────┘
-```
-
-
-
-### ZSpread vs Duration on SEB and SHBASS CoCo bonds from SRCH
-In this example we have three data-items in `get`statement. The universe is from Bloomberg SRCH function
-filtered only on tickers 'SEB' and 'SHBASS'.
+### 4. Advanced Example: Screening Securities
+Find list of SEB and Handelsbanken's AT1 bonds and print their names, duration and Z-Spread.
 ```python
 query="""
     let(#dur=duration(duration_type=MODIFIED); 
@@ -376,9 +369,12 @@ query="""
 """
 
 with BQuery() as bq:
-    df_lst = bq.bql(query)
-    print(df_lst.combine())
-
+    results = bq.bql(query)
+    combined_df = results.combine()
+    print(combined_df)
+```
+Output:
+```python
 ┌───────────────┬─────────────────┬──────┬────────────┬────────┐
 │ ID            ┆ name()          ┆ #dur ┆ DATE       ┆ #zsprd │
 │ ---           ┆ ---             ┆ ---  ┆ ---        ┆ ---    │
@@ -403,9 +399,11 @@ query = """
     for(members('OMX Index'))
 """
 with BQuery() as bq:
-    df_lst = bq.bql(query)
-    print(df_lst[0].head(5))
-
+    results = bq.bql(query)
+    print(results[0].head(5))
+```
+Output:
+```python
 ┌──────────────┬───────────┬──────────────┬────────────┬──────────────┬──────────────┬─────────────┐
 │ ID           ┆ #avg_pe   ┆ REVISION_DAT ┆ AS_OF_DATE ┆ PERIOD_END_D ┆ ORIG_IDS     ┆ GICS_SECTOR │
 │ ---          ┆ ---       ┆ E            ┆ ---        ┆ ATE          ┆ ---          ┆ _NAME()     │
@@ -438,8 +436,8 @@ query="""
 """
 
 with BQuery() as bq:
-    df_lst = bq.bql(query)
-    print(df_lst.combine())
+    results = bq.bql(query)
+    print(results.combine())
 
 ┌───────────────┬─────────────────┬─────┬───────────┬───────────┬────────────────┬────────────────┐
 │ ID            ┆ security_des    ┆ #ax ┆ ASK_DEPTH ┆ BID_DEPTH ┆ ASK_TOTAL_SIZE ┆ BID_TOTAL_SIZE │
@@ -457,6 +455,29 @@ with BQuery() as bq:
 └───────────────┴─────────────────┴─────┴───────────┴───────────┴────────────────┴────────────────┘
 ```
 
+### Axes with all columns
+```python
+# RT1 Axes with all columns
+query = """
+let(#ax=axes();)
+get(name, #ax, amt_outstanding)
+for(filter(bondsuniv(ACTIVE),
+    crncy() in ['USD', 'EUR'] and
+    solvency_ii_designation() == 'Restricted Tier 1' and
+    amt_outstanding() > 7.5e8 and
+    is_axed('Bid') == True))
+preferences(addcols=all)
+"""
+
+with BQuery() as bq:
+    results = bq.bql(query)
+    print(results.combine())
+```
+Output:
+<div>
+<small>shape: (3, 33)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>name</th><th>#ax</th><th>ASK_PRICE</th><th>BID_PRICE</th><th>ASK_DEPTH</th><th>BID_DEPTH</th><th>ASK_DEALER</th><th>BID_DEALER</th><th>ASK_SIZE</th><th>BID_SIZE</th><th>ASK_TOTAL_SIZE</th><th>BID_TOTAL_SIZE</th><th>ASK_PRICE_IS_DERIVED</th><th>BID_PRICE_IS_DERIVED</th><th>ASK_SPREAD</th><th>BID_SPREAD</th><th>ASK_SPREAD_IS_DERIVED</th><th>BID_SPREAD_IS_DERIVED</th><th>ASK_YIELD</th><th>BID_YIELD</th><th>ASK_YIELD_IS_DERIVED</th><th>BID_YIELD_IS_DERIVED</th><th>ASK_AXE_SOURCE</th><th>BID_AXE_SOURCE</th><th>ASK_BROKER</th><th>BID_BROKER</th><th>ASK_HIST_AGG_SIZE</th><th>BID_HIST_AGG_SIZE</th><th>amt_outstanding</th><th>CURRENCY_OF_ISSUE</th><th>MULTIPLIER</th><th>CURRENCY</th></tr><tr><td>str</td><td>str</td><td>str</td><td>f64</td><td>f64</td><td>i64</td><td>i64</td><td>str</td><td>str</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>bool</td><td>bool</td><td>f64</td><td>f64</td><td>bool</td><td>bool</td><td>f64</td><td>f64</td><td>bool</td><td>bool</td><td>str</td><td>str</td><td>str</td><td>str</td><td>f64</td><td>f64</td><td>f64</td><td>str</td><td>f64</td><td>str</td></tr></thead><tbody><tr><td>&quot;BM368057 Corp&quot;</td><td>&quot;ALVGR 2 ⅝ PERP&quot;</td><td>&quot;Y&quot;</td><td>88.034</td><td>87.427</td><td>5</td><td>1</td><td>&quot;BARC&quot;</td><td>&quot;IMI&quot;</td><td>1.2e6</td><td>1e6</td><td>7.2e6</td><td>1e6</td><td>null</td><td>null</td><td>287.031</td><td>300.046</td><td>true</td><td>true</td><td>4.854</td><td>4.976</td><td>true</td><td>true</td><td>&quot;ERUN&quot;</td><td>&quot;ERUN&quot;</td><td>&quot;BXOL&quot;</td><td>&quot;IMIC&quot;</td><td>6.68e6</td><td>8.92e6</td><td>1.2500e9</td><td>&quot;EUR&quot;</td><td>1.0</td><td>&quot;EUR&quot;</td></tr><tr><td>&quot;EK588238 Corp&quot;</td><td>&quot;ASSGEN 4.596 PERP&quot;</td><td>&quot;Y&quot;</td><td>101.0</td><td>100.13</td><td>4</td><td>6</td><td>&quot;MSAX&quot;</td><td>&quot;A2A&quot;</td><td>500000.0</td><td>100000.0</td><td>1.556e7</td><td>3.83e7</td><td>null</td><td>null</td><td>108.9</td><td>207.889</td><td>true</td><td>true</td><td>3.466</td><td>4.434</td><td>null</td><td>true</td><td>&quot;ERUN&quot;</td><td>&quot;BBX&quot;</td><td>&quot;MSAX&quot;</td><td>&quot;A2A&quot;</td><td>1.70424e7</td><td>3.17e7</td><td>1.0004e9</td><td>&quot;EUR&quot;</td><td>1.0</td><td>&quot;EUR&quot;</td></tr><tr><td>&quot;BR244025 Corp&quot;</td><td>&quot;ALVGR 3.2 PERP&quot;</td><td>&quot;Y&quot;</td><td>88.0</td><td>86.875</td><td>3</td><td>4</td><td>&quot;UBS&quot;</td><td>&quot;DB&quot;</td><td>5e6</td><td>1e6</td><td>1.1e7</td><td>1.4e7</td><td>null</td><td>null</td><td>49.33</td><td>414.602</td><td>true</td><td>true</td><td>7.34258</td><td>8.553</td><td>null</td><td>true</td><td>&quot;ERUN&quot;</td><td>&quot;ERUN&quot;</td><td>&quot;UBSW&quot;</td><td>&quot;DABC&quot;</td><td>1.6876e6</td><td>3.6e7</td><td>1.2500e9</td><td>&quot;USD&quot;</td><td>1.0</td><td>&quot;USD&quot;</td></tr></tbody></table></div>
+
+
 ### Segments
 The following example shows handling of two data-items with different length. The first dataframe 
 describes the segments (and has length 5 in this case), while the second dataframe contains time series.
@@ -471,14 +492,14 @@ query = """
     for(segments('GTN US Equity',type=reported,hierarchy=PRODUCT, level=1))
 """
 with BQuery() as bq:
-    df_lst = bq.bql(query)
-    df = (
-        df_lst[0]
-        .join(df_lst[1], on=["ID", "ID_DATE", "AS_OF_DATE"])
-        .pivot(index="PERIOD_END_DATE", on="#segment", values="#revenue")
+    results = bq.bql(query)
+    df = results.combine().pivot(
+        index="PERIOD_END_DATE", on="#segment", values="#revenue"
     )
     print(df)
-
+```
+Output:
+```python
 ┌─────────────────┬──────────────┬──────────────────────┬────────┬────────────┐
 │ PERIOD_END_DATE ┆ Broadcasting ┆ Production Companies ┆ Other  ┆ Adjustment │
 │ ---             ┆ ---          ┆ ---                  ┆ ---    ┆ ---        │
@@ -495,13 +516,13 @@ with BQuery() as bq:
 ### Actual and Forward EPS Estimates
 ```python
 with BQuery() as bq:
-    df_lst = bq.bql("""
+    results = bq.bql("""
         let(#eps=is_eps(fa_period_type='A',
                         fa_period_offset=range(-4,2));)
         get(#eps)
         for(['IBM US Equity'])
     """)
-    print(df_lst[0])
+    print(results[0])
 
 ┌───────────────┬───────┬───────────────┬────────────┬─────────────────┬──────────┐
 │ ID            ┆ #eps  ┆ REVISION_DATE ┆ AS_OF_DATE ┆ PERIOD_END_DATE ┆ CURRENCY │
@@ -534,9 +555,11 @@ for(filter(bonds('NVDA US Equity', issuedby = 'ENTITY'),
 """
 
 with BQuery() as bq:
-    df_lst = bq.bql(query)
-    print(df_lst[0])
-
+    results = bq.bql(query)
+    print(results[0])
+```
+Output:
+```python
 ┌───────────┬─────────────────┬────────────┬───────────────┬───────────┐
 │ ID        ┆ #average_spread ┆ DATE       ┆ ORIG_IDS      ┆ #BINS     │
 │ ---       ┆ ---             ┆ ---        ┆ ---           ┆ ---       │
@@ -553,7 +576,7 @@ with BQuery() as bq:
 ### Technical Analysis: stocks with 20d EMA > 200d EMA and RSI > 53
 ```python
 with BQuery() as bq:
-    df_lst = bq.bql(
+    results = bq.bql(
         """
         let(#ema20=emavg(period=20);
             #ema200=emavg(period=200);
@@ -564,8 +587,10 @@ with BQuery() as bq:
         with(fill=PREV)
         """
     )
-    print(df_lst.combine())
-
+    print(results.combine())
+```
+Output:
+```python
 ┌─────────────────┬──────────────────┬────────────┬────────────┬──────────┬────────────┬───────────┐
 │ ID              ┆ name()           ┆ #ema20     ┆ DATE       ┆ CURRENCY ┆ #ema200    ┆ #rsi      │
 │ ---             ┆ ---              ┆ ---        ┆ ---        ┆ ---      ┆ ---        ┆ ---       │
@@ -582,6 +607,7 @@ with BQuery() as bq:
 
 ### Bond Universe from Equity Ticker
 ```python
+# Get Bond Universe from Equity Ticker
 query = """
 let(#rank=normalized_payment_rank();
     #oas=spread(st=oas);
@@ -592,27 +618,23 @@ for(filter(bonds('GTN US Equity'), series() == '144A'))
 """
 
 with BQuery() as bq:
-    df_lst = bq.bql(query)
-
-    df = (
-        df_lst[0]
-        .join(df_lst[1], on="ID")
-        .join(df_lst[2], on="ID")
-        .join(df_lst[3], on="ID")
-    )
+    results = bq.bql(query)
+    df = results.combine()
     print(df)
-
-┌───────────────┬───────────────────┬──────────────────┬────────────┬─────────────┬────────────┐
-│ ID            ┆ name()            ┆ #rank            ┆ #nxt_call  ┆ #oas        ┆ DATE       │
-│ ---           ┆ ---               ┆ ---              ┆ ---        ┆ ---         ┆ ---        │
-│ str           ┆ str               ┆ str              ┆ date       ┆ f64         ┆ date       │
-╞═══════════════╪═══════════════════╪══════════════════╪════════════╪═════════════╪════════════╡
-│ YX231113 Corp ┆ GTN 10 ½ 07/15/29 ┆ 1st Lien Secured ┆ 2026-07-15 ┆ 597.329513  ┆ 2024-12-14 │
-│ BS116983 Corp ┆ GTN 5 ⅜ 11/15/31  ┆ Sr Unsecured     ┆ 2026-11-15 ┆ 1192.83614  ┆ 2024-12-14 │
-│ AV438089 Corp ┆ GTN 7 05/15/27    ┆ Sr Unsecured     ┆ 2024-12-23 ┆ 391.133436  ┆ 2024-12-14 │
-│ ZO860846 Corp ┆ GTN 4 ¾ 10/15/30  ┆ Sr Unsecured     ┆ 2025-10-15 ┆ 1232.554695 ┆ 2024-12-14 │
-│ LW375188 Corp ┆ GTN 5 ⅞ 07/15/26  ┆ Sr Unsecured     ┆ 2025-01-12 ┆ 171.708702  ┆ 2024-12-14 │
-└───────────────┴───────────────────┴──────────────────┴────────────┴─────────────┴────────────┘
+```
+Output:
+```
+┌───────────────┬───────────────────┬──────────────────┬────────────┬────────────┬────────────┐
+│ ID            ┆ name()            ┆ #rank            ┆ #nxt_call  ┆ #oas       ┆ DATE       │
+│ ---           ┆ ---               ┆ ---              ┆ ---        ┆ ---        ┆ ---        │
+│ str           ┆ str               ┆ str              ┆ date       ┆ f64        ┆ date       │
+╞═══════════════╪═══════════════════╪══════════════════╪════════════╪════════════╪════════════╡
+│ YX231113 Corp ┆ GTN 10 ½ 07/15/29 ┆ 1st Lien Secured ┆ 2026-07-15 ┆ 598.66491  ┆ 2024-12-17 │
+│ BS116983 Corp ┆ GTN 5 ⅜ 11/15/31  ┆ Sr Unsecured     ┆ 2026-11-15 ┆ 1193.17529 ┆ 2024-12-17 │
+│ AV438089 Corp ┆ GTN 7 05/15/27    ┆ Sr Unsecured     ┆ 2024-12-24 ┆ 400.340456 ┆ 2024-12-17 │
+│ ZO860846 Corp ┆ GTN 4 ¾ 10/15/30  ┆ Sr Unsecured     ┆ 2025-10-15 ┆ 1249.34346 ┆ 2024-12-17 │
+│ LW375188 Corp ┆ GTN 5 ⅞ 07/15/26  ┆ Sr Unsecured     ┆ 2025-01-13 ┆ 173.761744 ┆ 2024-12-17 │
+└───────────────┴───────────────────┴──────────────────┴────────────┴────────────┴────────────┘
 ```
 
 ### Bonds Total Returns
@@ -620,7 +642,7 @@ This is example of a single-item query returning total return for all GTN bonds 
 We can easily pivot it into wide format, as in the example below
 ```python
 # Total Return of GTN Bonds
-query="""
+query = """
 let(#rng = range(-1M, 0D);
     #rets = return_series(calc_interval=#rng,per=W);)
 get(#rets)
@@ -628,21 +650,24 @@ for(filter(bonds('GTN US Equity'), series() == '144A'))
 """
 
 with BQuery() as bq:
-    df_lst = bq.bql(query)
-    df = df_lst[0].pivot(on='ID', index='DATE', values='#rets')
+    results = bq.bql(query)
+    df = results[0].pivot(on="ID", index="DATE", values="#rets")
     print(df)
-
+```
+Output:
+```python
+shape: (6, 6)
 ┌────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐
 │ DATE       ┆ YX231113 Corp ┆ BS116983 Corp ┆ AV438089 Corp ┆ ZO860846 Corp ┆ LW375188 Corp │
 │ ---        ┆ ---           ┆ ---           ┆ ---           ┆ ---           ┆ ---           │
 │ date       ┆ f64           ┆ f64           ┆ f64           ┆ f64           ┆ f64           │
 ╞════════════╪═══════════════╪═══════════════╪═══════════════╪═══════════════╪═══════════════╡
-│ 2024-11-14 ┆ null          ┆ null          ┆ null          ┆ null          ┆ null          │
-│ 2024-11-21 ┆ -0.002378     ┆ 0.016565      ┆ 0.022831      ┆ 0.000987      ┆ -0.002815     │
-│ 2024-11-28 ┆ 0.002345      ┆ -0.005489     ┆ -0.004105     ┆ 0.011748      ┆ 0.00037       │
-│ 2024-12-05 ┆ 0.001403      ┆ 0.016999      ┆ 0.002058      ┆ 0.013095      ┆ 0.001003      │
-│ 2024-12-12 ┆ -0.000485     ┆ -0.040228     ┆ -0.000872     ┆ -0.038048     ┆ 0.001122      │
-│ 2024-12-14 ┆ 0.000988      ┆ -0.003833     ┆ 0.000247      ┆ -0.004818     ┆ 0.00136       │
+│ 2024-11-17 ┆ null          ┆ null          ┆ null          ┆ null          ┆ null          │
+│ 2024-11-24 ┆ 0.001653      ┆ 0.051179      ┆ 0.020363      ┆ 0.001371      ┆ -0.002939     │
+│ 2024-12-01 ┆ 0.002837      ┆ 0.010405      ┆ -0.001466     ┆ 0.007275      ┆ 0.000581      │
+│ 2024-12-08 ┆ -0.000041     ┆ 0.016145      ┆ 0.000766      ┆ 0.024984      ┆ 0.000936      │
+│ 2024-12-15 ┆ 0.001495      ┆ -0.047        ┆ -0.000233     ┆ -0.043509     ┆ 0.002241      │
+│ 2024-12-17 ┆ 0.00008       ┆ -0.000004     ┆ -0.0035       ┆ -0.007937     ┆ 0.000064      │
 └────────────┴───────────────┴───────────────┴───────────────┴───────────────┴───────────────┘
 ```
 

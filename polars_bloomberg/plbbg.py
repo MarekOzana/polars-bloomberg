@@ -188,12 +188,70 @@ class BQuery:
         data = self._parse_bdh_responses(responses, fields)
         return pl.DataFrame(data)
 
-    def bql(self, expression: str) -> pl.DataFrame:
-        """Fetch data using a BQL expression.
+    def bql(self, expression: str) -> BqlResult:
+        """Execute a BQL (Bloomberg Query Language) expression and retrieve the results.
+
+        Parameters
+        ----------
+        expression : str
+            The BQL query expression to execute.
 
         Returns
         -------
-        list[pl.DataFrame]
+        BqlResult
+            An object containing a list of Polars DataFrames and helper methods.
+
+        Examples
+        --------
+        Fetch the last price for multiple securities:
+
+        >>> from polars_bloomberg import BQuery
+        >>> with BQuery() as bq:
+        ...     result = bq.bql("get(px_last) for(['AAPL US Equity', 'MSFT US Equity'])")
+        >>> df = result.combine()
+        >>> print(df)
+        shape: (2, 2)
+        ┌───────────────┬─────────┐
+        │ ID            ┆ PX_LAST │
+        │ ---           ┆ ---     │
+        │ str           ┆ f64     │
+        ╞═══════════════╪═════════╡
+        │ AAPL US Equity┆ 150.25  │
+        │ MSFT US Equity┆ 250.80  │
+        └───────────────┴─────────┘
+
+        Access individual DataFrames:
+
+        >>> df_px_last = result[0]
+        >>> print(df_px_last)
+        shape: (2, 2)
+        ┌───────────────┬─────────┐
+        │ ID            ┆ PX_LAST │
+        │ ---           ┆ ---     │
+        │ str           ┆ f64     │
+        ╞═══════════════╪═════════╡
+        │ AAPL US Equity┆ 150.25  │
+        │ MSFT US Equity┆ 250.80  │
+        └───────────────┴─────────┘
+
+        Fetch multiple fields and combine results:
+
+        >>> result = bq.bql("get(px_last, px_volume) for('AAPL US Equity')")
+        >>> df_combined = result.combine()
+        >>> print(df_combined)
+        shape: (1, 3)
+        ┌───────────────┬─────────┬────────────┐
+        │ ID            ┆ PX_LAST ┆ PX_VOLUME  │
+        │ ---           ┆ ---     ┆ ---        │
+        │ str           ┆ f64     ┆ f64        │
+        ╞═══════════════╪═════════╪════════════╡
+        │ AAPL US Equity┆ 150.25  ┆ 30000000.0 │
+        └───────────────┴─────────┴────────────┘
+
+        Iterate over individual DataFrames:
+
+        >>> for df in result:
+        ...     print(df)
 
         """
         request = self._create_bql_request(expression)
