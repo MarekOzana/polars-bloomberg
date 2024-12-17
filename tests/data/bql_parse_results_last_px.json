@@ -1,0 +1,82 @@
+{
+  "in_results": {
+    "px_last": {
+      "name": "px_last",
+      "offsets": [
+        0
+      ],
+      "namespace": "DATAITEM_DEFAULT",
+      "source": "CR",
+      "idColumn": {
+        "name": "ID",
+        "type": "STRING",
+        "rank": 0,
+        "values": [
+          "IBM US Equity"
+        ]
+      },
+      "valuesColumn": {
+        "name": "VALUE",
+        "type": "DOUBLE",
+        "rank": 0,
+        "values": [
+          229.33
+        ]
+      },
+      "secondaryColumns": [
+        {
+          "name": "DATE",
+          "type": "DATE",
+          "rank": 0,
+          "values": [
+            "2024-12-17T00:00:00Z"
+          ],
+          "defaultDate": true
+        },
+        {
+          "name": "CURRENCY",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+            "USD"
+          ]
+        }
+      ],
+      "partialErrorMap": {
+        "errorIterator": null
+      },
+      "responseExceptions": [],
+      "transparency": null,
+      "forUniverse": true,
+      "bqlResponseInfo": null,
+      "defaultDateColumnName": null,
+      "itemPreviewStatistics": null,
+      "indexView": null
+    }
+  },
+  "out_tables": [
+    {
+      "name": "px_last",
+      "data": {
+        "ID": [
+          "IBM US Equity"
+        ],
+        "px_last": [
+          229.33
+        ],
+        "DATE": [
+          "2024-12-17T00:00:00Z"
+        ],
+        "CURRENCY": [
+          "USD"
+        ]
+      },
+      "schema": {
+        "ID": "String",
+        "px_last": "Float64",
+        "DATE": "Date",
+        "CURRENCY": "String"
+      }
+    }
+  ]
+}

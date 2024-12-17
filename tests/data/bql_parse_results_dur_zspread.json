@@ -1,0 +1,279 @@
+{
+  "in_results": {
+    "name()": {
+      "name": "name()",
+      "offsets": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "namespace": "FUNCTION_DEFAULT",
+      "source": "BQLAnalyticsEngine",
+      "idColumn": {
+        "name": "ID",
+        "type": "STRING",
+        "rank": 0,
+        "values": [
+          "YV402592 Corp",
+          "BW924993 Corp",
+          "ZO703956 Corp",
+          "ZO703315 Corp",
+          "ZQ349286 Corp",
+          "YU819930 Corp"
+        ]
+      },
+      "valuesColumn": {
+        "name": "VALUE",
+        "type": "STRING",
+        "rank": 0,
+        "values": [
+          "SEB Float PERP",
+          "SEB 6 \u215e PERP",
+          "SHBASS 4 \u00be PERP",
+          "SHBASS 4 \u215c PERP",
+          "SEB 5 \u215b PERP",
+          "SEB 6 \u00be PERP"
+        ]
+      },
+      "secondaryColumns": [],
+      "partialErrorMap": {
+        "errorIterator": null
+      },
+      "responseExceptions": [],
+      "transparency": null,
+      "forUniverse": true,
+      "bqlResponseInfo": null,
+      "defaultDateColumnName": null,
+      "itemPreviewStatistics": null,
+      "indexView": null
+    },
+    "#dur": {
+      "name": "#dur",
+      "offsets": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "namespace": "FUNCTION_DEFAULT",
+      "source": "BQLAnalyticsEngine",
+      "idColumn": {
+        "name": "ID",
+        "type": "STRING",
+        "rank": 0,
+        "values": [
+          "YV402592 Corp",
+          "BW924993 Corp",
+          "ZO703956 Corp",
+          "ZO703315 Corp",
+          "ZQ349286 Corp",
+          "YU819930 Corp"
+        ]
+      },
+      "valuesColumn": {
+        "name": "VALUE",
+        "type": "DOUBLE",
+        "rank": 0,
+        "values": [
+          0.20684283658997893,
+          2.2252592889752205,
+          4.9395186698468665,
+          1.950880673033133,
+          0.39011334611530524,
+          5.367123516636303
+        ]
+      },
+      "secondaryColumns": [
+        {
+          "name": "DATE",
+          "type": "DATE",
+          "rank": 0,
+          "values": [
+            "2024-12-17T00:00:00Z",
+            "2024-12-17T00:00:00Z",
+            "2024-12-17T00:00:00Z",
+            "2024-12-17T00:00:00Z",
+            "2024-12-17T00:00:00Z",
+            "2024-12-17T00:00:00Z"
+          ],
+          "defaultDate": true
+        }
+      ],
+      "partialErrorMap": {
+        "errorIterator": null
+      },
+      "responseExceptions": [],
+      "transparency": null,
+      "forUniverse": true,
+      "bqlResponseInfo": null,
+      "defaultDateColumnName": "DATE",
+      "itemPreviewStatistics": null,
+      "indexView": null
+    },
+    "#zsprd": {
+      "name": "#zsprd",
+      "offsets": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "namespace": "FUNCTION_DEFAULT",
+      "source": "BQLAnalyticsEngine",
+      "idColumn": {
+        "name": "ID",
+        "type": "STRING",
+        "rank": 0,
+        "values": [
+          "YV402592 Corp",
+          "BW924993 Corp",
+          "ZO703956 Corp",
+          "ZO703315 Corp",
+          "ZQ349286 Corp",
+          "YU819930 Corp"
+        ]
+      },
+      "valuesColumn": {
+        "name": "VALUE",
+        "type": "DOUBLE",
+        "rank": 0,
+        "values": [
+          235.23,
+          219.96210827,
+          256.16310242,
+          214.66436508,
+          200.56913811,
+          309.15433659
+        ]
+      },
+      "secondaryColumns": [
+        {
+          "name": "DATE",
+          "type": "DATE",
+          "rank": 0,
+          "values": [
+            "2024-12-17T00:00:00Z",
+            "2024-12-17T00:00:00Z",
+            "2024-12-17T00:00:00Z",
+            "2024-12-17T00:00:00Z",
+            "2024-12-17T00:00:00Z",
+            "2024-12-17T00:00:00Z"
+          ],
+          "defaultDate": true
+        }
+      ],
+      "partialErrorMap": {
+        "errorIterator": null
+      },
+      "responseExceptions": [],
+      "transparency": null,
+      "forUniverse": true,
+      "bqlResponseInfo": null,
+      "defaultDateColumnName": "DATE",
+      "itemPreviewStatistics": null,
+      "indexView": null
+    }
+  },
+  "out_tables": [
+    {
+      "name": "name()",
+      "data": {
+        "ID": [
+          "YV402592 Corp",
+          "BW924993 Corp",
+          "ZO703956 Corp",
+          "ZO703315 Corp",
+          "ZQ349286 Corp",
+          "YU819930 Corp"
+        ],
+        "name()": [
+          "SEB Float PERP",
+          "SEB 6 \u215e PERP",
+          "SHBASS 4 \u00be PERP",
+          "SHBASS 4 \u215c PERP",
+          "SEB 5 \u215b PERP",
+          "SEB 6 \u00be PERP"
+        ]
+      },
+      "schema": {
+        "ID": "String",
+        "name()": "String"
+      }
+    },
+    {
+      "name": "#dur",
+      "data": {
+        "ID": [
+          "YV402592 Corp",
+          "BW924993 Corp",
+          "ZO703956 Corp",
+          "ZO703315 Corp",
+          "ZQ349286 Corp",
+          "YU819930 Corp"
+        ],
+        "#dur": [
+          0.20684283658997893,
+          2.2252592889752205,
+          4.9395186698468665,
+          1.950880673033133,
+          0.39011334611530524,
+          5.367123516636303
+        ],
+        "DATE": [
+          "2024-12-17T00:00:00Z",
+          "2024-12-17T00:00:00Z",
+          "2024-12-17T00:00:00Z",
+          "2024-12-17T00:00:00Z",
+          "2024-12-17T00:00:00Z",
+          "2024-12-17T00:00:00Z"
+        ]
+      },
+      "schema": {
+        "ID": "String",
+        "#dur": "Float64",
+        "DATE": "Date"
+      }
+    },
+    {
+      "name": "#zsprd",
+      "data": {
+        "ID": [
+          "YV402592 Corp",
+          "BW924993 Corp",
+          "ZO703956 Corp",
+          "ZO703315 Corp",
+          "ZQ349286 Corp",
+          "YU819930 Corp"
+        ],
+        "#zsprd": [
+          235.23,
+          219.96210827,
+          256.16310242,
+          214.66436508,
+          200.56913811,
+          309.15433659
+        ],
+        "DATE": [
+          "2024-12-17T00:00:00Z",
+          "2024-12-17T00:00:00Z",
+          "2024-12-17T00:00:00Z",
+          "2024-12-17T00:00:00Z",
+          "2024-12-17T00:00:00Z",
+          "2024-12-17T00:00:00Z"
+        ]
+      },
+      "schema": {
+        "ID": "String",
+        "#zsprd": "Float64",
+        "DATE": "Date"
+      }
+    }
+  ]
+}

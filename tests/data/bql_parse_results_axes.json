@@ -1,0 +1,282 @@
+{
+  "query": "let(#ax=axes();) get(security_des, #ax) for(filter(bondsuniv(ACTIVE), crncy()=='USD' and basel_iii_designation() == 'Additional Tier 1' and country_iso() == 'SE'))",
+  "in_results": {
+    "security_des": {
+      "name": "security_des",
+      "offsets": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "namespace": "DATAITEM_DEFAULT",
+      "source": "CR",
+      "idColumn": {
+        "name": "ID",
+        "type": "STRING",
+        "rank": 0,
+        "values": [
+          "YU819930 Corp",
+          "ZO703315 Corp",
+          "BR069680 Corp",
+          "ZL122341 Corp",
+          "ZQ349286 Corp",
+          "ZF859199 Corp",
+          "ZO703956 Corp",
+          "BW924993 Corp"
+        ]
+      },
+      "valuesColumn": {
+        "name": "VALUE",
+        "type": "STRING",
+        "rank": 0,
+        "values": [
+          "SEB 6 \u00be PERP",
+          "SHBASS 4 \u215c PERP",
+          "SWEDA 4 PERP",
+          "SWEDA 7 \u215d PERP",
+          "SEB 5 \u215b PERP",
+          "SWEDA 7 \u00be PERP",
+          "SHBASS 4 \u00be PERP",
+          "SEB 6 \u215e PERP"
+        ]
+      },
+      "secondaryColumns": [],
+      "partialErrorMap": {
+        "errorIterator": null
+      },
+      "responseExceptions": [],
+      "transparency": null,
+      "forUniverse": true,
+      "bqlResponseInfo": null,
+      "defaultDateColumnName": null,
+      "itemPreviewStatistics": null,
+      "indexView": null
+    },
+    "#ax": {
+      "name": "#ax",
+      "offsets": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "namespace": "DATAITEM_DEFAULT",
+      "source": "AXES",
+      "idColumn": {
+        "name": "ID",
+        "type": "STRING",
+        "rank": 0,
+        "values": [
+          "YU819930 Corp",
+          "ZO703315 Corp",
+          "BR069680 Corp",
+          "ZL122341 Corp",
+          "ZQ349286 Corp",
+          "ZF859199 Corp",
+          "ZO703956 Corp",
+          "BW924993 Corp"
+        ]
+      },
+      "valuesColumn": {
+        "name": "VALUE",
+        "type": "STRING",
+        "rank": 0,
+        "values": [
+          "Y",
+          "Y",
+          "Y",
+          "Y",
+          "Y",
+          "Y",
+          "Y",
+          "Y"
+        ]
+      },
+      "secondaryColumns": [
+        {
+          "name": "ASK_DEPTH",
+          "type": "INT",
+          "rank": 0,
+          "values": [
+            5,
+            1,
+            1,
+            1,
+            2,
+            4,
+            2,
+            3
+          ]
+        },
+        {
+          "name": "BID_DEPTH",
+          "type": "INT",
+          "rank": 0,
+          "values": [
+            1,
+            2,
+            1,
+            4,
+            5,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "name": "ASK_TOTAL_SIZE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+            9600000.0,
+            5000000.0,
+            2000000.0,
+            1000000.0,
+            5500000.0,
+            10000000.0,
+            3200000.0,
+            10000000.0
+          ]
+        },
+        {
+          "name": "BID_TOTAL_SIZE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+            2000000.0,
+            6000000.0,
+            2000000.0,
+            9400000.0,
+            27200000.0,
+            2000000.0,
+            6000000.0,
+            8000000.0
+          ]
+        }
+      ],
+      "partialErrorMap": {
+        "errorIterator": null
+      },
+      "responseExceptions": [],
+      "transparency": null,
+      "forUniverse": true,
+      "bqlResponseInfo": null,
+      "defaultDateColumnName": null,
+      "itemPreviewStatistics": null,
+      "indexView": null
+    }
+  },
+  "out_tables": [
+    {
+      "name": "security_des",
+      "data": {
+        "ID": [
+          "YU819930 Corp",
+          "ZO703315 Corp",
+          "BR069680 Corp",
+          "ZL122341 Corp",
+          "ZQ349286 Corp",
+          "ZF859199 Corp",
+          "ZO703956 Corp",
+          "BW924993 Corp"
+        ],
+        "security_des": [
+          "SEB 6 \u00be PERP",
+          "SHBASS 4 \u215c PERP",
+          "SWEDA 4 PERP",
+          "SWEDA 7 \u215d PERP",
+          "SEB 5 \u215b PERP",
+          "SWEDA 7 \u00be PERP",
+          "SHBASS 4 \u00be PERP",
+          "SEB 6 \u215e PERP"
+        ]
+      },
+      "schema": {
+        "ID": "String",
+        "security_des": "String"
+      }
+    },
+    {
+      "name": "#ax",
+      "data": {
+        "ID": [
+          "YU819930 Corp",
+          "ZO703315 Corp",
+          "BR069680 Corp",
+          "ZL122341 Corp",
+          "ZQ349286 Corp",
+          "ZF859199 Corp",
+          "ZO703956 Corp",
+          "BW924993 Corp"
+        ],
+        "#ax": [
+          "Y",
+          "Y",
+          "Y",
+          "Y",
+          "Y",
+          "Y",
+          "Y",
+          "Y"
+        ],
+        "ASK_DEPTH": [
+          5,
+          1,
+          1,
+          1,
+          2,
+          4,
+          2,
+          3
+        ],
+        "BID_DEPTH": [
+          1,
+          2,
+          1,
+          4,
+          5,
+          1,
+          2,
+          3
+        ],
+        "ASK_TOTAL_SIZE": [
+          9600000.0,
+          5000000.0,
+          2000000.0,
+          1000000.0,
+          5500000.0,
+          10000000.0,
+          3200000.0,
+          10000000.0
+        ],
+        "BID_TOTAL_SIZE": [
+          2000000.0,
+          6000000.0,
+          2000000.0,
+          9400000.0,
+          27200000.0,
+          2000000.0,
+          6000000.0,
+          8000000.0
+        ]
+      },
+      "schema": {
+        "ID": "String",
+        "#ax": "String",
+        "ASK_DEPTH": "Int64",
+        "BID_DEPTH": "Int64",
+        "ASK_TOTAL_SIZE": "Float64",
+        "BID_TOTAL_SIZE": "Float64"
+      }
+    }
+  ]
+}

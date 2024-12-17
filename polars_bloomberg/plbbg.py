@@ -32,6 +32,7 @@ with BQuery() as bq:
 
 import json
 import logging
+import os
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -97,7 +98,13 @@ class BqlResult:
 class BQuery:
     """Interface for interacting with the Bloomberg Open API using Polars."""
 
-    def __init__(self, host: str = "localhost", port: int = 8194, timeout: int = 32_000):
+    def __init__(
+        self,
+        host: str = "localhost",
+        port: int = 8194,
+        timeout: int = 32_000,
+        debug: bool = False,
+    ):
         """Initialize a BQuery instance with connection parameters.
 
         Parameters
@@ -108,12 +115,15 @@ class BQuery:
             The port number for the Bloomberg API server.
         timeout : int
             Timeout in milliseconds for API requests.
+        debug: bool
+            Enable debug logging/saving of intermediate results.
 
         """
         self.host = host
         self.port = port
         self.timeout = timeout  # Timeout in milliseconds
         self.session = None
+        self.debug = debug  # Enable/disable debug logging of intermediate results.
 
     def __enter__(self):
         """Enter the runtime context related to this object."""
@@ -357,6 +367,10 @@ class BQuery:
             schema = self._map_types(schema_str)
             tables.append(SITable(name=field, data=data, schema=schema))
 
+        # If debug mode is on, save the input and output for reproducibility
+        if self.debug:
+            self._save_debug_case(results, tables)
+
         return tables
 
     def _map_types(self, type_map: dict[str, str]) -> dict[str, pl.DataType]:
@@ -366,5 +380,33 @@ class BQuery:
             "DOUBLE": pl.Float64,
             "INT": pl.Int64,
             "DATE": pl.Date,
+            "BOOLEAN": pl.Boolean
         }
         return {col: mapping.get(t.upper(), pl.Utf8) for col, t in type_map.items()}
+
+    def _save_debug_case(self, in_results: dict, tables: list[SITable]):
+        """Save input and output to a JSON file for debugging and test generation."""
+        # Create a directory for debug cases if it doesn't exist
+        os.makedirs("debug_cases", exist_ok=True)
+
+        # Create a unique filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"debug_cases/bql_parse_results_{timestamp}.json"
+
+        # Prepare serializable data
+        out_tables = []
+        for t in tables:
+            out_tables.append(
+                {
+                    "name": t.name,
+                    "data": t.data,
+                    "schema": {col: str(dtype) for col, dtype in t.schema.items()},
+                }
+            )
+
+        to_save = {"in_results": in_results, "out_tables": out_tables}
+
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(to_save, f, indent=2)
+
+        logger.debug("Saved debug case to %s", filename)
