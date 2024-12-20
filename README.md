@@ -671,6 +671,40 @@ shape: (6, 6)
 └────────────┴───────────────┴───────────────┴───────────────┴───────────────┴───────────────┘
 ```
 
+#### Maturity Wall for US HY Bonds
+```python
+query = """
+let(#mv=sum(group(amt_outstanding(currency=USD),
+                  by=[year(maturity()), industry_sector()]));)
+get(#mv)
+for(members('LF98TRUU Index'))
+"""
+with BQuery() as bq:
+    results = bq.bql(query)
+df = results.combine().rename(
+    {"YEAR(MATURITY())": "maturity", "INDUSTRY_SECTOR()": "sector", "#mv": "mv"}
+)
+
+print(df.pivot(index="maturity", on="sector", values="mv").head())
+```
+Output:
+```python
+shape: (5, 11)
+┌──────────┬───────────┬───────────┬───────────┬───┬───────────┬───────────┬───────────┬───────────┐
+│ maturity ┆ Basic     ┆ Consumer, ┆ Energy    ┆ … ┆ Financial ┆ Technolog ┆ Utilities ┆ Diversifi │
+│ ---      ┆ Materials ┆ Non-cycli ┆ ---       ┆   ┆ ---       ┆ y         ┆ ---       ┆ ed        │
+│ i64      ┆ ---       ┆ cal       ┆ f64       ┆   ┆ f64       ┆ ---       ┆ f64       ┆ ---       │
+│          ┆ f64       ┆ ---       ┆           ┆   ┆           ┆ f64       ┆           ┆ f64       │
+│          ┆           ┆ f64       ┆           ┆   ┆           ┆           ┆           ┆           │
+╞══════════╪═══════════╪═══════════╪═══════════╪═══╪═══════════╪═══════════╪═══════════╪═══════════╡
+│ 2025     ┆ 1.5e8     ┆ 5.34916e8 ┆ 5e8       ┆ … ┆ null      ┆ null      ┆ null      ┆ null      │
+│ 2026     ┆ 4.4013e9  ┆ 9.3293e9  ┆ 8.2931e9  ┆ … ┆ 1.3524e10 ┆ 4.0608e9  ┆ 2.5202e9  ┆ null      │
+│ 2027     ┆ 8.3921e9  ┆ 2.3409e10 ┆ 1.2427e10 ┆ … ┆ 1.9430e10 ┆ 4.3367e9  ┆ 3.6620e9  ┆ null      │
+│ 2028     ┆ 1.4701e10 ┆ 3.7457e10 ┆ 2.2442e10 ┆ … ┆ 2.3341e10 ┆ 9.9143e9  ┆ 7.6388e9  ┆ 5e8       │
+│ 2029     ┆ 1.6512e10 ┆ 5.7381e10 ┆ 3.9286e10 ┆ … ┆ 4.2337e10 ┆ 2.2660e10 ┆ 5.8558e9  ┆ null      │
+└──────────┴───────────┴───────────┴───────────┴───┴───────────┴───────────┴───────────┴───────────┘
+```
+
 
 ## Additional Documentation & Resources
 
