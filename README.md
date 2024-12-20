@@ -391,7 +391,7 @@ Output:
 
 ### Average PE per Sector
 This example shows aggregation (average) per group (sector) for members of an index.
-The reulting list has only one element since there is only one data-item in `get`
+The resulting list has only one element since there is only one data-item in `get`
 ```python
 query = """
     let(#avg_pe=avg(group(pe_ratio(), gics_sector_name()));)
@@ -710,6 +710,7 @@ shape: (5, 11)
 
 - *API Documentation*: Detailed documentation and function references are available in the [API documentation](examples/API-docs.md) file within the `examples/` directory.
 
-- *Additional Examples*: Check out (examples/Examples.ipynb) for hands-on notebooks demonstrating a variety of use cases.
+- *Additional Examples*: Check out [examples/](examples/) for hands-on notebooks demonstrating a variety of use cases.
+    - BQL examples and use cases: [examples/Examples-BQL.ipynb](https://github.com/MarekOzana/polars-bloomberg/blob/main/examples/Examples-BQL.ipynb)
 
 - *Bloomberg Developer Resources*: For more details on the Bloomberg API itself, visit the [Bloomberg Developer's page](https://developer.bloomberg.com/).
