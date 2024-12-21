@@ -709,7 +709,7 @@ shape: (5, 11)
 
 ## Additional Documentation & Resources
 
-- *API Documentation*: Detailed documentation and function references are available in the [API documentation](examples/API-docs.md) file within the `examples/` directory.
+- *API Documentation*: Detailed documentation and function references are available in https://marekozana.github.io/polars-bloomberg
 
 - *Additional Examples*: Check out [examples/](examples/) for hands-on notebooks demonstrating a variety of use cases.
     - BQL examples and use cases: [examples/Examples-BQL.ipynb](https://github.com/MarekOzana/polars-bloomberg/blob/main/examples/Examples-BQL.ipynb)
