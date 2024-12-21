@@ -5,6 +5,11 @@ repo_url: https://github.com/MarekOzana/polars-bloomberg
 theme:
   name: readthedocs
   highlight_js: true
+  navigation_depth: 3
+  sticky_navigation: false  # Keeps the TOC in view when scrolling
+
+markdown_extensions:
+  - admonition
 
 plugins:
   - search
@@ -18,4 +23,3 @@ plugins:
 nav:
   - Home: index.md
   - API Reference: api.md
-  - License: license.md

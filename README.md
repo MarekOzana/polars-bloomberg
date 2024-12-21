@@ -47,6 +47,8 @@ Great projects like [blp](https://github.com/matthewgilbert/blp), [xbbg](https:/
 
 With polars-bloomberg, you can enjoy the speed and simplicity of [Polars](https://www.pola.rs/) DataFrames—accessing both familiar Excel-style calls (`bdp`, `bdh`) and advanced `bql` queries—without extra pandas conversions. 
 
+For detailed documentation and function references, visit the documentation site [https://marekozana.github.io/polars-bloomberg](https://marekozana.github.io/polars-bloomberg/).
+
 I hope you enjoy using it as much as I had fun building it!
 
 
@@ -54,7 +56,7 @@ I hope you enjoy using it as much as I had fun building it!
 
 - **Bloomberg Access:** A valid Bloomberg terminal license.
 - **Bloomberg Python API:** The `blpapi` library must be installed. See the [Bloomberg API Library](https://www.bloomberg.com/professional/support/api-library/) for guidance.
-- **Python Version:** Python 3.8+ recommended.
+- **Python Version:** Python 3.12+ recommended.
 
 ## Installation
 

@@ -2,7 +2,6 @@
 
 # Polars + Bloomberg Open API
 [![Tests](https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml/badge.svg)](https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 **polars-bloomberg** is a Python library that extracts Bloomberg’s financial data directly into [Polars](https://www.pola.rs/) DataFrames.   
 If you’re a quant financial analyst, data scientist, or quant developer working in capital markets, this library makes it easy to fetch, transform, and analyze Bloomberg data right in Polars—offering speed, efficient memory usage, and a lot of fun to use!
@@ -15,32 +14,6 @@ If you’re a quant financial analyst, data scientist, or quant developer workin
 
 ---
 
-## Table of Contents
-
-1. [Introduction](#introduction)
-2. [Prerequisites](#prerequisites)
-3. [Installation](#installation)
-4. [Quick Start](#quick-start)
-5. [Core Methods](#core-methods)
-    - [BDP (Bloomberg Data Point)](#bdp)
-    - [BDH (Bloomberg Data History)](#bdh)
-    - [BQL (Bloomberg Query Language)](#bql) <details><summary>BQL Examples</summary>
-        - [Single Item and Single Security](#1-basic-example-single-item-and-single-security)
-        - [Multiple Securities with Single Item](#2-multiple-securities-with-a-single-item)
-        - [Multiple Items](#3-multiple-items)
-        - [SRCH](#4-advanced-example-screening-securities)
-        - [Aggregation (AVG)](#average-pe-per-sector)
-        - [Axes](#axes)
-        - [Axes with All Columns](#axes-with-all-columns)
-        - [Segments](#segments)
-        - [Average Spread per Bucket](#average-issuer-oas-spread-per-maturity-bucket)
-        - [Technical Analysis Screening](#technical-analysis-stocks-with-20d-ema--200d-ema-and-rsi--53)
-        - [Bonds Universe from Equity](#bond-universe-from-equity-ticker)
-        - [Bonds Total Return](#bonds-total-returns)
-        - [Maturity Wall for US HY](#maturity-wall-for-us-hy-bonds)
-        </details>
-6. [Additional Documentation and Resources](#additional-documentation--resources)
-
 ## Introduction
 Working with Bloomberg data in Python often feels more complicated than using their well-known Excel interface.
 Great projects like [blp](https://github.com/matthewgilbert/blp), [xbbg](https://github.com/alpha-xone/xbbg), and [pdblp](https://github.com/matthewgilbert/pdblp) have made this easier by pulling data directly into pandas. 
@@ -52,9 +25,11 @@ I hope you enjoy using it as much as I had fun building it!
 
 ## Prerequisites
 
-- **Bloomberg Access:** A valid Bloomberg terminal license.
-- **Bloomberg Python API:** The `blpapi` library must be installed. See the [Bloomberg API Library](https://www.bloomberg.com/professional/support/api-library/) for guidance.
-- **Python Version:** Python 3.8+ recommended.
+!!! info
+    **Bloomberg Access:** A valid Bloomberg terminal license is required!
+
+- **Bloomberg Python API:** The `blpapi` library must be installed. See the [Bloomberg API Library](https://www.bloomberg.com/professional/support/api-library/).
+- **Python Version:** Python 3.12+ recommended.
 
 ## Installation
 
@@ -111,8 +86,6 @@ with BQuery() as bq:
 │ SEBA SS Equity ┆ 155.2   ┆ SEK   │
 └────────────────┴─────────┴───────┘
 ```
-
-<details><summary>Expand for more BDP Examples</summary>
 
 ### BDP with different column types
 
@@ -185,9 +158,8 @@ with BQuery() as bq:
 └───────────────┴────────────┴─────────┘
 ```
 
-</details>
-
 ## BDH
+
 Use Case: Retrieve historical data over a date range, such as daily closing prices or volumes.
 ```python
 with BQuery() as bq:
@@ -210,8 +182,6 @@ with BQuery() as bq:
 │ TLT US Equity ┆ 2019-01-07 ┆ 121.75  │
 └───────────────┴────────────┴─────────┘
 ```
-
-<details><summary>Expand for more BDH examples</summary>
 
 ### BDH with multiple securities / fields
 ```python
@@ -264,8 +234,6 @@ with BQuery() as bq:
 │ AAPL US Equity ┆ 2019-03-29 ┆ 47.488  │
 └────────────────┴────────────┴─────────┘
 ```
-</details>
-
 
 ## BQL
 *Use Case*: Run more advanced queries to screen securities, calculate analytics (like moving averages), or pull fundamental data with complex conditions.
@@ -709,9 +677,9 @@ shape: (5, 11)
 
 ## Additional Documentation & Resources
 
-- *API Documentation*: Detailed documentation and function references are available in https://marekozana.github.io/polars-bloomberg
+- *API Documentation*: Detailed documentation and function references are available in [API Documentation](api.md)
 
-- *Additional Examples*: Check out [examples/](examples/) for hands-on notebooks demonstrating a variety of use cases.
+- *Additional Examples*: Check out [examples/](https://github.com/MarekOzana/polars-bloomberg/blob/main/examples/) for hands-on notebooks demonstrating a variety of use cases.
     - BQL examples and use cases: [examples/Examples-BQL.ipynb](https://github.com/MarekOzana/polars-bloomberg/blob/main/examples/Examples-BQL.ipynb)
 
 - *Bloomberg Developer Resources*: For more details on the Bloomberg API itself, visit the [Bloomberg Developer's page](https://developer.bloomberg.com/).
