@@ -43,8 +43,6 @@
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href="#">Home</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#table-of-contents">Table of Contents</a>
-    </li>
     <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a>
@@ -59,9 +57,21 @@
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#example-fetching-the-last-price-currency-of-apple-and-seb">Example: Fetching the Last Price &amp; Currency of Apple and SEB</a>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#bdp-with-different-column-types">BDP with different column types</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#bdp-with-overrides">BDP with overrides</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#bdp-with-date-overrides">BDP with date overrides</a>
+    </li>
         </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#bdh">BDH</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#bdh-with-multiple-securities-fields">BDH with multiple securities / fields</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#bdh-with-options-periodicityselection-monthly">BDH with options - periodicitySelection: Monthly</a>
+    </li>
+        </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#bql">BQL</a>
         <ul>
@@ -70,10 +80,6 @@
     <li class="toctree-l3"><a class="reference internal" href="#2-multiple-securities-with-a-single-item">2. Multiple Securities with a Single Item</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#3-multiple-items">3. Multiple Items</a>
-        <ul>
-    <li class="toctree-l4"><a class="reference internal" href="#combining-results">Combining Results</a>
-    </li>
-        </ul>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#4-advanced-example-screening-securities">4. Advanced Example: Screening Securities</a>
     </li>
@@ -108,10 +114,6 @@
                 <li class="toctree-l1"><a class="reference internal" href="api/">API Reference</a>
                 </li>
               </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="license/">License</a>
-                </li>
-              </ul>
       </div>
     </div>
     </nav>
@@ -138,8 +140,7 @@
               
                 <p><img alt="Polars Bloomberg Logo" src="https://raw.githubusercontent.com/MarekOzana/polars-bloomberg/main/assets/polars-bloomberg-logo.jpg" /></p>
 <h1 id="polars-bloomberg-open-api">Polars + Bloomberg Open API</h1>
-<p><a href="https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml"><img alt="Tests" src="https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml/badge.svg" /></a>
-<a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" /></a></p>
+<p><a href="https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml"><img alt="Tests" src="https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml/badge.svg" /></a></p>
 <p><strong>polars-bloomberg</strong> is a Python library that extracts Bloomberg’s financial data directly into <a href="https://www.pola.rs/">Polars</a> DataFrames. <br />
 If you’re a quant financial analyst, data scientist, or quant developer working in capital markets, this library makes it easy to fetch, transform, and analyze Bloomberg data right in Polars—offering speed, efficient memory usage, and a lot of fun to use!</p>
 <p><strong>Why use polars-bloomberg?</strong></p>
@@ -149,46 +150,19 @@ If you’re a quant financial analyst, data scientist, or quant developer workin
 <li><strong>No Pandas Dependency:</strong> Enjoy a clean integration that relies solely on Polars for speed and simplicity.</li>
 </ul>
 <hr />
-<h2 id="table-of-contents">Table of Contents</h2>
-<ol>
-<li><a href="#introduction">Introduction</a></li>
-<li><a href="#prerequisites">Prerequisites</a></li>
-<li><a href="#installation">Installation</a></li>
-<li><a href="#quick-start">Quick Start</a></li>
-<li><a href="#core-methods">Core Methods</a><ul>
-<li><a href="#bdp">BDP (Bloomberg Data Point)</a></li>
-<li><a href="#bdh">BDH (Bloomberg Data History)</a></li>
-<li><a href="#bql">BQL (Bloomberg Query Language)</a> <details><summary>BQL Examples</summary><ul>
-<li><a href="#1-basic-example-single-item-and-single-security">Single Item and Single Security</a></li>
-<li><a href="#2-multiple-securities-with-a-single-item">Multiple Securities with Single Item</a></li>
-<li><a href="#3-multiple-items">Multiple Items</a></li>
-<li><a href="#4-advanced-example-screening-securities">SRCH</a></li>
-<li><a href="#average-pe-per-sector">Aggregation (AVG)</a></li>
-<li><a href="#axes">Axes</a></li>
-<li><a href="#axes-with-all-columns">Axes with All Columns</a></li>
-<li><a href="#segments">Segments</a></li>
-<li><a href="#average-issuer-oas-spread-per-maturity-bucket">Average Spread per Bucket</a></li>
-<li><a href="#technical-analysis-stocks-with-20d-ema--200d-ema-and-rsi--53">Technical Analysis Screening</a></li>
-<li><a href="#bond-universe-from-equity-ticker">Bonds Universe from Equity</a></li>
-<li><a href="#bonds-total-returns">Bonds Total Return</a></li>
-<li><a href="#maturity-wall-for-us-hy-bonds">Maturity Wall for US HY</a>
-</details></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#additional-documentation--resources">Additional Documentation and Resources</a></li>
-</ol>
 <h2 id="introduction">Introduction</h2>
 <p>Working with Bloomberg data in Python often feels more complicated than using their well-known Excel interface.
 Great projects like <a href="https://github.com/matthewgilbert/blp">blp</a>, <a href="https://github.com/alpha-xone/xbbg">xbbg</a>, and <a href="https://github.com/matthewgilbert/pdblp">pdblp</a> have made this easier by pulling data directly into pandas. </p>
 <p>With polars-bloomberg, you can enjoy the speed and simplicity of <a href="https://www.pola.rs/">Polars</a> DataFrames—accessing both familiar Excel-style calls (<code>bdp</code>, <code>bdh</code>) and advanced <code>bql</code> queries—without extra pandas conversions. </p>
 <p>I hope you enjoy using it as much as I had fun building it!</p>
 <h2 id="prerequisites">Prerequisites</h2>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p><strong>Bloomberg Access:</strong> A valid Bloomberg terminal license is required!</p>
+</div>
 <ul>
-<li><strong>Bloomberg Access:</strong> A valid Bloomberg terminal license.</li>
-<li><strong>Bloomberg Python API:</strong> The <code>blpapi</code> library must be installed. See the <a href="https://www.bloomberg.com/professional/support/api-library/">Bloomberg API Library</a> for guidance.</li>
-<li><strong>Python Version:</strong> Python 3.8+ recommended.</li>
+<li><strong>Bloomberg Python API:</strong> The <code>blpapi</code> library must be installed. See the <a href="https://www.bloomberg.com/professional/support/api-library/">Bloomberg API Library</a>.</li>
+<li><strong>Python Version:</strong> Python 3.12+ recommended.</li>
 </ul>
 <h2 id="installation">Installation</h2>
 <pre><code class="language-bash">pip install polars-bloomberg
@@ -236,13 +210,8 @@ with BQuery() as bq:
 │ SEBA SS Equity ┆ 155.2   ┆ SEK   │
 └────────────────┴─────────┴───────┘
 </code></pre>
-<details><summary>Expand for more BDP Examples</summary>
-
-### BDP with different column types
-
-`polars-bloomberg` correctly infers column type as shown in this example:
-
-
+<h3 id="bdp-with-different-column-types">BDP with different column types</h3>
+<p><code>polars-bloomberg</code> correctly infers column type as shown in this example:</p>
 <pre><code class="language-python">with BQuery() as bq:
     df = bq.bdp([&quot;XS2930103580 Corp&quot;, &quot;USX60003AC87 Corp&quot;],
                 [&quot;SECURITY_DES&quot;, &quot;YAS_ZSPREAD&quot;, &quot;CRNCY&quot;, &quot;NXT_CALL_DT&quot;])
@@ -256,11 +225,8 @@ with BQuery() as bq:
 │ USX60003AC87 Corp ┆ NDAFH 6.3 PERP ┆ 292.477506  ┆ USD   ┆ 2031-09-25  │
 └───────────────────┴────────────────┴─────────────┴───────┴─────────────┘
 </code></pre>
-
-
-### BDP with overrides
-User can submit list of tuples with overrides
-
+<h3 id="bdp-with-overrides">BDP with overrides</h3>
+<p>User can submit list of tuples with overrides</p>
 <pre><code class="language-python">with BQuery() as bq:
     df = bq.bdp(
         [&quot;IBM US Equity&quot;],
@@ -276,11 +242,8 @@ User can submit list of tuples with overrides
 │ IBM US Equity ┆ 230.82  ┆ 2535.174          │
 └───────────────┴─────────┴───────────────────┘
 </code></pre>
-
-
-### BDP with date overrides
-Overrides for dates has to be in format YYYYMMDD
-
+<h3 id="bdp-with-date-overrides">BDP with date overrides</h3>
+<p>Overrides for dates has to be in format YYYYMMDD</p>
 <pre><code class="language-python">with BQuery() as bq:
     df = bq.bdp([&quot;USX60003AC87 Corp&quot;], [&quot;SETTLE_DT&quot;],
                 overrides=[(&quot;USER_LOCAL_TRADE_DATE&quot;, &quot;20241014&quot;)])
@@ -293,9 +256,6 @@ Overrides for dates has to be in format YYYYMMDD
 │ USX60003AC87 Corp ┆ 2024-10-15 │
 └───────────────────┴────────────┘
 </code></pre>
-
-
-
 <pre><code class="language-python">with BQuery() as bq:
     df = bq.bdp(['USDSEK Curncy', 'SEKCZK Curncy'], 
                 ['SETTLE_DT', 'PX_LAST'], 
@@ -311,10 +271,6 @@ Overrides for dates has to be in format YYYYMMDD
 │ SEKCZK Curncy ┆ 2020-07-17 ┆ 2.1698  │
 └───────────────┴────────────┴─────────┘
 </code></pre>
-
-
-</details>
-
 <h2 id="bdh">BDH</h2>
 <p>Use Case: Retrieve historical data over a date range, such as daily closing prices or volumes.</p>
 <pre><code class="language-python">with BQuery() as bq:
@@ -337,10 +293,7 @@ Overrides for dates has to be in format YYYYMMDD
 │ TLT US Equity ┆ 2019-01-07 ┆ 121.75  │
 └───────────────┴────────────┴─────────┘
 </code></pre>
-<details><summary>Expand for more BDH examples</summary>
-
-### BDH with multiple securities / fields
-
+<h3 id="bdh-with-multiple-securities-fields">BDH with multiple securities / fields</h3>
 <pre><code class="language-python">with BQuery() as bq:
     df = bq.bdh(
         securities=[&quot;SPY US Equity&quot;, &quot;TLT US Equity&quot;],
@@ -370,10 +323,7 @@ shape: (14, 4)
 │ TLT US Equity ┆ 2019-01-10 ┆ 120.46  ┆ 8.22286e6    │
 └───────────────┴────────────┴─────────┴──────────────┘
 </code></pre>
-
-
-### BDH with options - periodicitySelection: Monthly
-
+<h3 id="bdh-with-options-periodicityselection-monthly">BDH with options - periodicitySelection: Monthly</h3>
 <pre><code class="language-python">with BQuery() as bq:
     df = bq.bdh(['AAPL US Equity'], 
                 ['PX_LAST'], 
@@ -391,9 +341,6 @@ shape: (14, 4)
 │ AAPL US Equity ┆ 2019-03-29 ┆ 47.488  │
 └────────────────┴────────────┴─────────┘
 </code></pre>
-
-</details>
-
 <h2 id="bql">BQL</h2>
 <p><em>Use Case</em>: Run more advanced queries to screen securities, calculate analytics (like moving averages), or pull fundamental data with complex conditions.</p>
 <p><em>Returns</em>: The <code>bql()</code> method returns a <code>BqlResult</code> object, which:
@@ -792,10 +739,10 @@ print(df.pivot(index=&quot;maturity&quot;, on=&quot;sector&quot;, values=&quot;m
 <h2 id="additional-documentation-resources">Additional Documentation &amp; Resources</h2>
 <ul>
 <li>
-<p><em>API Documentation</em>: Detailed documentation and function references are available in the <a href="api/">API documentation</a> file within the <code>examples/</code> directory.</p>
+<p><em>API Documentation</em>: Detailed documentation and function references are available in <a href="api/">API Documentation</a></p>
 </li>
 <li>
-<p><em>Additional Examples</em>: Check out <a href="examples/">examples/</a> for hands-on notebooks demonstrating a variety of use cases.</p>
+<p><em>Additional Examples</em>: Check out <a href="https://github.com/MarekOzana/polars-bloomberg/blob/main/examples/">examples/</a> for hands-on notebooks demonstrating a variety of use cases.</p>
 <ul>
 <li>BQL examples and use cases: <a href="https://github.com/MarekOzana/polars-bloomberg/blob/main/examples/Examples-BQL.ipynb">examples/Examples-BQL.ipynb</a></li>
 </ul>
@@ -847,7 +794,7 @@ print(df.pivot(index=&quot;maturity&quot;, on=&quot;sector&quot;, values=&quot;m
       <script src="search/main.js"></script>
     <script>
         jQuery(function () {
-            SphinxRtdTheme.Navigation.enable(true);
+            SphinxRtdTheme.Navigation.enable(false);
         });
     </script>
 
@@ -856,5 +803,5 @@ print(df.pivot(index=&quot;maturity&quot;, on=&quot;sector&quot;, values=&quot;m
 
 <!--
 MkDocs version : 1.6.1
-Build Date UTC : 2024-12-21 18:03:22.462181+00:00
+Build Date UTC : 2024-12-21 18:37:13.225459+00:00
 -->
