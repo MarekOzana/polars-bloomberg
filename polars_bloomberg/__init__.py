@@ -1,5 +1,5 @@
 """polars_bloomberg package."""
 
-from .plbbg import BQuery
+from .plbbg import BqlResult, BQuery
 
-__all__ = ["BQuery"]
+__all__ = ["BQuery", "BqlResult"]

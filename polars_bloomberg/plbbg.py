@@ -57,20 +57,124 @@ class SITable:
 
 @dataclass
 class BqlResult:
-    """Holds the result of a BQL query: list of Polars DataFrames."""
+    """Holds the result of a BQL query as a list of Polars DataFrames.
+
+    This class encapsulates the results of a Bloomberg Query Language (BQL) query,
+    providing methods to access and manipulate the data.
+
+    Attributes:
+        dataframes (list[pl.DataFrame]): List of query result dataframes.
+        names (list[str]): List of data-item names corresponding to dataframes.
+
+    Example:
+        Execute a BQL query and combine the results:
+
+        ```python
+        from polars_bloomberg import BQuery
+
+        with BQuery() as bq:
+            result = bq.bql("get(px_last) for(['IBM US Equity', 'MSFT US Equity'])")
+            df = result.combine()
+            print(df)
+        ```
+
+        Expected output:
+        ```python
+        shape: (2, 4)
+        ┌───────────────┬─────────┐
+        │ ID            ┆ PX_LAST │
+        │ ---           ┆ ---     │
+        │ str           ┆ f64     │
+        ╞═══════════════╪═════════╡
+        │ IBM US Equity ┆ 125.34  │
+        │ MSFT US Equity┆ 232.33  │
+        └───────────────┴─────────┘
+        ```
+
+        Iterate over the list of DataFrames:
+
+        ```python
+        for df in result:
+            print(df)
+        ```
+
+        Access individual DataFrames by index:
+
+        ```python
+        first_df = result[0]
+        print(first_df)
+        ```
+
+        Get the number of DataFrames:
+
+        ```python
+        num_dfs = len(result)
+        print(f"Number of DataFrames: {num_dfs}")
+        ```
+
+    Methods:
+        combine: Combine all dataframes into one by joining on common columns.
+
+    """
 
     dataframes: list[pl.DataFrame]
-    names: list[str]  # data-item names
+    names: list[str]
 
     def combine(self) -> pl.DataFrame:
         """Combine all dataframes into one by joining on common columns.
 
-        Raises
-        ------
-        ValueError:
-            If no common columns exist or no dataframes are present.
+        This method merges all the DataFrames in the `dataframes` attribute into a single
+        DataFrame by performing a full join on the common columns. If no common columns
+        are found, it raises a ValueError.
 
-        """
+        Returns:
+            pl.DataFrame: Combined dataframe joined on common columns.
+
+        Raises:
+            ValueError: If no common columns exist or no dataframes are present.
+
+        Example:
+            Combine results of a BQL query:
+
+            ```python
+            from polars_bloomberg import BQuery
+
+            with BQuery() as bq:
+                result = bq.bql("get(px_last, px_volume) for(['AAPL US Equity', 'MSFT US Equity'])")
+                df = result.combine()
+                print(df)
+            ```
+
+            Expected output:
+            ```python
+            shape: (2, 3)
+            ┌────────────────┬──────────┬────────────┐
+            │ ID             ┆ PX_LAST  ┆ PX_VOLUME  │
+            │ ---            ┆ ---      ┆ ---        │
+            │ str            ┆ f64      ┆ f64        │
+            ╞════════════════╪══════════╪════════════╡
+            │ AAPL US Equity ┆ 150.25   ┆ 30000000.0 │
+            │ MSFT US Equity ┆ 250.80   ┆ 20000000.0 │
+            └────────────────┴──────────┴────────────┘
+            ```
+
+            Handle no common columns:
+
+            ```python
+            with BQuery() as bq:
+                result = bq.bql("get(px_last) for(['AAPL US Equity'])")
+                try:
+                    df = result.combine()
+                except ValueError as e:
+                    print(e)
+            ```
+
+            Expected output:
+            ```
+            No common columns found to join on.
+            ```
+
+        """  # noqa: E501
         if not self.dataframes:
             raise ValueError("No DataFrames to combine.")
 
@@ -96,7 +200,32 @@ class BqlResult:
 
 
 class BQuery:
-    """Interface for interacting with the Bloomberg Open API using Polars."""
+    """Provides methods to query Bloomberg API and return data as Polars DataFrames.
+
+    Example:
+        Create a BQuery instance and fetch last price for Apple stock:
+
+        ```python
+        from polars_bloomberg import BQuery
+
+        with BQuery() as bq:
+            df = bq.bdp(['AAPL US Equity'], ['PX_LAST'])
+        print(df)
+        ```
+
+        Expected output:
+        ```python
+        shape: (1, 2)
+        ┌────────────────┬──────────┐
+        │ security       ┆ PX_LAST  │
+        │ ---            ┆ ---      │
+        │ str            ┆ f64      │
+        ╞════════════════╪══════════╡
+        │ AAPL US Equity ┆ 171.32   │
+        └────────────────┴──────────┘
+        ```
+
+    """
 
     def __init__(
         self,
@@ -104,29 +233,35 @@ class BQuery:
         port: int = 8194,
         timeout: int = 32_000,
         debug: bool = False,
-    ):
+    ) -> None:
         """Initialize a BQuery instance with connection parameters.
 
-        Parameters
-        ----------
-        host : str
-            The hostname for the Bloomberg API server.
-        port : int
-            The port number for the Bloomberg API server.
-        timeout : int
-            Timeout in milliseconds for API requests.
-        debug: bool
-            Enable debug logging/saving of intermediate results.
+        Args:
+            host (str, optional):
+                The hostname for the Bloomberg API server.
+                Defaults to "localhost".
+            port (int, optional):
+                The port number for the Bloomberg API server.
+                Defaults to 8194.
+            timeout (int, optional):
+                Timeout in milliseconds for API requests.
+                Defaults to 32000.
+            debug (bool, optional):
+                Enable debug logging/saving of intermediate results.
+                Defaults to False.
+
+        Raises:
+            ConnectionError: If unable to establish connection to Bloomberg API.
 
         """
         self.host = host
         self.port = port
-        self.timeout = timeout  # Timeout in milliseconds
+        self.timeout = timeout
         self.session = None
-        self.debug = debug  # Enable/disable debug logging of intermediate results.
+        self.debug = debug
 
-    def __enter__(self):
-        """Enter the runtime context related to this object."""
+    def __enter__(self):  # noqa: D105
+        # Enter the runtime context related to this object.
         options = blpapi.SessionOptions()
         options.setServerHost(self.host)
         options.setServerPort(self.port)
@@ -143,8 +278,8 @@ class BQuery:
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Exit the context manager and stop the Bloomberg session."""
+    def __exit__(self, exc_type, exc_val, exc_tb):  # noqa: D105
+        # Exit the context manager and stop the Bloomberg session.
         if self.session:
             self.session.stop()
 
@@ -158,7 +293,45 @@ class BQuery:
         """Bloomberg Data Point, equivalent to Excel BDP() function.
 
         Fetch reference data for given securities and fields.
-        """
+
+        Args:
+            securities (list[str]): List of security identifiers (e.g. 'AAPL US Equity').
+            fields (list[str]): List of data fields to retrieve (e.g., 'PX_LAST').
+            overrides (list[tuple], optional): List of tuples for field overrides. Defaults to None.
+            options (dict, optional): Additional request options. Defaults to None.
+
+        Returns:
+            pl.DataFrame: A Polars DataFrame containing the requested reference data.
+
+        Raises:
+            ConnectionError: If there is an issue with the Bloomberg session.
+            ValueError: If the request parameters are invalid.
+
+        Example:
+            Fetch last price for Apple and Microsoft stocks:
+
+            ```python
+            from polars_bloomberg import BQuery
+
+            with BQuery() as bq:
+                df = bq.bdp(['AAPL US Equity', 'MSFT US Equity'], ['PX_LAST'])
+            print(df)
+            ```
+
+            Expected output:
+            ```python
+            shape: (2, 2)
+            ┌────────────────┬──────────┐
+            │ security       ┆ PX_LAST  │
+            │ ---            ┆ ---      │
+            │ str            ┆ f64      │
+            ╞════════════════╪══════════╡
+            │ AAPL US Equity ┆ 171.32   │
+            │ MSFT US Equity ┆ 232.33   │
+            └────────────────┴──────────┘
+            ```
+
+        """  # noqa: E501
         request = self._create_request(
             "ReferenceDataRequest", securities, fields, overrides, options
         )
@@ -178,7 +351,55 @@ class BQuery:
         """Bloomberg Data History, equivalent to Excel BDH() function.
 
         Fetch historical data for given securities and fields between dates.
-        """
+
+        Args:
+            securities (list[str]): List of security identifiers (e.g., 'AAPL US Equity').
+            fields (list[str]): List of data fields to retrieve (e.g., 'PX_LAST').
+            start_date (date): Start date for the historical data.
+            end_date (date): End date for the historical data.
+            overrides (list[tuple], optional): List of tuples for field overrides. Defaults to None.
+            options (dict, optional): Additional request options. Defaults to None.
+
+        Returns:
+            pl.DataFrame: A Polars DataFrame containing the requested historical data.
+
+        Raises:
+            ConnectionError: If there is an issue with the Bloomberg session.
+            ValueError: If the request parameters are invalid.
+
+        Example:
+            Fetch historical closing prices for TLT:
+
+            ```python
+            from datetime import date
+            from polars_bloomberg import BQuery
+
+            with BQuery() as bq:
+                df = bq.bdh(
+                    ["TLT US Equity"],
+                    ["PX_LAST"],
+                    start_date=date(2019, 1, 1),
+                    end_date=date(2019, 1, 7),
+                )
+            print(df)
+            ```
+
+            Expected output:
+            ```python
+            shape: (4, 3)
+            ┌───────────────┬────────────┬─────────┐
+            │ security      ┆ date       ┆ PX_LAST │
+            │ ---           ┆ ---        ┆ ---     │
+            │ str           ┆ date       ┆ f64     │
+            ╞═══════════════╪════════════╪═════════╡
+            │ TLT US Equity ┆ 2019-01-02 ┆ 122.15  │
+            │ TLT US Equity ┆ 2019-01-03 ┆ 123.54  │
+            │ TLT US Equity ┆ 2019-01-04 ┆ 122.11  │
+            │ TLT US Equity ┆ 2019-01-07 ┆ 121.75  │
+            └───────────────┴────────────┴─────────┘
+            ```
+
+        """  # noqa: E501
         request = self._create_request(
             "HistoricalDataRequest", securities, fields, overrides, options
         )
@@ -189,71 +410,85 @@ class BQuery:
         return pl.DataFrame(data)
 
     def bql(self, expression: str) -> BqlResult:
-        """Execute a BQL (Bloomberg Query Language) expression and retrieve the results.
+        """Execute a Bloomberg Query Language (BQL) query.
 
-        Parameters
-        ----------
-        expression : str
-            The BQL query expression to execute.
+        BQL is Bloomberg's domain-specific language for complex financial queries. It allows
+        for advanced data retrieval, screening, and analysis.
 
-        Returns
-        -------
-        BqlResult
-            An object containing a list of Polars DataFrames and helper methods.
+        Args:
+            expression (str): The BQL query expression to execute. Can include functions like
+                get(), let(), for(), filter(), etc.
 
-        Examples
-        --------
-        Fetch the last price for multiple securities:
+        Returns:
+            BqlResult: An object containing:
+                - List of Polars DataFrames (one for each item in BQL get statement)
+                - Helper methods like combine() to merge DataFrames on common columns
 
-        >>> from polars_bloomberg import BQuery
-        >>> with BQuery() as bq:
-        ...     result = bq.bql("get(px_last) for(['AAPL US Equity', 'MSFT US Equity'])")
-        >>> df = result.combine()
-        >>> print(df)
-        shape: (2, 2)
-        ┌───────────────┬─────────┐
-        │ ID            ┆ PX_LAST │
-        │ ---           ┆ ---     │
-        │ str           ┆ f64     │
-        ╞═══════════════╪═════════╡
-        │ AAPL US Equity┆ 150.25  │
-        │ MSFT US Equity┆ 250.80  │
-        └───────────────┴─────────┘
+        Raises:
+            ConnectionError: If there is an issue with the Bloomberg session.
+            ValueError: If the BQL query syntax is invalid.
 
-        Access individual DataFrames:
+        Example:
+            Simple query to fetch last price:
 
-        >>> df_px_last = result[0]
-        >>> print(df_px_last)
-        shape: (2, 2)
-        ┌───────────────┬─────────┐
-        │ ID            ┆ PX_LAST │
-        │ ---           ┆ ---     │
-        │ str           ┆ f64     │
-        ╞═══════════════╪═════════╡
-        │ AAPL US Equity┆ 150.25  │
-        │ MSFT US Equity┆ 250.80  │
-        └───────────────┴─────────┘
+            ```python
+            from polars_bloomberg import BQuery
 
-        Fetch multiple fields and combine results:
+            with BQuery() as bq:
+                # Get last price for multiple securities
+                result = bq.bql("get(px_last) for(['IBM US Equity', 'MSFT US Equity'])")
+                df = result.combine()
+                print(df)
+            ```
 
-        >>> result = bq.bql("get(px_last, px_volume) for('AAPL US Equity')")
-        >>> df_combined = result.combine()
-        >>> print(df_combined)
-        shape: (1, 3)
-        ┌───────────────┬─────────┬────────────┐
-        │ ID            ┆ PX_LAST ┆ PX_VOLUME  │
-        │ ---           ┆ ---     ┆ ---        │
-        │ str           ┆ f64     ┆ f64        │
-        ╞═══════════════╪═════════╪════════════╡
-        │ AAPL US Equity┆ 150.25  ┆ 30000000.0 │
-        └───────────────┴─────────┴────────────┘
+            Expected output:
+            ```python
+            shape: (2, 4)
+            ┌───────────────┬─────────┐
+            │ ID            ┆ PX_LAST │
+            │ ---           ┆ ---     │
+            │ str           ┆ f64     │
+            ╞═══════════════╪═════════╡
+            │ AAPL US Equity┆ 150.25  │
+            │ MSFT US Equity┆ 250.80  │
+            └───────────────┴─────────┘
+            ```
 
-        Iterate over individual DataFrames:
+            Access individual DataFrames:
+            ```python
+            >>> df_px_last = result[0]
+            >>> print(df_px_last)
+            shape: (2, 2)
+            ┌───────────────┬─────────┐
+            │ ID            ┆ PX_LAST │
+            │ ---           ┆ ---     │
+            │ str           ┆ f64     │
+            ╞═══════════════╪═════════╡
+            │ AAPL US Equity┆ 150.25  │
+            │ MSFT US Equity┆ 250.80  │
+            └───────────────┴─────────┘
+            ```
+            Fetch multiple fields and combine results:
+            ```python
+            >>> result = bq.bql("get(px_last, px_volume) for('AAPL US Equity')")
+            >>> df_combined = result.combine()
+            >>> print(df_combined)
+            shape: (1, 3)
+            ┌───────────────┬─────────┬────────────┐
+            │ ID            ┆ PX_LAST ┆ PX_VOLUME  │
+            │ ---           ┆ ---     ┆ ---        │
+            │ str           ┆ f64     ┆ f64        │
+            ╞═══════════════╪═════════╪════════════╡
+            │ AAPL US Equity┆ 150.25  ┆ 30000000.0 │
+            └───────────────┴─────────┴────────────┘
+            ```
+            Iterate over individual DataFrames:
+            ```python
+            >>> for df in result:
+            ...     print(df)
+            ```
 
-        >>> for df in result:
-        ...     print(df)
-
-        """
+        """  # noqa: E501
         request = self._create_bql_request(expression)
         responses = self._send_request(request)
         tables = self._parse_bql_responses(responses)

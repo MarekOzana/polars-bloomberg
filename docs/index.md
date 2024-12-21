@@ -37,7 +37,6 @@ If you’re a quant financial analyst, data scientist, or quant developer workin
         - [Technical Analysis Screening](#technical-analysis-stocks-with-20d-ema--200d-ema-and-rsi--53)
         - [Bonds Universe from Equity](#bond-universe-from-equity-ticker)
         - [Bonds Total Return](#bonds-total-returns)
-        - [Maturity Wall for US HY](#maturity-wall-for-us-hy-bonds)
         </details>
 6. [Additional Documentation and Resources](#additional-documentation--resources)
 
@@ -62,7 +61,7 @@ I hope you enjoy using it as much as I had fun building it!
 pip install polars-bloomberg
 ```
 
-# Quick Start
+## Quick Start
 "Hello World" Example (under 1 minute):
 ```python
 from polars_bloomberg import BQuery

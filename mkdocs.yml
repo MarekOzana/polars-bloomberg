@@ -1,0 +1,21 @@
+site_name: Polars-Bloomberg
+site_description: Polars DataFrame interface for Bloomberg API
+repo_url: https://github.com/MarekOzana/polars-bloomberg
+
+theme:
+  name: readthedocs
+  highlight_js: true
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+
+nav:
+  - Home: index.md
+  - API Reference: api.md
+  - License: license.md
