@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>BQL - Polars-Bloomberg</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">Polars-Bloomberg</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href="../.." class="nav-link">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Usage & Tutorials</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../bdp/" class="dropdown-item">BDP</a>
+</li>
+                                    
+<li>
+    <a href="../bdh/" class="dropdown-item">BDH</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">BQL</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../../api/" class="nav-link">API Reference</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../bdh/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../../api/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/MarekOzana/polars-bloomberg/edit/master/docs/usage/bql.md" class="nav-link"><i class="fa-brands fa-github"></i> Edit on GitHub</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#bql" class="nav-link">BQL</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#basic-example" class="nav-link">Basic Example</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#multiple-securities" class="nav-link">Multiple Securities</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#multiple-items-combine" class="nav-link">Multiple Items - combine()</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#screening" class="nav-link">Screening</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#aggregation" class="nav-link">Aggregation</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#axes" class="nav-link">Axes</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#segments" class="nav-link">Segments</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#time-series" class="nav-link">Time Series</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#technical-analysis" class="nav-link">Technical Analysis</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="bql">BQL</h1>
+<p><em>Use Case</em>: Run more advanced queries to screen securities, calculate analytics (like moving averages), or pull fundamental data with complex conditions.</p>
+<p><em>Returns</em>: The <code>bql()</code> method returns a <code>BqlResult</code> object, which:</p>
+<ul>
+<li>Acts like a list of Polars DataFrames (one for each item in BQL <code>get</code> statement).</li>
+<li>Provides a <code>.combine()</code> method to merge DataFrames on common columns.</li>
+</ul>
+<h2 id="basic-example">Basic Example</h2>
+<pre><code class="language-python"># Fetch the last price of IBM stock
+with BQuery() as bq:
+    results = bq.bql(&quot;get(px_last) for(['IBM US Equity'])&quot;)
+    print(results[0])  # Access the first DataFrame
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-python">┌───────────────┬─────────┬────────────┬──────────┐
+│ ID            ┆ px_last ┆ DATE       ┆ CURRENCY │
+│ ---           ┆ ---     ┆ ---        ┆ ---      │
+│ str           ┆ f64     ┆ date       ┆ str      │
+╞═══════════════╪═════════╪════════════╪══════════╡
+│ IBM US Equity ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
+└───────────────┴─────────┴────────────┴──────────┘
+</code></pre>
+<h2 id="multiple-securities">Multiple Securities</h2>
+<pre><code class="language-python"># Fetch the last price for IBM and SEB
+with BQuery() as bq:
+    results = bq.bql(&quot;get(px_last) for(['IBM US Equity', 'SEBA SS Equity'])&quot;)
+    print(results[0])
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-python">┌────────────────┬─────────┬────────────┬──────────┐
+│ ID             ┆ px_last ┆ DATE       ┆ CURRENCY │
+│ ---            ┆ ---     ┆ ---        ┆ ---      │
+│ str            ┆ f64     ┆ date       ┆ str      │
+╞════════════════╪═════════╪════════════╪══════════╡
+│ IBM US Equity  ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
+│ SEBA SS Equity ┆ 155.2   ┆ 2024-12-14 ┆ SEK      │
+└────────────────┴─────────┴────────────┴──────────┘
+</code></pre>
+<h2 id="multiple-items-combine">Multiple Items - combine()</h2>
+<p>When querying for multiple items, <code>bql()</code> returns <code>BqlResult</code> object which is actually just a list of polars dataframes with extra method <code>combine()</code></p>
+<pre><code class="language-python"># Fetch name and last price of IBM (two items)
+with BQuery() as bq:
+    results = bq.bql(&quot;get(name, px_last) for(['IBM US Equity'])&quot;)
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-python">&gt;&gt;&gt; print(len(results))  # 2 DataFrames
+n=2
+
+&gt;&gt;&gt; print(results[0])    # First DataFrame: 'name'
+┌───────────────┬────────────────────────────────┐
+│ ID            ┆ name                           │
+│ ---           ┆ ---                            │
+│ str           ┆ str                            │
+╞═══════════════╪════════════════════════════════╡
+│ IBM US Equity ┆ International Business Machine │
+└───────────────┴────────────────────────────────┘
+
+&gt;&gt;&gt; print(results[1])    # Second DataFrame: 'px_last'
+┌───────────────┬─────────┬────────────┬──────────┐
+│ ID            ┆ px_last ┆ DATE       ┆ CURRENCY │
+│ ---           ┆ ---     ┆ ---        ┆ ---      │
+│ str           ┆ f64     ┆ date       ┆ str      │
+╞═══════════════╪═════════╪════════════╪══════════╡
+│ IBM US Equity ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
+└───────────────┴─────────┴────────────┴──────────┘
+</code></pre>
+<p>We can use <code>combine()</code> method to join the results into single dataframe:</p>
+<pre><code class="language-python">&gt;&gt;&gt; combined_df = results.combine()
+&gt;&gt;&gt; print(combined_df)
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-python">┌───────────────┬────────────────────────────────┬─────────┬────────────┬──────────┐
+│ ID            ┆ name                           ┆ px_last ┆ DATE       ┆ CURRENCY │
+│ ---           ┆ ---                            ┆ ---     ┆ ---        ┆ ---      │
+│ str           ┆ str                            ┆ f64     ┆ date       ┆ str      │
+╞═══════════════╪════════════════════════════════╪═════════╪════════════╪══════════╡
+│ IBM US Equity ┆ International Business Machine ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
+└───────────────┴────────────────────────────────┴─────────┴────────────┴──────────┘
+</code></pre>
+<h2 id="screening">Screening</h2>
+<p>Example of using saved SRCH search and filtering on ticker:
+Find list of SEB and Handelsbanken's AT1 bonds and print their names, duration and Z-Spread. The result of the query is list of 3 polars dataframes and can be conveniently combined using <code>combine()</code> method.</p>
+<pre><code class="language-python">query=&quot;&quot;&quot;
+    let(#dur=duration(duration_type=MODIFIED); 
+        #zsprd=spread(spread_type=Z);) 
+    get(name(), #dur, #zsprd) 
+    for(filter(screenresults(type=SRCH, screen_name='@COCO'), 
+            ticker in ['SEB', 'SHBASS']))
+&quot;&quot;&quot;
+
+with BQuery() as bq:
+    results = bq.bql(query)
+    combined_df = results.combine()
+    print(combined_df)
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-python">┌───────────────┬─────────────────┬──────┬────────────┬────────┐
+│ ID            ┆ name()          ┆ #dur ┆ DATE       ┆ #zsprd │
+│ ---           ┆ ---             ┆ ---  ┆ ---        ┆ ---    │
+│ str           ┆ str             ┆ f64  ┆ date       ┆ f64    │
+╞═══════════════╪═════════════════╪══════╪════════════╪════════╡
+│ BW924993 Corp ┆ SEB 6 ⅞ PERP    ┆ 2.23 ┆ 2024-12-16 ┆ 212.0  │
+│ YV402592 Corp ┆ SEB Float PERP  ┆ 0.21 ┆ 2024-12-16 ┆ 233.0  │
+│ ZQ349286 Corp ┆ SEB 5 ⅛ PERP    ┆ 0.39 ┆ 2024-12-16 ┆ 186.0  │
+│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP ┆ 1.95 ┆ 2024-12-16 ┆ 213.0  │
+│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP ┆ 4.94 ┆ 2024-12-16 ┆ 256.0  │
+│ YU819930 Corp ┆ SEB 6 ¾ PERP    ┆ 5.37 ┆ 2024-12-16 ┆ 309.0  │
+└───────────────┴─────────────────┴──────┴────────────┴────────┘
+</code></pre>
+<h2 id="aggregation">Aggregation</h2>
+<p><strong>Average PE per Index Sector</strong></p>
+<p>This example shows aggregation (average) per group (sector) for members of an index.
+The resulting list has only one element since there is only one data-item in <code>get</code></p>
+<pre><code class="language-python">query = &quot;&quot;&quot;
+    let(#avg_pe=avg(group(pe_ratio(), gics_sector_name()));)
+    get(#avg_pe)
+    for(members('OMX Index'))
+&quot;&quot;&quot;
+with BQuery() as bq:
+    results = bq.bql(query)
+    print(results[0].head(5))
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-python">┌──────────────┬───────────┬──────────────┬────────────┬──────────────┬──────────────┬─────────────┐
+│ ID           ┆ #avg_pe   ┆ REVISION_DAT ┆ AS_OF_DATE ┆ PERIOD_END_D ┆ ORIG_IDS     ┆ GICS_SECTOR │
+│ ---          ┆ ---       ┆ E            ┆ ---        ┆ ATE          ┆ ---          ┆ _NAME()     │
+│ str          ┆ f64       ┆ ---          ┆ date       ┆ ---          ┆ str          ┆ ---         │
+│              ┆           ┆ date         ┆            ┆ date         ┆              ┆ str         │
+╞══════════════╪═══════════╪══════════════╪════════════╪══════════════╪══════════════╪═════════════╡
+│ Communicatio ┆ 19.561754 ┆ 2024-10-24   ┆ 2024-12-14 ┆ 2024-09-30   ┆ null         ┆ Communicati │
+│ n Services   ┆           ┆              ┆            ┆              ┆              ┆ on Services │
+│ Consumer Dis ┆ 19.117295 ┆ 2024-10-24   ┆ 2024-12-14 ┆ 2024-09-30   ┆ null         ┆ Consumer    │
+│ cretionary   ┆           ┆              ┆            ┆              ┆              ┆ Discretiona │
+│              ┆           ┆              ┆            ┆              ┆              ┆ ry          │
+│ Consumer     ┆ 15.984743 ┆ 2024-10-24   ┆ 2024-12-14 ┆ 2024-09-30   ┆ ESSITYB SS   ┆ Consumer    │
+│ Staples      ┆           ┆              ┆            ┆              ┆ Equity       ┆ Staples     │
+│ Financials   ┆ 6.815895  ┆ 2024-10-24   ┆ 2024-12-14 ┆ 2024-09-30   ┆ null         ┆ Financials  │
+│ Health Care  ┆ 22.00628  ┆ 2024-11-12   ┆ 2024-12-14 ┆ 2024-09-30   ┆ null         ┆ Health Care │
+└──────────────┴───────────┴──────────────┴────────────┴──────────────┴──────────────┴─────────────┘
+</code></pre>
+<p><strong>HY Maturity Wall</strong></p>
+<p>And another example on the same topic. Calculate amount outstanding bonds in HY index per maturity year</p>
+<pre><code class="language-python">query = &quot;&quot;&quot;
+let(#mv=sum(group(amt_outstanding(currency=USD),
+                  by=[year(maturity()), industry_sector()]));)
+get(#mv)
+for(members('LF98TRUU Index'))
+&quot;&quot;&quot;
+with BQuery() as bq:
+    results = bq.bql(query)
+df = results.combine().rename(
+    {&quot;YEAR(MATURITY())&quot;: &quot;maturity&quot;, &quot;INDUSTRY_SECTOR()&quot;: &quot;sector&quot;, &quot;#mv&quot;: &quot;mv&quot;}
+)
+
+print(df.pivot(index=&quot;maturity&quot;, on=&quot;sector&quot;, values=&quot;mv&quot;).head())
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-python">shape: (5, 11)
+┌──────────┬───────────┬───────────┬───────────┬───┬───────────┬───────────┬───────────┬───────────┐
+│ maturity ┆ Basic     ┆ Consumer, ┆ Energy    ┆ … ┆ Financial ┆ Technolog ┆ Utilities ┆ Diversifi │
+│ ---      ┆ Materials ┆ Non-cycli ┆ ---       ┆   ┆ ---       ┆ y         ┆ ---       ┆ ed        │
+│ i64      ┆ ---       ┆ cal       ┆ f64       ┆   ┆ f64       ┆ ---       ┆ f64       ┆ ---       │
+│          ┆ f64       ┆ ---       ┆           ┆   ┆           ┆ f64       ┆           ┆ f64       │
+│          ┆           ┆ f64       ┆           ┆   ┆           ┆           ┆           ┆           │
+╞══════════╪═══════════╪═══════════╪═══════════╪═══╪═══════════╪═══════════╪═══════════╪═══════════╡
+│ 2025     ┆ 1.5e8     ┆ 5.34916e8 ┆ 5e8       ┆ … ┆ null      ┆ null      ┆ null      ┆ null      │
+│ 2026     ┆ 4.4013e9  ┆ 9.3293e9  ┆ 8.2931e9  ┆ … ┆ 1.3524e10 ┆ 4.0608e9  ┆ 2.5202e9  ┆ null      │
+│ 2027     ┆ 8.3921e9  ┆ 2.3409e10 ┆ 1.2427e10 ┆ … ┆ 1.9430e10 ┆ 4.3367e9  ┆ 3.6620e9  ┆ null      │
+│ 2028     ┆ 1.4701e10 ┆ 3.7457e10 ┆ 2.2442e10 ┆ … ┆ 2.3341e10 ┆ 9.9143e9  ┆ 7.6388e9  ┆ 5e8       │
+│ 2029     ┆ 1.6512e10 ┆ 5.7381e10 ┆ 3.9286e10 ┆ … ┆ 4.2337e10 ┆ 2.2660e10 ┆ 5.8558e9  ┆ null      │
+└──────────┴───────────┴───────────┴───────────┴───┴───────────┴───────────┴───────────┴───────────┘
+</code></pre>
+<h2 id="axes">Axes</h2>
+<p>Get current axes of all Swedish USD AT1 bonds</p>
+<pre><code class="language-python"># Get current axes for Swedish AT1 bonds in USD
+query=&quot;&quot;&quot;
+    let(#ax=axes();)
+    get(security_des, #ax)
+    for(filter(bondsuniv(ACTIVE),
+        crncy()=='USD' and
+        basel_iii_designation() == 'Additional Tier 1' and
+        country_iso() == 'SE'))
+&quot;&quot;&quot;
+
+with BQuery() as bq:
+    results = bq.bql(query)
+    print(results.combine())
+
+┌───────────────┬─────────────────┬─────┬───────────┬───────────┬────────────────┬────────────────┐
+│ ID            ┆ security_des    ┆ #ax ┆ ASK_DEPTH ┆ BID_DEPTH ┆ ASK_TOTAL_SIZE ┆ BID_TOTAL_SIZE │
+│ ---           ┆ ---             ┆ --- ┆ ---       ┆ ---       ┆ ---            ┆ ---            │
+│ str           ┆ str             ┆ str ┆ i64       ┆ i64       ┆ f64            ┆ f64            │
+╞═══════════════╪═════════════════╪═════╪═══════════╪═══════════╪════════════════╪════════════════╡
+│ YU819930 Corp ┆ SEB 6 ¾ PERP    ┆ Y   ┆ 2         ┆ null      ┆ 5.6e6          ┆ null           │
+│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP ┆ Y   ┆ 1         ┆ 2         ┆ 5e6            ┆ 6e6            │
+│ BR069680 Corp ┆ SWEDA 4 PERP    ┆ Y   ┆ null      ┆ 1         ┆ null           ┆ 3e6            │
+│ ZL122341 Corp ┆ SWEDA 7 ⅝ PERP  ┆ Y   ┆ null      ┆ 6         ┆ null           ┆ 2.04e7         │
+│ ZQ349286 Corp ┆ SEB 5 ⅛ PERP    ┆ Y   ┆ 2         ┆ 4         ┆ 5.5e6          ┆ 3e7            │
+│ ZF859199 Corp ┆ SWEDA 7 ¾ PERP  ┆ Y   ┆ 1         ┆ 1         ┆ 2e6            ┆ 2e6            │
+│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP ┆ Y   ┆ 1         ┆ 3         ┆ 1.2e6          ┆ 1.1e7          │
+│ BW924993 Corp ┆ SEB 6 ⅞ PERP    ┆ Y   ┆ 1         ┆ 3         ┆ 5e6            ┆ 1.1e7          │
+└───────────────┴─────────────────┴─────┴───────────┴───────────┴────────────────┴────────────────┘
+</code></pre>
+<h2 id="segments">Segments</h2>
+<p>The following example shows handling of two data-items with different length. The first dataframe 
+describes the segments (and has length 5 in this case), while the second dataframe contains time series.
+One can join the dataframes on common columns and pivot the segments into columns as shown below:</p>
+<pre><code class="language-python"># revenue per segment
+query = &quot;&quot;&quot;
+    let(#segment=segment_name();
+        #revenue=sales_Rev_turn(fpt=q, fpr=range(2023Q3, 2024Q3));
+        )
+    get(#segment, #revenue)
+    for(segments('GTN US Equity',type=reported,hierarchy=PRODUCT, level=1))
+&quot;&quot;&quot;
+with BQuery() as bq:
+    results = bq.bql(query)
+    df = results.combine().pivot(
+        index=&quot;PERIOD_END_DATE&quot;, on=&quot;#segment&quot;, values=&quot;#revenue&quot;
+    )
+    print(df)
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-python">┌─────────────────┬──────────────┬──────────────────────┬────────┬────────────┐
+│ PERIOD_END_DATE ┆ Broadcasting ┆ Production Companies ┆ Other  ┆ Adjustment │
+│ ---             ┆ ---          ┆ ---                  ┆ ---    ┆ ---        │
+│ date            ┆ f64          ┆ f64                  ┆ f64    ┆ f64        │
+╞═════════════════╪══════════════╪══════════════════════╪════════╪════════════╡
+│ 2023-09-30      ┆ 7.83e8       ┆ 2e7                  ┆ 1.6e7  ┆ null       │
+│ 2023-12-31      ┆ 8.13e8       ┆ 3.2e7                ┆ 1.9e7  ┆ null       │
+│ 2024-03-31      ┆ 7.8e8        ┆ 2.4e7                ┆ 1.9e7  ┆ null       │
+│ 2024-06-30      ┆ 8.08e8       ┆ 1.8e7                ┆ 0.0    ┆ null       │
+│ 2024-09-30      ┆ 9.24e8       ┆ 2.6e7                ┆ 1.7e7  ┆ null       │
+└─────────────────┴──────────────┴──────────────────────┴────────┴────────────┘
+</code></pre>
+<h2 id="time-series">Time Series</h2>
+<p>This is example of a single-item query returning total return for all GTN bonds in a long dataframe.
+We can easily pivot it into wide format, as in the example below</p>
+<pre><code class="language-python"># Total Return of GTN Bonds
+query = &quot;&quot;&quot;
+let(#rng = range(-1M, 0D);
+    #rets = return_series(calc_interval=#rng,per=W);)
+get(#rets)
+for(filter(bonds('GTN US Equity'), series() == '144A'))
+&quot;&quot;&quot;
+
+with BQuery() as bq:
+    results = bq.bql(query)
+    df = results[0].pivot(on=&quot;ID&quot;, index=&quot;DATE&quot;, values=&quot;#rets&quot;)
+    print(df)
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-python">shape: (6, 6)
+┌────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐
+│ DATE       ┆ YX231113 Corp ┆ BS116983 Corp ┆ AV438089 Corp ┆ ZO860846 Corp ┆ LW375188 Corp │
+│ ---        ┆ ---           ┆ ---           ┆ ---           ┆ ---           ┆ ---           │
+│ date       ┆ f64           ┆ f64           ┆ f64           ┆ f64           ┆ f64           │
+╞════════════╪═══════════════╪═══════════════╪═══════════════╪═══════════════╪═══════════════╡
+│ 2024-11-17 ┆ null          ┆ null          ┆ null          ┆ null          ┆ null          │
+│ 2024-11-24 ┆ 0.001653      ┆ 0.051179      ┆ 0.020363      ┆ 0.001371      ┆ -0.002939     │
+│ 2024-12-01 ┆ 0.002837      ┆ 0.010405      ┆ -0.001466     ┆ 0.007275      ┆ 0.000581      │
+│ 2024-12-08 ┆ -0.000041     ┆ 0.016145      ┆ 0.000766      ┆ 0.024984      ┆ 0.000936      │
+│ 2024-12-15 ┆ 0.001495      ┆ -0.047        ┆ -0.000233     ┆ -0.043509     ┆ 0.002241      │
+│ 2024-12-17 ┆ 0.00008       ┆ -0.000004     ┆ -0.0035       ┆ -0.007937     ┆ 0.000064      │
+└────────────┴───────────────┴───────────────┴───────────────┴───────────────┴───────────────┘
+</code></pre>
+<h2 id="technical-analysis">Technical Analysis</h2>
+<pre><code class="language-python">with BQuery() as bq:
+    results = bq.bql(
+        &quot;&quot;&quot;
+        let(#ema20=emavg(period=20);
+            #ema200=emavg(period=200);
+            #rsi=rsi(close=px_last());)
+        get(name(), #ema20, #ema200, #rsi)
+        for(filter(members('OMX Index'),
+                    and(#ema20 &gt; #ema200, #rsi &gt; 53)))
+        with(fill=PREV)
+        &quot;&quot;&quot;
+    )
+    print(results.combine())
+</code></pre>
+<p>Output:</p>
+<pre><code class="language-python">┌─────────────────┬──────────────────┬────────────┬────────────┬──────────┬────────────┬───────────┐
+│ ID              ┆ name()           ┆ #ema20     ┆ DATE       ┆ CURRENCY ┆ #ema200    ┆ #rsi      │
+│ ---             ┆ ---              ┆ ---        ┆ ---        ┆ ---      ┆ ---        ┆ ---       │
+│ str             ┆ str              ┆ f64        ┆ date       ┆ str      ┆ f64        ┆ f64       │
+╞═════════════════╪══════════════════╪════════════╪════════════╪══════════╪════════════╪═══════════╡
+│ ERICB SS Equity ┆ Telefonaktiebola ┆ 90.152604  ┆ 2024-12-16 ┆ SEK      ┆ 75.072151  ┆ 56.010028 │
+│                 ┆ get LM Ericsso   ┆            ┆            ┆          ┆            ┆           │
+│ ABB SS Equity   ┆ ABB Ltd          ┆ 630.622469 ┆ 2024-12-16 ┆ SEK      ┆ 566.571183 ┆ 53.763102 │
+│ SEBA SS Equity  ┆ Skandinaviska    ┆ 153.80595  ┆ 2024-12-16 ┆ SEK      ┆ 150.742394 ┆ 56.460733 │
+│                 ┆ Enskilda Banken  ┆            ┆            ┆          ┆            ┆           │
+│ ASSAB SS Equity ┆ Assa Abloy AB    ┆ 339.017591 ┆ 2024-12-16 ┆ SEK      ┆ 317.057573 ┆ 53.351619 │
+└─────────────────┴──────────────────┴────────────┴────────────┴──────────┴────────────┴───────────┘
+</code></pre></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
