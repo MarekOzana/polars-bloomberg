@@ -3,13 +3,9 @@ site_description: Polars DataFrame interface for Bloomberg API
 repo_url: https://github.com/MarekOzana/polars-bloomberg
 
 theme:
-  name: readthedocs
+  name: mkdocs
   highlight_js: true
   navigation_depth: 3
-  sticky_navigation: false  # Keeps the TOC in view when scrolling
-
-markdown_extensions:
-  - admonition
 
 plugins:
   - search
@@ -22,4 +18,8 @@ plugins:
 
 nav:
   - Home: index.md
+  - Usage & Tutorials:
+    - BDP: usage/bdp.md
+    - BDH: usage/bdh.md
+    - BQL: usage/bql.md
   - API Reference: api.md
