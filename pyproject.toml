@@ -28,6 +28,7 @@ dev = ["pytest", "pytest-cov", "jupyter", "altair", "nox", "pyyaml"]
 docs = [
     "mkdocs>=1.5.0",
     "mkdocstrings[python]>=0.22.0",
+    "mkdocs-jupyter"
 ]
 
 [project.urls]

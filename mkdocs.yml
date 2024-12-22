@@ -15,6 +15,7 @@ plugins:
           options:
             show_source: true
             show_root_heading: true
+  - mkdocs-jupyter
 
 nav:
   - Home: index.md
@@ -22,4 +23,6 @@ nav:
     - BDP: usage/bdp.md
     - BDH: usage/bdh.md
     - BQL: usage/bql.md
+  - Examples:
+    - Equity: examples/equity.ipynb
   - API Reference: api.md
