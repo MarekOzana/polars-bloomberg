@@ -25,4 +25,5 @@ nav:
     - BQL: usage/bql.md
   - Examples:
     - Equity: examples/equity.ipynb
+    - Credits: examples/credits.ipynb
   - API Reference: api.md
