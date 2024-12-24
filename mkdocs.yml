@@ -15,7 +15,10 @@ plugins:
           options:
             show_source: true
             show_root_heading: true
-  - mkdocs-jupyter
+  - mkdocs-jupyter:
+      remove_tag_config:
+        remove_input_tags:
+          - hide_code
 
 nav:
   - Home: index.md
