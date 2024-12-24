@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../../img/favicon.ico">
-        <title>Credit Fixed Income Examples - Polars-Bloomberg</title>
+        <title>Credits - Polars-Bloomberg</title>
         <link href="../../css/bootstrap.min.css" rel="stylesheet">
         <link href="../../css/fontawesome.min.css" rel="stylesheet">
         <link href="../../css/brands.min.css" rel="stylesheet">
@@ -64,7 +64,7 @@
 </li>
                                     
 <li>
-    <a href="./" class="dropdown-item active" aria-current="page">Credit Fixed Income Examples</a>
+    <a href="./" class="dropdown-item active" aria-current="page">Credits</a>
 </li>
                                 </ul>
                             </li>
@@ -110,9 +110,9 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="1"><a href="#credit-fixed-income-examples" class="nav-link">Credit Fixed Income Examples</a>
+            <li class="nav-item" data-bs-level="1"><a href="#credits" class="nav-link">Credits</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#monthly-spreads-spread-diff-and-return-for-hy-index" class="nav-link">Monthly Spreads, Spread diff and Return for HY Index</a>
+            <li class="nav-item" data-bs-level="2"><a href="#monthly-index-stats" class="nav-link">Monthly Index Stats</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -564,7 +564,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="credit-fixed-income-examples">Credit Fixed Income Examples<a class="anchor-link" href="#credit-fixed-income-examples">¶</a></h1><p>(c) 2024 Marek Ozana</p>
+<h1 id="credits">Credits<a class="anchor-link" href="#credits">¶</a></h1><p>(c) 2024 Marek Ozana</p>
 </div>
 </div>
 </div>
@@ -589,8 +589,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span> <span class="nn">polars_bloomberg</span> <span class="kn">import</span> <span class="n">BQuery</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-1">from polars_bloomberg import BQuery
-</div>
+<div class="clipboard-copy-txt" id="cell-1">from polars_bloomberg import BQuery</div>
 </div>
 </div>
 </div>
@@ -603,17 +602,17 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="monthly-spreads-spread-diff-and-return-for-hy-index">Monthly Spreads, Spread diff and Return for HY Index<a class="anchor-link" href="#monthly-spreads-spread-diff-and-return-for-hy-index">¶</a></h2>
+<h2 id="monthly-index-stats">Monthly Index Stats<a class="anchor-link" href="#monthly-index-stats">¶</a></h2>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [23]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-2">
@@ -634,15 +633,13 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <span class="s2">        #dur = duration(universe_type=RETURNS);</span>
 <span class="s2">        #ret = pct_diff(px_last());</span>
 <span class="s2">    )</span>
-<span class="s2">    get(#oas_s, #dOAS, #dur, #ret)</span>
-<span class="s2">    for('LG30TRUU Index')</span>
+<span class="s2">    get(name, #oas_s, #dOAS, #dur, #ret)</span>
+<span class="s2">    for(['LF98TRUU Index', 'LP01TREU Index', 'H38098EU Index'])</span>
 <span class="s2">    with(dates=range(-3M, 0D), fill=PREV, per=M)</span>
 <span class="s2">"""</span>
 
 <span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span><span class="o">.</span><span class="n">drop_nulls</span><span class="p">()</span>
-
-<span class="n">df</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
 </pre></div>
 <div class="clipboard-copy-txt" id="cell-2"># Get data
 query = """
@@ -652,34 +649,162 @@ query = """
         #dur = duration(universe_type=RETURNS);
         #ret = pct_diff(px_last());
     )
-    get(#oas_s, #dOAS, #dur, #ret)
-    for('LG30TRUU Index')
+    get(name, #oas_s, #dOAS, #dur, #ret)
+    for(['LF98TRUU Index', 'LP01TREU Index', 'H38098EU Index'])
     with(dates=range(-3M, 0D), fill=PREV, per=M)
 """
 
 with BQuery() as bq:
-    df = bq.bql(query).combine().drop_nulls()
-
-df</div>
+    df = bq.bql(query).combine()
 </div>
 </div>
 </div>
 </div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide_code">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide_code">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[23]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
-<div><style>
-.dataframe > thead > tr,
-.dataframe > tbody > tr {
-  text-align: right;
-  white-space: pre-wrap;
-}
+<div id="rcthixshpb" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>
+#rcthixshpb table {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+
+#rcthixshpb thead, tbody, tfoot, tr, td, th { border-style: none !important; }
+ tr { background-color: transparent !important; }
+#rcthixshpb p { margin: 0 !important; padding: 0 !important; }
+ #rcthixshpb .gt_table { display: table !important; border-collapse: collapse !important; line-height: normal !important; margin-left: auto !important; margin-right: auto !important; color: #333333 !important; font-size: 16px !important; font-weight: normal !important; font-style: normal !important; background-color: #FFFFFF !important; width: auto !important; border-top-style: solid !important; border-top-width: 2px !important; border-top-color: #A8A8A8 !important; border-right-style: none !important; border-right-width: 2px !important; border-right-color: #D3D3D3 !important; border-bottom-style: solid !important; border-bottom-width: 2px !important; border-bottom-color: #A8A8A8 !important; border-left-style: none !important; border-left-width: 2px !important; border-left-color: #D3D3D3 !important; }
+ #rcthixshpb .gt_caption { padding-top: 4px !important; padding-bottom: 4px !important; }
+ #rcthixshpb .gt_title { color: #333333 !important; font-size: 125% !important; font-weight: initial !important; padding-top: 4px !important; padding-bottom: 4px !important; padding-left: 5px !important; padding-right: 5px !important; border-bottom-color: #FFFFFF !important; border-bottom-width: 0 !important; }
+ #rcthixshpb .gt_subtitle { color: #333333 !important; font-size: 85% !important; font-weight: initial !important; padding-top: 3px !important; padding-bottom: 5px !important; padding-left: 5px !important; padding-right: 5px !important; border-top-color: #FFFFFF !important; border-top-width: 0 !important; }
+ #rcthixshpb .gt_heading { background-color: #FFFFFF !important; text-align: center !important; border-bottom-color: #FFFFFF !important; border-left-style: none !important; border-left-width: 1px !important; border-left-color: #D3D3D3 !important; border-right-style: none !important; border-right-width: 1px !important; border-right-color: #D3D3D3 !important; }
+ #rcthixshpb .gt_bottom_border { border-bottom-style: solid !important; border-bottom-width: 2px !important; border-bottom-color: #D3D3D3 !important; }
+ #rcthixshpb .gt_col_headings { border-top-style: solid !important; border-top-width: 2px !important; border-top-color: #D3D3D3 !important; border-bottom-style: solid !important; border-bottom-width: 2px !important; border-bottom-color: #D3D3D3 !important; border-left-style: none !important; border-left-width: 1px !important; border-left-color: #D3D3D3 !important; border-right-style: none !important; border-right-width: 1px !important; border-right-color: #D3D3D3 !important; }
+ #rcthixshpb .gt_col_heading { color: #333333 !important; background-color: #FFFFFF !important; font-size: 100% !important; font-weight: normal !important; text-transform: inherit !important; border-left-style: none !important; border-left-width: 1px !important; border-left-color: #D3D3D3 !important; border-right-style: none !important; border-right-width: 1px !important; border-right-color: #D3D3D3 !important; vertical-align: bottom !important; padding-top: 5px !important; padding-bottom: 5px !important; padding-left: 5px !important; padding-right: 5px !important; overflow-x: hidden !important; }
+ #rcthixshpb .gt_column_spanner_outer { color: #333333 !important; background-color: #FFFFFF !important; font-size: 100% !important; font-weight: normal !important; text-transform: inherit !important; padding-top: 0 !important; padding-bottom: 0 !important; padding-left: 4px !important; padding-right: 4px !important; }
+ #rcthixshpb .gt_column_spanner_outer:first-child { padding-left: 0 !important; }
+ #rcthixshpb .gt_column_spanner_outer:last-child { padding-right: 0 !important; }
+ #rcthixshpb .gt_column_spanner { border-bottom-style: solid !important; border-bottom-width: 2px !important; border-bottom-color: #D3D3D3 !important; vertical-align: bottom !important; padding-top: 5px !important; padding-bottom: 5px !important; overflow-x: hidden !important; display: inline-block !important; width: 100% !important; }
+ #rcthixshpb .gt_spanner_row { border-bottom-style: hidden !important; }
+ #rcthixshpb .gt_group_heading { padding-top: 8px !important; padding-bottom: 8px !important; padding-left: 5px !important; padding-right: 5px !important; color: #333333 !important; background-color: #FFFFFF !important; font-size: 100% !important; font-weight: initial !important; text-transform: inherit !important; border-top-style: solid !important; border-top-width: 2px !important; border-top-color: #D3D3D3 !important; border-bottom-style: solid !important; border-bottom-width: 2px !important; border-bottom-color: #D3D3D3 !important; border-left-style: none !important; border-left-width: 1px !important; border-left-color: #D3D3D3 !important; border-right-style: none !important; border-right-width: 1px !important; border-right-color: #D3D3D3 !important; vertical-align: middle !important; text-align: left !important; }
+ #rcthixshpb .gt_empty_group_heading { padding: 0.5px !important; color: #333333 !important; background-color: #FFFFFF !important; font-size: 100% !important; font-weight: initial !important; border-top-style: solid !important; border-top-width: 2px !important; border-top-color: #D3D3D3 !important; border-bottom-style: solid !important; border-bottom-width: 2px !important; border-bottom-color: #D3D3D3 !important; vertical-align: middle !important; }
+ #rcthixshpb .gt_from_md> :first-child { margin-top: 0 !important; }
+ #rcthixshpb .gt_from_md> :last-child { margin-bottom: 0 !important; }
+ #rcthixshpb .gt_row { padding-top: 8px !important; padding-bottom: 8px !important; padding-left: 5px !important; padding-right: 5px !important; margin: 10px !important; border-top-style: solid !important; border-top-width: 1px !important; border-top-color: #D3D3D3 !important; border-left-style: none !important; border-left-width: 1px !important; border-left-color: #D3D3D3 !important; border-right-style: none !important; border-right-width: 1px !important; border-right-color: #D3D3D3 !important; vertical-align: middle !important; overflow-x: hidden !important; }
+ #rcthixshpb .gt_stub { color: #333333 !important; background-color: #FFFFFF !important; font-size: 100% !important; font-weight: initial !important; text-transform: inherit !important; border-right-style: solid !important; border-right-width: 2px !important; border-right-color: #D3D3D3 !important; padding-left: 5px !important; padding-right: 5px !important; }
+ #rcthixshpb .gt_stub_row_group { color: #333333 !important; background-color: #FFFFFF !important; font-size: 100% !important; font-weight: initial !important; text-transform: inherit !important; border-right-style: solid !important; border-right-width: 2px !important; border-right-color: #D3D3D3 !important; padding-left: 5px !important; padding-right: 5px !important; vertical-align: top !important; }
+ #rcthixshpb .gt_row_group_first td { border-top-width: 2px !important; }
+ #rcthixshpb .gt_row_group_first th { border-top-width: 2px !important; }
+ #rcthixshpb .gt_striped { background-color: rgba(128,128,128,0.05) !important; }
+ #rcthixshpb .gt_table_body { border-top-style: solid !important; border-top-width: 2px !important; border-top-color: #D3D3D3 !important; border-bottom-style: solid !important; border-bottom-width: 2px !important; border-bottom-color: #D3D3D3 !important; }
+ #rcthixshpb .gt_sourcenotes { color: #333333 !important; background-color: #FFFFFF !important; border-bottom-style: none !important; border-bottom-width: 2px !important; border-bottom-color: #D3D3D3 !important; border-left-style: none !important; border-left-width: 2px !important; border-left-color: #D3D3D3 !important; border-right-style: none !important; border-right-width: 2px !important; border-right-color: #D3D3D3 !important; }
+ #rcthixshpb .gt_sourcenote { font-size: 90% !important; padding-top: 4px !important; padding-bottom: 4px !important; padding-left: 5px !important; padding-right: 5px !important; text-align: left !important; }
+ #rcthixshpb .gt_left { text-align: left !important; }
+ #rcthixshpb .gt_center { text-align: center !important; }
+ #rcthixshpb .gt_right { text-align: right !important; font-variant-numeric: tabular-nums !important; }
+ #rcthixshpb .gt_font_normal { font-weight: normal !important; }
+ #rcthixshpb .gt_font_bold { font-weight: bold !important; }
+ #rcthixshpb .gt_font_italic { font-style: italic !important; }
+ #rcthixshpb .gt_super { font-size: 65% !important; }
+ #rcthixshpb .gt_footnote_marks { font-size: 75% !important; vertical-align: 0.4em !important; position: initial !important; }
+ #rcthixshpb .gt_asterisk { font-size: 100% !important; vertical-align: 0 !important; }
+ 
 </style>
-<small>shape: (3, 6)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>#oas_s</th><th>DATE</th><th>#dOAS</th><th>#dur</th><th>#ret</th></tr><tr><td>str</td><td>f64</td><td>date</td><td>f64</td><td>f64</td><td>f64</td></tr></thead><tbody><tr><td>"LG30TRUU Index"</td><td>363.0336</td><td>2024-10-31</td><td>-19.6782</td><td>3.533628</td><td>-0.630516</td></tr><tr><td>"LG30TRUU Index"</td><td>347.1513</td><td>2024-11-29</td><td>-15.8823</td><td>3.534758</td><td>0.820944</td></tr><tr><td>"LG30TRUU Index"</td><td>349.5959</td><td>2024-12-23</td><td>2.4446</td><td>3.614952</td><td>-0.622827</td></tr></tbody></table></div>
+<table class="gt_table" data-quarto-bootstrap="false" data-quarto-disable-processing="false">
+<thead>
+<tr class="gt_col_headings">
+<th class="gt_col_heading gt_columns_bottom_border gt_left" colspan="1" id="" rowspan="1" scope="col"></th>
+<th class="gt_col_heading gt_columns_bottom_border gt_right" colspan="1" id="oas" rowspan="1" scope="col">oas</th>
+<th class="gt_col_heading gt_columns_bottom_border gt_right" colspan="1" id="dOAS" rowspan="1" scope="col">dOAS</th>
+<th class="gt_col_heading gt_columns_bottom_border gt_right" colspan="1" id="dur" rowspan="1" scope="col">dur</th>
+<th class="gt_col_heading gt_columns_bottom_border gt_right" colspan="1" id="ret" rowspan="1" scope="col">ret</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="gt_group_heading_row">
+<th class="gt_group_heading" colspan="5">2024-10-31</th>
+</tr>
+<tr>
+<th class="gt_row gt_left gt_stub">Bloomberg US Corporate High Yi</th>
+<td class="gt_row gt_right">313</td>
+<td class="gt_row gt_right">−7</td>
+<td class="gt_row gt_right">3.00</td>
+<td class="gt_row gt_right">−0.54%</td>
+</tr>
+<tr>
+<th class="gt_row gt_left gt_stub">Bloomberg Pan-European High Yi</th>
+<td class="gt_row gt_right">316</td>
+<td class="gt_row gt_right">−16</td>
+<td class="gt_row gt_right">2.72</td>
+<td class="gt_row gt_right">0.51%</td>
+</tr>
+<tr>
+<th class="gt_row gt_left gt_stub">Bloomberg US and Euro High Yie</th>
+<td class="gt_row gt_right">310</td>
+<td class="gt_row gt_right">−11</td>
+<td class="gt_row gt_right">2.98</td>
+<td class="gt_row gt_right">−0.36%</td>
+</tr>
+<tr class="gt_group_heading_row">
+<th class="gt_group_heading" colspan="5">2024-11-29</th>
+</tr>
+<tr>
+<th class="gt_row gt_left gt_stub">Bloomberg US Corporate High Yi</th>
+<td class="gt_row gt_right">293</td>
+<td class="gt_row gt_right">−20</td>
+<td class="gt_row gt_right">2.93</td>
+<td class="gt_row gt_right">1.15%</td>
+</tr>
+<tr>
+<th class="gt_row gt_left gt_stub">Bloomberg Pan-European High Yi</th>
+<td class="gt_row gt_right">323</td>
+<td class="gt_row gt_right">7</td>
+<td class="gt_row gt_right">2.72</td>
+<td class="gt_row gt_right">0.75%</td>
+</tr>
+<tr>
+<th class="gt_row gt_left gt_stub">Bloomberg US and Euro High Yie</th>
+<td class="gt_row gt_right">298</td>
+<td class="gt_row gt_right">−12</td>
+<td class="gt_row gt_right">2.94</td>
+<td class="gt_row gt_right">0.86%</td>
+</tr>
+<tr class="gt_group_heading_row">
+<th class="gt_group_heading" colspan="5">2024-12-24</th>
+</tr>
+<tr>
+<th class="gt_row gt_left gt_stub">Bloomberg US Corporate High Yi</th>
+<td class="gt_row gt_right">308</td>
+<td class="gt_row gt_right">16</td>
+<td class="gt_row gt_right">3.08</td>
+<td class="gt_row gt_right">−0.59%</td>
+</tr>
+<tr>
+<th class="gt_row gt_left gt_stub">Bloomberg Pan-European High Yi</th>
+<td class="gt_row gt_right">307</td>
+<td class="gt_row gt_right">−16</td>
+<td class="gt_row gt_right">2.74</td>
+<td class="gt_row gt_right">0.59%</td>
+</tr>
+<tr>
+<th class="gt_row gt_left gt_stub">Bloomberg US and Euro High Yie</th>
+<td class="gt_row gt_right">301</td>
+<td class="gt_row gt_right">3</td>
+<td class="gt_row gt_right">3.04</td>
+<td class="gt_row gt_right">−0.32%</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 </div>
