@@ -162,6 +162,35 @@ def test_bdh(bq: BQuery):
     assert_frame_equal(df, df_exp)
 
 
+@pytest.mark.no_bbg
+def test_bdh_leading_nulls():
+    """Test on dataset with leading nulls in a field."""
+    bq = BQuery()
+
+    # Mock the network call
+    with (
+        patch.object(bq, "_create_request", return_value=MagicMock()),
+        patch.object(bq, "_send_request", return_value="mocked_responses"),
+    ):
+        # Load data from file
+        with open("tests/data/bdh_data_leading_nulls.yaml") as f:
+            mock_data = yaml.safe_load(f)
+
+        # Mock parse method to return loaded data
+        with patch.object(bq, "_parse_bdh_responses", return_value=mock_data):
+            # Call bdh() method
+            df = bq.bdh(
+                ["BFGHICE LX Equity", "I00185US Index"],
+                ["BX115", "BX213", "PX_LAST"],
+                start_date=date(2024, 8, 1),
+                end_date=date(2025, 1, 10),
+            )
+
+    # Validate result
+    assert isinstance(df, pl.DataFrame)
+    assert df.shape == (222, 5)
+
+
 def test_bql(bq: BQuery):
     """Test the BQL function."""
     query = """

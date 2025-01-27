@@ -407,7 +407,7 @@ class BQuery:
         request.set("endDate", end_date.strftime("%Y%m%d"))
         responses = self._send_request(request)
         data = self._parse_bdh_responses(responses, fields)
-        return pl.DataFrame(data)
+        return pl.DataFrame(data, infer_schema_length=None)
 
     def bql(self, expression: str) -> BqlResult:
         """Execute a Bloomberg Query Language (BQL) query.
