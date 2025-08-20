@@ -162,16 +162,67 @@ def test_bdh(bq: BQuery):
     assert_frame_equal(df, df_exp)
 
 
-@pytest.mark.xfail(reason="Known bug #7")
-def test_issue_7_bql_with_single_quote():
+def test_bql(bq: BQuery):
+    """Test the BQL function."""
+    query = """
+            get(name(), cpn())
+            for(['XS2479344561 Corp', 'USX60003AC87 Corp'])
+            """
+    bql_result = bq.bql(query)
+    two: Final[int] = 2
+    assert len(bql_result) == two
+    assert isinstance(bql_result, BqlResult)
+    assert bql_result.names == ["name()", "cpn()"]
+
+    df = bql_result[0].join(bql_result[1], on="ID")
+
+    assert df.shape == (2, 5)
+    assert df.columns == ["ID", "name()", "cpn()", "MULTIPLIER", "CPN_TYP"]
+    df_exp = pl.DataFrame(
+        {
+            "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
+            "name()": ["SEB 6 ⅞ PERP", "NDAFH 6.3 PERP"],
+            "cpn()": [6.875, 6.3],
+            "MULTIPLIER": [1.0, 1.0],
+            "CPN_TYP": ["VARIABLE", "VARIABLE"],
+        }
+    )
+    assert_frame_equal(df, df_exp)
+
+
+def test_bql_with_single_quote(bq: BQuery):
+    """Test BQL query with single quotes in securities."""
+    query = """
+            get(px_last)
+            for(['IBM US Equity', 'AAPL US Equity'])
+            """
+    bql_result = bq.bql(query)
+
+    assert len(bql_result) == 1
+    assert isinstance(bql_result, BqlResult)
+    assert bql_result.names == ["px_last"]
+
+    df = bql_result[0]
+    assert df.shape == (2, 4)
+    assert df.columns == ["ID", "px_last", "DATE", "CURRENCY"]
+    df_exp = pl.DataFrame(
+        {
+            "ID": ["IBM US Equity", "AAPL US Equity"],
+            "px_last": [241.28, 230.56],
+            "DATE": [date(2025, 8, 20), date(2025, 8, 20)],
+            "CURRENCY": ["USD", "USD"],
+        }
+    )
+    assert_frame_equal(df, df_exp)
+
+
+def test_issue_7_bql_with_single_quote(bq):
     """Test BQL query with single quotes in securities.
 
     https://github.com/MarekOzana/polars-bloomberg/issues/7.
     """
-    with BQuery() as bq:
-        result = bq.bql("for(['BFOR US Equity']) get(name)")  #   BARRON'S 400 ETF
+    result = bq.bql("for(['BFOR US Equity']) get(name)")  #   BARRON'S 400 ETF
 
-    print(result)
     assert len(result) == 1
     df = result[0]
     assert isinstance(df, pl.DataFrame)
@@ -206,34 +257,6 @@ def test_bdh_leading_nulls():
     # Validate result
     assert isinstance(df, pl.DataFrame)
     assert df.shape == (222, 5)
-
-
-def test_bql(bq: BQuery):
-    """Test the BQL function."""
-    query = """
-            get(name(), cpn())
-            for(['XS2479344561 Corp', 'USX60003AC87 Corp'])
-            """
-    bql_result = bq.bql(query)
-    two: Final[int] = 2
-    assert len(bql_result) == two
-    assert isinstance(bql_result, BqlResult)
-    assert bql_result.names == ["name()", "cpn()"]
-
-    df = bql_result[0].join(bql_result[1], on="ID")
-
-    assert df.shape == (2, 5)
-    assert df.columns == ["ID", "name()", "cpn()", "MULTIPLIER", "CPN_TYP"]
-    df_exp = pl.DataFrame(
-        {
-            "ID": ["XS2479344561 Corp", "USX60003AC87 Corp"],
-            "name()": ["SEB 6 ⅞ PERP", "NDAFH 6.3 PERP"],
-            "cpn()": [6.875, 6.3],
-            "MULTIPLIER": [1.0, 1.0],
-            "CPN_TYP": ["VARIABLE", "VARIABLE"],
-        }
-    )
-    assert_frame_equal(df, df_exp)
 
 
 def test_create_request(bq: BQuery):
@@ -378,21 +401,91 @@ def test_parse_bql_responses():
 
     # Mock responses as they might be received from the Bloomberg API
     mock_responses = [
-        {"other_data": "value1"},
-        {"other_data": "value2"},
-        "{'results': {'px_last': {'idColumn': "
-        "{'values': ['IBM US Equity', 'AAPL US Equity']}, "
-        "'valuesColumn': {'type':'DOUBLE', 'values': [125.32, 150.75]}, "
-        "'secondaryColumns': [{'name': 'DATE', 'type':'DATE',"
-        "'values': ['2024-12-03T00:00:00Z', '2024-12-03T00:00:00Z']}, "
-        "{'name': 'CURRENCY', 'type':'STRING','values': ['USD', 'USD']}]}}}",
+        {
+            "server": "localhost:8194",
+            "serverId": "bbcomm-5CG3290LGQ-3511155",
+            "encryptionStatus": "Clear",
+            "compressionStatus": "Uncompressed",
+        },
+        {"initialEndpoints": [{"address": "localhost:8194"}]},
+        {"serviceName": "//blp/refdata"},
+        {"serviceName": "//blp/bqlsvc"},
+        """
+        {
+            "results": {
+                "px_last": {
+                    "name": "px_last",
+                    "offsets": [
+                        0,
+                        1
+                    ],
+                    "namespace": "DATAITEM_DEFAULT",
+                    "source": "CR",
+                    "idColumn": {
+                        "name": "ID",
+                        "type": "STRING",
+                        "rank": 0,
+                        "values": [
+                            "IBM US Equity",
+                            "AAPL US Equity"
+                        ]
+                    },
+                    "valuesColumn": {
+                        "name": "VALUE",
+                        "type": "DOUBLE",
+                        "rank": 0,
+                        "values": [
+                            241.28,
+                            230.56
+                        ]
+                    },
+                    "secondaryColumns": [
+                        {
+                            "name": "DATE",
+                            "type": "DATE",
+                            "rank": 0,
+                            "values": [
+                                "2025-08-20T00:00:00Z",
+                                "2025-08-20T00:00:00Z"
+                            ],
+                            "defaultDate": true
+                        },
+                        {
+                            "name": "CURRENCY",
+                            "type": "STRING",
+                            "rank": 0,
+                            "values": [
+                                "USD",
+                                "USD"
+                            ]
+                        }
+                    ],
+                    "partialErrorMap": {
+                        "errorIterator": null
+                    },
+                    "responseExceptions": [],
+                    "forUniverse": true,
+                    "bqlResponseInfo": null,
+                    "defaultDateColumnName": null,
+                    "itemPreviewStatistics": null,
+                    "indexView": null
+                }
+            },
+            "ordering": [
+                {
+                    "requestIndex": 0,
+                    "responseName": "px_last"
+                }
+            ]
+        }
+        """,
     ]
 
     # Expected output after parsing
     exp_data = {
         "ID": ["IBM US Equity", "AAPL US Equity"],
-        "px_last": [125.32, 150.75],
-        "DATE": [date(2024, 12, 3), date(2024, 12, 3)],
+        "px_last": [241.28, 230.56],
+        "DATE": [date(2025, 8, 20), date(2025, 8, 20)],
         "CURRENCY": ["USD", "USD"],
     }
     exp_schema = {
@@ -411,7 +504,6 @@ def test_parse_bql_responses():
     assert tbl.schema == exp_schema
 
 
-@pytest.mark.xfail(reason="Known bug #7")
 @pytest.mark.no_bbg
 def test__extract_results():
     """no_bbg test on apostrof in values."""

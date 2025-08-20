@@ -630,7 +630,7 @@ class BQuery:
             resp_dict = response
             if isinstance(response, str):
                 try:
-                    resp_dict = json.loads(response.replace("'", '"'))
+                    resp_dict = json.loads(response)
                 except json.JSONDecodeError as e:
                     logger.error("Failed to decode JSON: %s. Error: %s", response, e)
                     continue
