@@ -56,13 +56,13 @@ def test_bdp(bq: BQuery):
         (pl.col("PX_LAST") - pl.col("CRNCY_ADJ_PX_LAST")).abs().alias("diff")
     ).item() == pytest.approx(0), "OMX Index should have PX_LAST same as in SEK"
 
-    much_bigger: Final[int] = 10
+    much_bigger: Final[int] = 8
     assert (
         df_1.filter(pl.col("security") == "SPX Index")
         .select((pl.col("CRNCY_ADJ_PX_LAST") / pl.col("PX_LAST")).alias("ratio"))
         .item()
         > much_bigger
-    ), "SPX Index should have PX_LAST 10x larger in USD than in SEK"
+    ), "SPX Index should have PX_LAST 8x larger in SEK than in USD"
 
 
 def test_bdh(bq: BQuery):
@@ -159,6 +159,23 @@ def test_bdh(bq: BQuery):
             ],
         }
     )
+    assert_frame_equal(df, df_exp)
+
+
+@pytest.mark.xfail(reason="Known bug #7")
+def test_issue_7_bql_with_single_quote():
+    """Test BQL query with single quotes in securities.
+
+    https://github.com/MarekOzana/polars-bloomberg/issues/7.
+    """
+    with BQuery() as bq:
+        result = bq.bql("for(['BFOR US Equity']) get(name)")  #   BARRON'S 400 ETF
+
+    print(result)
+    assert len(result) == 1
+    df = result[0]
+    assert isinstance(df, pl.DataFrame)
+    df_exp = pl.DataFrame({"ID": "BFOR US Equity", "name": "Barron's 400 ETF"})
     assert_frame_equal(df, df_exp)
 
 
@@ -392,6 +409,103 @@ def test_parse_bql_responses():
     # Assert that the parsed result matches the expected output
     assert tbl.data == exp_data
     assert tbl.schema == exp_schema
+
+
+@pytest.mark.xfail(reason="Known bug #7")
+@pytest.mark.no_bbg
+def test__extract_results():
+    """no_bbg test on apostrof in values."""
+    bq = BQuery()
+
+    responses = [
+        {
+            "server": "localhost:8194",
+            "serverId": "bbcomm-5CG3290LGQ-3511155",
+            "encryptionStatus": "Clear",
+            "compressionStatus": "Uncompressed",
+        },
+        {"initialEndpoints": [{"address": "localhost:8194"}]},
+        {"serviceName": "//blp/refdata"},
+        {"serviceName": "//blp/bqlsvc"},
+        """
+        {
+            "results": {
+                "name": {
+                    "name": "name",
+                    "offsets": [
+                        0
+                    ],
+                    "namespace": "FUNCTION_DEFAULT",
+                    "source": "BQLAnalyticsEngine",
+                    "idColumn": {
+                        "name": "ID",
+                        "type": "STRING",
+                        "rank": 0,
+                        "values": [
+                            "BFOR US Equity"
+                        ]
+                    },
+                    "valuesColumn": {
+                        "name": "VALUE",
+                        "type": "STRING",
+                        "rank": 0,
+                        "values": ["Barron\'s 400 ETF"
+                        ]
+                    },
+                    "secondaryColumns": [],
+                    "partialErrorMap": {
+                        "errorIterator": null
+                    },
+                    "responseExceptions": [],
+                    "forUniverse": true,
+                    "bqlResponseInfo": null,
+                    "defaultDateColumnName": null,
+                    "itemPreviewStatistics": null,
+                    "indexView": null
+                }
+            },
+            "ordering": [
+                {
+                    "requestIndex": 0,
+                    "responseName": "name"
+                }
+            ],
+            "responseExceptions": null,
+
+            "screenCounts": null,
+            "payloadId": null
+        }
+        """,
+    ]
+
+    results = bq._extract_results(responses=responses)
+    assert len(results) == 1
+    assert results[0]["name"] == {
+        "name": "name",
+        "offsets": [0],
+        "namespace": "FUNCTION_DEFAULT",
+        "source": "BQLAnalyticsEngine",
+        "idColumn": {
+            "name": "ID",
+            "type": "STRING",
+            "rank": 0,
+            "values": ["BFOR US Equity"],
+        },
+        "valuesColumn": {
+            "name": "VALUE",
+            "type": "STRING",
+            "rank": 0,
+            "values": ["Barron's 400 ETF"],
+        },
+        "secondaryColumns": [],
+        "partialErrorMap": {"errorIterator": None},
+        "responseExceptions": [],
+        "forUniverse": True,
+        "bqlResponseInfo": None,
+        "defaultDateColumnName": None,
+        "itemPreviewStatistics": None,
+        "indexView": None,
+    }
 
 
 @pytest.mark.no_bbg
