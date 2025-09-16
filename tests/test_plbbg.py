@@ -1299,7 +1299,8 @@ class TestBqlResult:
         with open(yaml_file) as f:
             d_lst = yaml.safe_load(f)
         df_lst = [pl.DataFrame(dct) for dct in d_lst]
-        bql_result = BqlResult(df_lst, names=list(range(len(df_lst))))
+        names = [str(x) for x in list(range(len(df_lst)))]
+        bql_result = BqlResult(df_lst, names=names)
 
         df = bql_result.combine().to_dict(as_series=False)
         assert df == exp_df
