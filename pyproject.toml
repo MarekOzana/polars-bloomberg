@@ -78,3 +78,14 @@ line-length = 89
 
 [tool.mypy]
 ignore_missing_imports = true
+
+
+[tool.uv.sources]
+blpapi = { index = "blpapi" }
+
+[[tool.uv.index]]
+name = "blpapi"
+url = "https://blpapi.bloomberg.com/repository/releases/python/simple"
+default = false
+explicit = true
+
