@@ -227,6 +227,8 @@ class BQuery:
 
     """
 
+    session: blpapi.Session
+
     def __init__(
         self,
         host: str = "localhost",
@@ -257,7 +259,6 @@ class BQuery:
         self.host = host
         self.port = port
         self.timeout = timeout
-        self.session = None
         self.debug = debug
 
     def __enter__(self):  # noqa: D105

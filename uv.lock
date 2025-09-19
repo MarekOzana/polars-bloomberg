@@ -1684,7 +1684,7 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "altair", marker = "extra == 'dev'" },
-    { name = "blpapi", specifier = ">=3.24.0" },
+    { name = "blpapi", specifier = ">=3.24.0", index = "https://blpapi.bloomberg.com/repository/releases/python/simple" },
     { name = "great-tables", marker = "extra == 'docs'" },
     { name = "jupyter", marker = "extra == 'dev'" },
     { name = "mkdocs", marker = "extra == 'docs'", specifier = ">=1.5.0" },

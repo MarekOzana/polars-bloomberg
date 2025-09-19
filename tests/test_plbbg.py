@@ -7,6 +7,7 @@ The tests REQUIRE an active Bloomberg Terminal connection.
 """
 
 import json
+import re
 from collections.abc import Generator
 from datetime import date
 from typing import Final
@@ -934,14 +935,16 @@ class TestBqlResult:
         df2 = pl.DataFrame({"ID2": ["A", "B"], "Value2": [3, 4]})
         bql_result = BqlResult(dataframes=[df1, df2], names=["Data1", "Data2"])
 
-        with pytest.raises(ValueError, match="No common columns found to join on."):
+        with pytest.raises(
+            ValueError, match=re.escape("No common columns found to join on.")
+        ):
             bql_result.combine()
 
     def test_combine_empty_dataframes(self):
         """Test combining with no dataframes raises ValueError."""
         bql_result = BqlResult(dataframes=[], names=[])
 
-        with pytest.raises(ValueError, match="No DataFrames to combine."):
+        with pytest.raises(ValueError, match=re.escape("No DataFrames to combine.")):
             bql_result.combine()
 
     def test_getitem(self):
@@ -1296,7 +1299,8 @@ class TestBqlResult:
         with open(yaml_file) as f:
             d_lst = yaml.safe_load(f)
         df_lst = [pl.DataFrame(dct) for dct in d_lst]
-        bql_result = BqlResult(df_lst, names=list(range(len(df_lst))))
+        names = [str(x) for x in list(range(len(df_lst)))]
+        bql_result = BqlResult(df_lst, names=names)
 
         df = bql_result.combine().to_dict(as_series=False)
         assert df == exp_df
