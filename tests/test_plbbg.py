@@ -293,6 +293,31 @@ def test_create_request_with_options(bq: BQuery):
 
 
 @pytest.mark.no_bbg
+def test_create_bql_request_sets_client_context():
+    """Ensure BQL requests include the Excel client context."""
+    bq = BQuery()
+    session_mock = MagicMock()
+    service_mock = MagicMock()
+    request_mock = MagicMock()
+    client_context_mock = MagicMock()
+
+    session_mock.getService.return_value = service_mock
+    service_mock.createRequest.return_value = request_mock
+    request_mock.getElement.return_value = client_context_mock
+
+    bq.session = session_mock
+    expression = "get(px_last) for(['AAPL US Equity'])"
+
+    result = bq._create_bql_request(expression)
+
+    session_mock.getService.assert_called_once_with("//blp/bqlsvc")
+    service_mock.createRequest.assert_called_once_with("sendQuery")
+    request_mock.set.assert_called_once_with("expression", expression)
+    client_context_mock.setElement.assert_called_once_with("appName", "EXCEL")
+    assert result is request_mock
+
+
+@pytest.mark.no_bbg
 def test_parse_bdp_responses():
     """Test the _parse_bdp_responses method."""
     bq = BQuery()  # unitialized object (no BBG connection yet)
