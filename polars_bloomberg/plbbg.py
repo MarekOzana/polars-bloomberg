@@ -542,6 +542,15 @@ class BQuery:
         service = self.session.getService("//blp/bqlsvc")
         request = service.createRequest("sendQuery")
         request.set("expression", expression)
+        # BLPAPI requires setting sub-elements on the sequence element.
+        try:
+            ctx = request.getElement("clientContext")
+            ctx.setElement("appName", "EXCEL")
+        except blpapi.NotFoundException:
+            logger.debug(
+                "BQL request has no 'clientContext' element in this SDK/schema."
+            )
+
         return request
 
     def _send_request(self, request) -> list[dict]:

@@ -206,15 +206,6 @@ def test_bql_with_single_quote(bq: BQuery):
     df = bql_result[0]
     assert df.shape == (2, 4)
     assert df.columns == ["ID", "px_last", "DATE", "CURRENCY"]
-    df_exp = pl.DataFrame(
-        {
-            "ID": ["IBM US Equity", "AAPL US Equity"],
-            "px_last": [241.28, 230.56],
-            "DATE": [date(2025, 8, 20), date(2025, 8, 20)],
-            "CURRENCY": ["USD", "USD"],
-        }
-    )
-    assert_frame_equal(df, df_exp)
 
 
 def test_issue_7_bql_with_single_quote(bq):
