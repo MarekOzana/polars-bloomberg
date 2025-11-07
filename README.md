@@ -309,7 +309,7 @@ shape: (4, 9)
 ```
 
 Each row is a 60-minute bar built from TRADE events, and the `time` column is returned
-in UTC (matching Bloomberg's wire format).
+in UTC (matching Bloomberg's wide format).
 
 ## BQL
 *Use Case*: Run more advanced queries to screen securities, calculate analytics (like moving averages), or pull fundamental data with complex conditions.
