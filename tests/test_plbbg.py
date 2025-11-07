@@ -9,7 +9,7 @@ The tests REQUIRE an active Bloomberg Terminal connection.
 import json
 import re
 from collections.abc import Generator
-from datetime import date
+from datetime import date, datetime
 from typing import Final
 from unittest.mock import MagicMock, patch
 
@@ -251,6 +251,38 @@ def test_bdh_leading_nulls():
     assert df.shape == (222, 5)
 
 
+def test_bdib(bq: BQuery):
+    """Test the BDIB function with real Bloomberg data."""
+    df = bq.bdib(
+        "OMX Index",
+        event_type="TRADE",
+        interval=60,
+        start_datetime=datetime(2025, 11, 5),
+        end_datetime=datetime(2025, 11, 5, 12),
+    )
+
+    df_exp = pl.DataFrame(
+        {
+            "security": ["OMX Index"] * 4,
+            "time": [
+                datetime(2025, 11, 5, 8, 0),
+                datetime(2025, 11, 5, 9, 0),
+                datetime(2025, 11, 5, 10, 0),
+                datetime(2025, 11, 5, 11, 0),
+            ],
+            "open": [2726.603, 2739.466, 2733.747, 2731.721],
+            "high": [2742.014, 2739.706, 2734.827, 2742.015],
+            "low": [2721.481, 2730.696, 2730.298, 2730.662],
+            "close": [2739.321, 2733.836, 2731.724, 2741.185],
+            "volume": [0, 0, 0, 0],
+            "numEvents": [3591, 3600, 3600, 3600],
+            "value": [0.0, 0.0, 0.0, 0.0],
+        }
+    )
+
+    assert_frame_equal(df, df_exp)
+
+
 def test_create_request(bq: BQuery):
     """Test the _create_request method."""
     request = bq._create_request(
@@ -290,6 +322,107 @@ def test_create_request_with_options(bq: BQuery):
         options={"adjustmentSplit": True},
     )
     assert request.getElement("adjustmentSplit").toPy() is True
+
+
+@pytest.mark.no_bbg
+def test_create_intraday_bar_request():
+    """Ensure intraday bar requests include required fields, overrides, and options."""
+    bq = BQuery()
+    session_mock = MagicMock()
+    service_mock = MagicMock()
+    request_mock = MagicMock()
+    overrides_element = MagicMock()
+    override_entry = MagicMock()
+
+    overrides_element.appendElement.return_value = override_entry
+    request_mock.getElement.return_value = overrides_element
+    service_mock.createRequest.return_value = request_mock
+    session_mock.getService.return_value = service_mock
+
+    bq.session = session_mock
+    start_dt = datetime(2024, 1, 2, 9, 30)
+    end_dt = datetime(2024, 1, 2, 16, 0)
+    overrides = [("PRICE_OVERRIDE", "SETTLE")]
+    options = {"gapFillInitialBar": True}
+
+    result = bq._create_intraday_bar_request(
+        security="AAPL US Equity",
+        event_type="TRADE",
+        interval=5,
+        start_datetime=start_dt,
+        end_datetime=end_dt,
+        overrides=overrides,
+        options=options,
+    )
+
+    session_mock.getService.assert_called_once_with("//blp/refdata")
+    service_mock.createRequest.assert_called_once_with("IntradayBarRequest")
+    assert result is request_mock
+
+    request_mock.set.assert_any_call("security", "AAPL US Equity")
+    request_mock.set.assert_any_call("eventType", "TRADE")
+    request_mock.set.assert_any_call("interval", 5)
+    request_mock.set.assert_any_call("startDateTime", "2024-01-02T09:30:00")
+    request_mock.set.assert_any_call("endDateTime", "2024-01-02T16:00:00")
+    request_mock.set.assert_any_call("gapFillInitialBar", True)
+
+    overrides_element.appendElement.assert_called_once()
+    override_entry.setElement.assert_any_call("fieldId", "PRICE_OVERRIDE")
+    override_entry.setElement.assert_any_call("value", "SETTLE")
+
+
+@pytest.mark.no_bbg
+def test_bdib_returns_dataframe():
+    """bdib should build request, parse responses, and return a sorted Polars DataFrame."""
+    bq = BQuery()
+    mock_request = MagicMock()
+    bar_rows = [
+        {
+            "security": "AAPL US Equity",
+            "time": datetime(2024, 1, 2, 9, 35),
+            "open": 189.5,
+            "high": 190.0,
+            "low": 189.4,
+            "close": 189.9,
+            "volume": 1200,
+            "numEvents": 10,
+            "value": 227400.0,
+        },
+        {
+            "security": "AAPL US Equity",
+            "time": datetime(2024, 1, 2, 9, 30),
+            "open": 189.0,
+            "high": 189.7,
+            "low": 188.9,
+            "close": 189.6,
+            "volume": 1500,
+            "numEvents": 12,
+            "value": 284400.0,
+        },
+    ]
+
+    with (
+        patch.object(bq, "_create_intraday_bar_request", return_value=mock_request) as create_mock,
+        patch.object(bq, "_send_request", return_value=["raw_response"]) as send_mock,
+        patch.object(bq, "_parse_bdib_responses", return_value=bar_rows) as parse_mock,
+    ):
+        df = bq.bdib(
+            security="AAPL US Equity",
+            event_type="TRADE",
+            interval=5,
+            start_datetime=datetime(2024, 1, 2, 9, 30),
+            end_datetime=datetime(2024, 1, 2, 9, 40),
+        )
+
+    create_mock.assert_called_once()
+    send_mock.assert_called_once_with(mock_request)
+    parse_mock.assert_called_once_with(["raw_response"], fallback_security="AAPL US Equity")
+
+    assert isinstance(df, pl.DataFrame)
+    assert df.shape == (2, 9)
+    assert df["time"].to_list() == sorted(df["time"].to_list())
+    assert df["open"].to_list() == [189.0, 189.5]
+
 
 
 @pytest.mark.no_bbg
@@ -409,6 +542,80 @@ def test_parse_bdh_responses():
 
     # Assert that the parsed result matches the expected output
     assert result == expected_output
+
+
+@pytest.mark.no_bbg
+def test_parse_bdib_responses():
+    """Test the _parse_bdib_responses method."""
+    bq = BQuery()
+    first_bar_time = datetime(2024, 1, 2, 9, 30)
+    second_bar_time = datetime(2024, 1, 2, 9, 35)
+
+    mock_responses = [
+        {
+            "barData": {
+                "security": "MSFT US Equity",
+                "eventType": "TRADE",
+                "barTickData": [
+                    {
+                        "barTickData": {
+                            "time": first_bar_time,
+                            "open": 370.0,
+                            "high": 370.5,
+                            "low": 369.8,
+                            "close": 370.2,
+                            "volume": 800,
+                            "numEvents": 8,
+                            "value": 296160.0,
+                        }
+                    }
+                ],
+            }
+        },
+        {
+            "barData": {
+                "barTickData": [
+                    {
+                        "time": second_bar_time,
+                        "open": 370.3,
+                        "high": 371.0,
+                        "low": 370.1,
+                        "close": 370.9,
+                        "volume": 600,
+                        "numEvents": 6,
+                        "value": 222540.0,
+                    }
+                ]
+            }
+        },
+    ]
+
+    result = bq._parse_bdib_responses(mock_responses, fallback_security="MSFT US Equity")
+
+    assert result == [
+        {
+            "security": "MSFT US Equity",
+            "time": first_bar_time,
+            "open": 370.0,
+            "high": 370.5,
+            "low": 369.8,
+            "close": 370.2,
+            "volume": 800,
+            "numEvents": 8,
+            "value": 296160.0,
+        },
+        {
+            "security": "MSFT US Equity",
+            "time": second_bar_time,
+            "open": 370.3,
+            "high": 371.0,
+            "low": 370.1,
+            "close": 370.9,
+            "volume": 600,
+            "numEvents": 6,
+            "value": 222540.0,
+        },
+    ]
 
 
 @pytest.mark.no_bbg

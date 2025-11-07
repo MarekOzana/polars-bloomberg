@@ -35,7 +35,7 @@ import logging
 import os
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Any
 
 import blpapi
@@ -410,6 +410,105 @@ class BQuery:
         data = self._parse_bdh_responses(responses, fields)
         return pl.DataFrame(data, infer_schema_length=None)
 
+    def bdib(  # noqa: PLR0913
+        self,
+        security: str,
+        event_type: str,
+        interval: int,
+        start_datetime: datetime,
+        end_datetime: datetime,
+        overrides: Sequence | None = None,
+        options: dict | None = None,
+    ) -> pl.DataFrame:
+        """Fetch intraday bars from Bloomberg, mirroring Excel's BDIB() function.
+
+        Args:
+            security (str): Instrument identifier (for example 'AAPL US Equity').
+            event_type (str): One of TRADE, BID, ASK, BEST_BID, BEST_ASK.
+            interval (int): Bar length in minutes (1-1440).
+            start_datetime (datetime): First bar timestamp; naive vals are treated as UTC
+                tz-aware values are converted to UTC before the request is sent.
+            end_datetime (datetime): Last bar timestamp; handled same way as start_dtm
+            overrides (Sequence | None, optional): Sequence of (field, value) overrides.
+            options (dict | None, optional): Additional Bloomberg request options.
+
+        Returns:
+            pl.DataFrame: Bars sorted by security/time with columns
+                ['security', 'time', 'open', 'high', 'low', 'close', 'volume',
+                'numEvents', 'value']. Bloomberg emits `time` in UTC and the DataFrame
+                preserves that timezone.
+
+        Example:
+            ```python
+            from datetime import datetime
+            from polars_bloomberg import BQuery
+
+            with BQuery() as bq:
+                df = bq.bdib(
+                    "OMX Index",
+                    event_type="TRADE",
+                    interval=60,
+                    start_datetime=datetime(2025, 11, 5),
+                    end_datetime=datetime(2025, 11, 6),
+                )
+                print(df)
+            ```
+
+             Expected output:
+            ```python
+            shape: (4, 3)
+            ┌───────────┬──────────────┬──────────┬──────────┬───┬──────────┬────────┬───────────┬───────┐
+            │ security  ┆ time         ┆ open     ┆ high     ┆ … ┆ close    ┆ volume ┆ numEvents ┆ value │
+            │ ---       ┆ ---          ┆ ---      ┆ ---      ┆   ┆ ---      ┆ ---    ┆ ---       ┆ ---   │
+            │ str       ┆ datetime[μs] ┆ f64      ┆ f64      ┆   ┆ f64      ┆ i64    ┆ i64       ┆ f64   │
+            ╞═══════════╪══════════════╪══════════╪══════════╪═══╪══════════╪════════╪═══════════╪═══════╡
+            │ OMX Index ┆ 2025-11-05   ┆ 2726.603 ┆ 2742.014 ┆ … ┆ 2739.321 ┆ 0      ┆ 3591      ┆ 0.0   │
+            │           ┆ 08:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+            │ OMX Index ┆ 2025-11-05   ┆ 2739.466 ┆ 2739.706 ┆ … ┆ 2733.836 ┆ 0      ┆ 3600      ┆ 0.0   │
+            │           ┆ 09:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+            │ OMX Index ┆ 2025-11-05   ┆ 2733.747 ┆ 2734.827 ┆ … ┆ 2731.724 ┆ 0      ┆ 3600      ┆ 0.0   │
+            │           ┆ 10:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+            │ OMX Index ┆ 2025-11-05   ┆ 2731.721 ┆ 2742.015 ┆ … ┆ 2741.185 ┆ 0      ┆ 3600      ┆ 0.0   │
+            │           ┆ 11:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+            │ OMX Index ┆ 2025-11-05   ┆ 2741.256 ┆ 2747.291 ┆ … ┆ 2747.291 ┆ 0      ┆ 3600      ┆ 0.0   │
+            │           ┆ 12:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+            │ OMX Index ┆ 2025-11-05   ┆ 2747.291 ┆ 2748.815 ┆ … ┆ 2748.287 ┆ 0      ┆ 3600      ┆ 0.0   │
+            │           ┆ 13:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+            │ OMX Index ┆ 2025-11-05   ┆ 2748.273 ┆ 2752.301 ┆ … ┆ 2752.181 ┆ 0      ┆ 3600      ┆ 0.0   │
+            │           ┆ 14:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+            │ OMX Index ┆ 2025-11-05   ┆ 2752.181 ┆ 2758.978 ┆ … ┆ 2752.495 ┆ 0      ┆ 3600      ┆ 0.0   │
+            │           ┆ 15:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+            │ OMX Index ┆ 2025-11-05   ┆ 2752.402 ┆ 2752.85  ┆ … ┆ 2751.404 ┆ 0      ┆ 2100      ┆ 0.0   │
+            │           ┆ 16:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+            └───────────┴──────────────┴──────────┴──────────┴───┴──────────┴────────┴───────────┴───────┘
+            ```
+
+        """  # noqa: E501
+        request = self._create_intraday_bar_request(
+            security=security,
+            event_type=event_type,
+            interval=interval,
+            start_datetime=start_datetime,
+            end_datetime=end_datetime,
+            overrides=overrides,
+            options=options,
+        )
+        responses = self._send_request(request)
+        data = self._parse_bdib_responses(responses, fallback_security=security)
+        schema = {
+            "security": pl.Utf8,
+            "time": pl.Datetime,
+            "open": pl.Float64,
+            "high": pl.Float64,
+            "low": pl.Float64,
+            "close": pl.Float64,
+            "volume": pl.Int64,
+            "numEvents": pl.Int64,
+            "value": pl.Float64,
+        }
+        df = pl.DataFrame(data, schema=schema, strict=False, infer_schema_length=None)
+        return df.sort(["security", "time"]) if not df.is_empty() else df
+
     def bql(self, expression: str) -> BqlResult:
         """Execute a Bloomberg Query Language (BQL) query.
 
@@ -537,6 +636,38 @@ class BQuery:
 
         return request
 
+    def _create_intraday_bar_request(  # noqa: PLR0913
+        self,
+        security: str,
+        event_type: str,
+        interval: int,
+        start_datetime: datetime,
+        end_datetime: datetime,
+        overrides: Sequence | None,
+        options: dict | None,
+    ) -> blpapi.Request:
+        """Create an IntradayBarRequest with overrides and options support."""
+        service = self.session.getService("//blp/refdata")
+        request = service.createRequest("IntradayBarRequest")
+        request.set("security", security)
+        request.set("eventType", event_type)
+        request.set("interval", interval)
+        request.set("startDateTime", self._format_datetime(start_datetime))
+        request.set("endDateTime", self._format_datetime(end_datetime))
+
+        if overrides:
+            overrides_element = request.getElement("overrides")
+            for field_id, value in overrides:
+                override_element = overrides_element.appendElement()
+                override_element.setElement("fieldId", field_id)
+                override_element.setElement("value", value)
+
+        if options:
+            for key, value in options.items():
+                request.set(key, value)
+
+        return request
+
     def _create_bql_request(self, expression: str) -> blpapi.Request:
         """Create a BQL request."""
         service = self.session.getService("//blp/bqlsvc")
@@ -606,6 +737,30 @@ class BQuery:
                     record[field] = entry.get(field)
                 data.append(record)
         return data
+
+    def _parse_bdib_responses(
+        self, responses: list[dict], fallback_security: str | None = None
+    ) -> list[dict]:
+        bars: list[dict[str, Any]] = []
+        for response in responses:
+            bar_data = response.get("barData", {})
+            security = bar_data.get("security") or fallback_security
+            entries = bar_data.get("barTickData", [])
+            for entry in entries:
+                bar_entry = entry.get("barTickData", entry)
+                record = {
+                    "security": security,
+                    "time": bar_entry.get("time"),
+                    "open": bar_entry.get("open"),
+                    "high": bar_entry.get("high"),
+                    "low": bar_entry.get("low"),
+                    "close": bar_entry.get("close"),
+                    "volume": bar_entry.get("volume"),
+                    "numEvents": bar_entry.get("numEvents"),
+                    "value": bar_entry.get("value"),
+                }
+                bars.append(record)
+        return bars
 
     def _parse_bql_responses(self, responses: list[Any]):
         """Parse BQL responses into a list of SITable objects."""
@@ -686,6 +841,15 @@ class BQuery:
             "BOOLEAN": pl.Boolean,
         }
         return {col: mapping.get(t.upper(), pl.Utf8) for col, t in type_map.items()}
+
+    @staticmethod
+    def _format_datetime(value: datetime | str) -> str:
+        """Convert datetime objects to Bloomberg's ISO8601 string format."""
+        if isinstance(value, str):
+            return value
+        if value.tzinfo is None:
+            return value.strftime("%Y-%m-%dT%H:%M:%S")
+        return value.astimezone(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def _save_debug_case(self, in_results: dict, tables: list[SITable]):
         """Save input and output to a JSON file for debugging and test generation."""
