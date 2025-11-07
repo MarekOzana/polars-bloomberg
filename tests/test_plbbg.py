@@ -374,7 +374,7 @@ def test_create_intraday_bar_request():
 
 @pytest.mark.no_bbg
 def test_bdib_returns_dataframe():
-    """bdib should build request, parse responses, and return a sorted Polars DataFrame."""
+    """bdib should build request, parse responses, and return a sorted Polars DataFrame."""  # noqa: D403, E501
     bq = BQuery()
     mock_request = MagicMock()
     bar_rows = [
@@ -1549,7 +1549,7 @@ def test_bdib_uses_recorded_response(tmp_path, monkeypatch):
     assert payloads, "Recorded file must include an IntradayBarResponse payload."
 
     def _restore_datetime_payloads(payload_list: list[dict]) -> None:
-        """Bloomberg API returns Python datetimes, but our JSON capture stores strings."""
+        """Bloomberg API returns Python datetimes, but our JSON stores strings."""
         for payload in payload_list:
             bar_data = payload.get("barData", {})
             entries = bar_data.get("barTickData", [])
@@ -1557,7 +1557,7 @@ def test_bdib_uses_recorded_response(tmp_path, monkeypatch):
                 bar_entry = entry.get("barTickData", entry)
                 timestamp = bar_entry.get("time")
                 if isinstance(timestamp, str):
-                    # Recorded data uses ISO-8601 strings; convert back to datetime objects.
+                    # Recorded data uses ISO-8601 strings; convert back to datetime obj
                     clean_ts = timestamp[:-1] if timestamp.endswith("Z") else timestamp
                     bar_entry["time"] = datetime.fromisoformat(clean_ts)
 
