@@ -24,6 +24,7 @@ If you’re a quant financial analyst, data scientist, or quant developer workin
 5. [Core Methods](#core-methods)
     - [BDP (Bloomberg Data Point)](#bdp)
     - [BDH (Bloomberg Data History)](#bdh)
+    - [BDIB (Bloomberg Data Intraday Bar)](#bdib)
     - [BQL (Bloomberg Query Language)](#bql) <details><summary>BQL Examples</summary>
         - [Single Item and Single Security](#1-basic-example-single-item-and-single-security)
         - [Multiple Securities with Single Item](#2-multiple-securities-with-a-single-item)
@@ -268,6 +269,47 @@ with BQuery() as bq:
 ```
 </details>
 
+
+## BDIB
+Use Case: Retrieve intraday bars (1- to 1440-minute intervals) over a precise intraday
+window without managing tick aggregation yourself.
+
+```python
+from datetime import datetime
+from polars_bloomberg import BQuery
+
+with BQuery() as bq:  # set debug=False for normal usage
+    df = bq.bdib(
+        "OMX Index",
+        event_type="TRADE",
+        interval=60,
+        start_datetime=datetime(2025, 11, 5),
+        end_datetime=datetime(2025, 11, 5, 12),
+    )
+    print(df)
+```
+
+Output:
+```
+shape: (4, 9)
+┌───────────┬──────────────┬──────────┬──────────┬───┬──────────┬────────┬───────────┬───────┐
+│ security  ┆ time         ┆ open     ┆ high     ┆ … ┆ close    ┆ volume ┆ numEvents ┆ value │
+│ ---       ┆ ---          ┆ ---      ┆ ---      ┆   ┆ ---      ┆ ---    ┆ ---       ┆ ---   │
+│ str       ┆ datetime[μs] ┆ f64      ┆ f64      ┆   ┆ f64      ┆ i64    ┆ i64       ┆ f64   │
+╞═══════════╪══════════════╪══════════╪══════════╪═══╪══════════╪════════╪═══════════╪═══════╡
+│ OMX Index ┆ 2025-11-05   ┆ 2726.603 ┆ 2742.014 ┆ … ┆ 2739.321 ┆ 0      ┆ 3591      ┆ 0.0   │
+│           ┆ 08:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+│ OMX Index ┆ 2025-11-05   ┆ 2739.466 ┆ 2739.706 ┆ … ┆ 2733.836 ┆ 0      ┆ 3600      ┆ 0.0   │
+│           ┆ 09:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+│ OMX Index ┆ 2025-11-05   ┆ 2733.747 ┆ 2734.827 ┆ … ┆ 2731.724 ┆ 0      ┆ 3600      ┆ 0.0   │
+│           ┆ 10:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+│ OMX Index ┆ 2025-11-05   ┆ 2731.721 ┆ 2742.015 ┆ … ┆ 2741.185 ┆ 0      ┆ 3600      ┆ 0.0   │
+│           ┆ 11:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+└───────────┴──────────────┴──────────┴──────────┴───┴──────────┴────────┴───────────┴───────┘
+```
+
+Each row is a 60-minute bar built from TRADE events, and the `time` column is returned
+in UTC (matching Bloomberg's wire format).
 
 ## BQL
 *Use Case*: Run more advanced queries to screen securities, calculate analytics (like moving averages), or pull fundamental data with complex conditions.

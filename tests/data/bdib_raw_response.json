@@ -1,0 +1,93 @@
+[
+  {
+    "event_type": 2,
+    "message_type": "SessionConnectionUp",
+    "message_number": null,
+    "payload": {
+      "server": "localhost:8194",
+      "serverId": "bbcomm-DHKWV94-4742208",
+      "encryptionStatus": "Clear",
+      "compressionStatus": "Uncompressed"
+    }
+  },
+  {
+    "event_type": 2,
+    "message_type": "SessionStarted",
+    "message_number": null,
+    "payload": {
+      "initialEndpoints": [
+        {
+          "address": "localhost:8194"
+        }
+      ]
+    }
+  },
+  {
+    "event_type": 9,
+    "message_type": "ServiceOpened",
+    "message_number": null,
+    "payload": {
+      "serviceName": "//blp/refdata"
+    }
+  },
+  {
+    "event_type": 9,
+    "message_type": "ServiceOpened",
+    "message_number": null,
+    "payload": {
+      "serviceName": "//blp/bqlsvc"
+    }
+  },
+  {
+    "event_type": 5,
+    "message_type": "IntradayBarResponse",
+    "message_number": null,
+    "payload": {
+      "barData": {
+        "eidData": [],
+        "barTickData": [
+          {
+            "time": "2025-11-05T08:00:00",
+            "open": 2726.603,
+            "high": 2742.014,
+            "low": 2721.481,
+            "close": 2739.321,
+            "volume": 0,
+            "numEvents": 3591,
+            "value": 0.0
+          },
+          {
+            "time": "2025-11-05T09:00:00",
+            "open": 2739.466,
+            "high": 2739.706,
+            "low": 2730.696,
+            "close": 2733.836,
+            "volume": 0,
+            "numEvents": 3600,
+            "value": 0.0
+          },
+          {
+            "time": "2025-11-05T10:00:00",
+            "open": 2733.747,
+            "high": 2734.827,
+            "low": 2730.298,
+            "close": 2731.724,
+            "volume": 0,
+            "numEvents": 3600,
+            "value": 0.0
+          },
+          {
+            "time": "2025-11-05T11:00:00",
+            "open": 2731.721,
+            "high": 2742.015,
+            "low": 2730.662,
+            "close": 2741.185,
+            "volume": 0,
+            "numEvents": 3600,
+            "value": 0.0
+          }
+        ]
+      }
+    }
+  }
+]

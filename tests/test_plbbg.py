@@ -10,6 +10,7 @@ import json
 import re
 from collections.abc import Generator
 from datetime import date, datetime
+from pathlib import Path
 from typing import Final
 from unittest.mock import MagicMock, patch
 
@@ -402,7 +403,9 @@ def test_bdib_returns_dataframe():
     ]
 
     with (
-        patch.object(bq, "_create_intraday_bar_request", return_value=mock_request) as create_mock,
+        patch.object(
+            bq, "_create_intraday_bar_request", return_value=mock_request
+        ) as create_mock,
         patch.object(bq, "_send_request", return_value=["raw_response"]) as send_mock,
         patch.object(bq, "_parse_bdib_responses", return_value=bar_rows) as parse_mock,
     ):
@@ -416,13 +419,14 @@ def test_bdib_returns_dataframe():
 
     create_mock.assert_called_once()
     send_mock.assert_called_once_with(mock_request)
-    parse_mock.assert_called_once_with(["raw_response"], fallback_security="AAPL US Equity")
+    parse_mock.assert_called_once_with(
+        ["raw_response"], fallback_security="AAPL US Equity"
+    )
 
     assert isinstance(df, pl.DataFrame)
     assert df.shape == (2, 9)
     assert df["time"].to_list() == sorted(df["time"].to_list())
     assert df["open"].to_list() == [189.0, 189.5]
-
 
 
 @pytest.mark.no_bbg
@@ -1527,3 +1531,70 @@ class TestBqlResult:
 
         df = bql_result.combine().to_dict(as_series=False)
         assert df == exp_df
+
+
+@pytest.mark.no_bbg
+def test_bdib_uses_recorded_response(tmp_path, monkeypatch):
+    """Replay a captured Bloomberg response to validate bdib() end-to-end."""
+    bdib_fixture = Path("tests/data/bdib_raw_response.json")
+
+    with bdib_fixture.open() as f:
+        events = json.load(f)
+
+    payloads = [
+        event["payload"]
+        for event in events
+        if event.get("message_type") == "IntradayBarResponse"
+    ]
+    assert payloads, "Recorded file must include an IntradayBarResponse payload."
+
+    def _restore_datetime_payloads(payload_list: list[dict]) -> None:
+        """Bloomberg API returns Python datetimes, but our JSON capture stores strings."""
+        for payload in payload_list:
+            bar_data = payload.get("barData", {})
+            entries = bar_data.get("barTickData", [])
+            for entry in entries:
+                bar_entry = entry.get("barTickData", entry)
+                timestamp = bar_entry.get("time")
+                if isinstance(timestamp, str):
+                    # Recorded data uses ISO-8601 strings; convert back to datetime objects.
+                    clean_ts = timestamp[:-1] if timestamp.endswith("Z") else timestamp
+                    bar_entry["time"] = datetime.fromisoformat(clean_ts)
+
+    _restore_datetime_payloads(payloads)
+
+    bq = BQuery()
+    mock_request = MagicMock()
+
+    with (
+        patch.object(bq, "_create_intraday_bar_request", return_value=mock_request),
+        patch.object(bq, "_send_request", return_value=payloads),
+    ):
+        df = bq.bdib(
+            "OMX Index",
+            event_type="TRADE",
+            interval=60,
+            start_datetime=datetime(2025, 11, 5),
+            end_datetime=datetime(2025, 11, 5, 12),
+        )
+
+    df_exp = pl.DataFrame(
+        {
+            "security": ["OMX Index"] * 4,
+            "time": [
+                datetime(2025, 11, 5, 8, 0),
+                datetime(2025, 11, 5, 9, 0),
+                datetime(2025, 11, 5, 10, 0),
+                datetime(2025, 11, 5, 11, 0),
+            ],
+            "open": [2726.603, 2739.466, 2733.747, 2731.721],
+            "high": [2742.014, 2739.706, 2734.827, 2742.015],
+            "low": [2721.481, 2730.696, 2730.298, 2730.662],
+            "close": [2739.321, 2733.836, 2731.724, 2741.185],
+            "volume": [0, 0, 0, 0],
+            "numEvents": [3591, 3600, 3600, 3600],
+            "value": [0.0, 0.0, 0.0, 0.0],
+        }
+    )
+
+    assert_frame_equal(df, df_exp)
