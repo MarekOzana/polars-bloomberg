@@ -25,6 +25,7 @@ nav:
   - Usage & Tutorials:
     - BDP: usage/bdp.md
     - BDH: usage/bdh.md
+    - BDIB: usage/bdib.md
     - BQL: usage/bql.md
   - Examples:
     - Equity: examples/equity.ipynb
