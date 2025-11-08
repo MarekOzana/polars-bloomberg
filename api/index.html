@@ -51,6 +51,10 @@
 </li>
                                     
 <li>
+    <a href="../usage/bdib/" class="dropdown-item">BDIB</a>
+</li>
+                                    
+<li>
     <a href="../usage/bql/" class="dropdown-item">BQL</a>
 </li>
                                 </ul>
@@ -119,6 +123,10 @@
               </ul>
             </li>
             <li class="nav-item" data-bs-level="3"><a href="#polars_bloomberg.BQuery.bdh" class="nav-link">bdh</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="3"><a href="#polars_bloomberg.BQuery.bdib" class="nav-link">bdib</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -204,8 +212,9 @@ print(df)
 
 
 
+
               <details class="quote">
-                <summary>Source code in <code>polars_bloomberg\plbbg.py</code></summary>
+                <summary>Source code in <code>polars_bloomberg/plbbg.py</code></summary>
                 <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">202</span>
 <span class="normal">203</span>
 <span class="normal">204</span>
@@ -709,7 +718,181 @@ print(df)
 <span class="normal">702</span>
 <span class="normal">703</span>
 <span class="normal">704</span>
-<span class="normal">705</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">BQuery</span><span class="p">:</span>
+<span class="normal">705</span>
+<span class="normal">706</span>
+<span class="normal">707</span>
+<span class="normal">708</span>
+<span class="normal">709</span>
+<span class="normal">710</span>
+<span class="normal">711</span>
+<span class="normal">712</span>
+<span class="normal">713</span>
+<span class="normal">714</span>
+<span class="normal">715</span>
+<span class="normal">716</span>
+<span class="normal">717</span>
+<span class="normal">718</span>
+<span class="normal">719</span>
+<span class="normal">720</span>
+<span class="normal">721</span>
+<span class="normal">722</span>
+<span class="normal">723</span>
+<span class="normal">724</span>
+<span class="normal">725</span>
+<span class="normal">726</span>
+<span class="normal">727</span>
+<span class="normal">728</span>
+<span class="normal">729</span>
+<span class="normal">730</span>
+<span class="normal">731</span>
+<span class="normal">732</span>
+<span class="normal">733</span>
+<span class="normal">734</span>
+<span class="normal">735</span>
+<span class="normal">736</span>
+<span class="normal">737</span>
+<span class="normal">738</span>
+<span class="normal">739</span>
+<span class="normal">740</span>
+<span class="normal">741</span>
+<span class="normal">742</span>
+<span class="normal">743</span>
+<span class="normal">744</span>
+<span class="normal">745</span>
+<span class="normal">746</span>
+<span class="normal">747</span>
+<span class="normal">748</span>
+<span class="normal">749</span>
+<span class="normal">750</span>
+<span class="normal">751</span>
+<span class="normal">752</span>
+<span class="normal">753</span>
+<span class="normal">754</span>
+<span class="normal">755</span>
+<span class="normal">756</span>
+<span class="normal">757</span>
+<span class="normal">758</span>
+<span class="normal">759</span>
+<span class="normal">760</span>
+<span class="normal">761</span>
+<span class="normal">762</span>
+<span class="normal">763</span>
+<span class="normal">764</span>
+<span class="normal">765</span>
+<span class="normal">766</span>
+<span class="normal">767</span>
+<span class="normal">768</span>
+<span class="normal">769</span>
+<span class="normal">770</span>
+<span class="normal">771</span>
+<span class="normal">772</span>
+<span class="normal">773</span>
+<span class="normal">774</span>
+<span class="normal">775</span>
+<span class="normal">776</span>
+<span class="normal">777</span>
+<span class="normal">778</span>
+<span class="normal">779</span>
+<span class="normal">780</span>
+<span class="normal">781</span>
+<span class="normal">782</span>
+<span class="normal">783</span>
+<span class="normal">784</span>
+<span class="normal">785</span>
+<span class="normal">786</span>
+<span class="normal">787</span>
+<span class="normal">788</span>
+<span class="normal">789</span>
+<span class="normal">790</span>
+<span class="normal">791</span>
+<span class="normal">792</span>
+<span class="normal">793</span>
+<span class="normal">794</span>
+<span class="normal">795</span>
+<span class="normal">796</span>
+<span class="normal">797</span>
+<span class="normal">798</span>
+<span class="normal">799</span>
+<span class="normal">800</span>
+<span class="normal">801</span>
+<span class="normal">802</span>
+<span class="normal">803</span>
+<span class="normal">804</span>
+<span class="normal">805</span>
+<span class="normal">806</span>
+<span class="normal">807</span>
+<span class="normal">808</span>
+<span class="normal">809</span>
+<span class="normal">810</span>
+<span class="normal">811</span>
+<span class="normal">812</span>
+<span class="normal">813</span>
+<span class="normal">814</span>
+<span class="normal">815</span>
+<span class="normal">816</span>
+<span class="normal">817</span>
+<span class="normal">818</span>
+<span class="normal">819</span>
+<span class="normal">820</span>
+<span class="normal">821</span>
+<span class="normal">822</span>
+<span class="normal">823</span>
+<span class="normal">824</span>
+<span class="normal">825</span>
+<span class="normal">826</span>
+<span class="normal">827</span>
+<span class="normal">828</span>
+<span class="normal">829</span>
+<span class="normal">830</span>
+<span class="normal">831</span>
+<span class="normal">832</span>
+<span class="normal">833</span>
+<span class="normal">834</span>
+<span class="normal">835</span>
+<span class="normal">836</span>
+<span class="normal">837</span>
+<span class="normal">838</span>
+<span class="normal">839</span>
+<span class="normal">840</span>
+<span class="normal">841</span>
+<span class="normal">842</span>
+<span class="normal">843</span>
+<span class="normal">844</span>
+<span class="normal">845</span>
+<span class="normal">846</span>
+<span class="normal">847</span>
+<span class="normal">848</span>
+<span class="normal">849</span>
+<span class="normal">850</span>
+<span class="normal">851</span>
+<span class="normal">852</span>
+<span class="normal">853</span>
+<span class="normal">854</span>
+<span class="normal">855</span>
+<span class="normal">856</span>
+<span class="normal">857</span>
+<span class="normal">858</span>
+<span class="normal">859</span>
+<span class="normal">860</span>
+<span class="normal">861</span>
+<span class="normal">862</span>
+<span class="normal">863</span>
+<span class="normal">864</span>
+<span class="normal">865</span>
+<span class="normal">866</span>
+<span class="normal">867</span>
+<span class="normal">868</span>
+<span class="normal">869</span>
+<span class="normal">870</span>
+<span class="normal">871</span>
+<span class="normal">872</span>
+<span class="normal">873</span>
+<span class="normal">874</span>
+<span class="normal">875</span>
+<span class="normal">876</span>
+<span class="normal">877</span>
+<span class="normal">878</span>
+<span class="normal">879</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">BQuery</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Provides methods to query Bloomberg API and return data as Polars DataFrames.</span>
 
 <span class="sd">    Example:</span>
@@ -737,7 +920,9 @@ print(df)
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="n">session</span><span class="p">:</span> <span class="n">blpapi</span><span class="o">.</span><span class="n">Session</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
         <span class="n">port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8194</span><span class="p">,</span>
@@ -767,10 +952,9 @@ print(df)
         <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">host</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
 
-    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># noqa: D105</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># noqa: D105</span>
         <span class="c1"># Enter the runtime context related to this object.</span>
         <span class="n">options</span> <span class="o">=</span> <span class="n">blpapi</span><span class="o">.</span><span class="n">SessionOptions</span><span class="p">()</span>
         <span class="n">options</span><span class="o">.</span><span class="n">setServerHost</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">)</span>
@@ -788,12 +972,12 @@ print(df)
 
         <span class="k">return</span> <span class="bp">self</span>
 
-    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>  <span class="c1"># noqa: D105</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>  <span class="c1"># noqa: D105</span>
         <span class="c1"># Exit the context manager and stop the Bloomberg session.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">bdp</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bdp</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">securities</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
@@ -849,7 +1033,7 @@ print(df)
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_bdp_responses</span><span class="p">(</span><span class="n">responses</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">bdh</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bdh</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">securities</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
@@ -917,9 +1101,108 @@ print(df)
         <span class="n">request</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;endDate&quot;</span><span class="p">,</span> <span class="n">end_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">))</span>
         <span class="n">responses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_bdh_responses</span><span class="p">(</span><span class="n">responses</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">infer_schema_length</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">bql</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BqlResult</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bdib</span><span class="p">(</span>  <span class="c1"># noqa: PLR0913</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">security</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">event_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">interval</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">start_datetime</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+        <span class="n">end_datetime</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+        <span class="n">overrides</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">options</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch intraday bars from Bloomberg, mirroring Excel&#39;s BDIB() function.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            security (str): Instrument identifier (for example &#39;AAPL US Equity&#39;).</span>
+<span class="sd">            event_type (str): One of TRADE, BID, ASK, BEST_BID, BEST_ASK.</span>
+<span class="sd">            interval (int): Bar length in minutes (1-1440).</span>
+<span class="sd">            start_datetime (datetime): First bar timestamp; naive vals are treated as UTC</span>
+<span class="sd">                tz-aware values are converted to UTC before the request is sent.</span>
+<span class="sd">            end_datetime (datetime): Last bar timestamp; handled same way as start_dtm</span>
+<span class="sd">            overrides (Sequence | None, optional): Sequence of (field, value) overrides.</span>
+<span class="sd">            options (dict | None, optional): Additional Bloomberg request options.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            pl.DataFrame: Bars sorted by security/time with columns</span>
+<span class="sd">                [&#39;security&#39;, &#39;time&#39;, &#39;open&#39;, &#39;high&#39;, &#39;low&#39;, &#39;close&#39;, &#39;volume&#39;,</span>
+<span class="sd">                &#39;numEvents&#39;, &#39;value&#39;]. Bloomberg emits `time` in UTC and the DataFrame</span>
+<span class="sd">                preserves that timezone.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            ```python</span>
+<span class="sd">            from datetime import datetime</span>
+<span class="sd">            from polars_bloomberg import BQuery</span>
+
+<span class="sd">            with BQuery() as bq:</span>
+<span class="sd">                df = bq.bdib(</span>
+<span class="sd">                    &quot;OMX Index&quot;,</span>
+<span class="sd">                    event_type=&quot;TRADE&quot;,</span>
+<span class="sd">                    interval=60,</span>
+<span class="sd">                    start_datetime=datetime(2025, 11, 5),</span>
+<span class="sd">                    end_datetime=datetime(2025, 11, 6),</span>
+<span class="sd">                )</span>
+<span class="sd">                print(df)</span>
+<span class="sd">            ```</span>
+
+<span class="sd">             Expected output:</span>
+<span class="sd">            ```python</span>
+<span class="sd">            shape: (4, 3)</span>
+<span class="sd">            ┌───────────┬──────────────┬──────────┬──────────┬───┬──────────┬────────┬───────────┬───────┐</span>
+<span class="sd">            │ security  ┆ time         ┆ open     ┆ high     ┆ … ┆ close    ┆ volume ┆ numEvents ┆ value │</span>
+<span class="sd">            │ ---       ┆ ---          ┆ ---      ┆ ---      ┆   ┆ ---      ┆ ---    ┆ ---       ┆ ---   │</span>
+<span class="sd">            │ str       ┆ datetime[μs] ┆ f64      ┆ f64      ┆   ┆ f64      ┆ i64    ┆ i64       ┆ f64   │</span>
+<span class="sd">            ╞═══════════╪══════════════╪══════════╪══════════╪═══╪══════════╪════════╪═══════════╪═══════╡</span>
+<span class="sd">            │ OMX Index ┆ 2025-11-05   ┆ 2726.603 ┆ 2742.014 ┆ … ┆ 2739.321 ┆ 0      ┆ 3591      ┆ 0.0   │</span>
+<span class="sd">            │           ┆ 08:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">            │ OMX Index ┆ 2025-11-05   ┆ 2739.466 ┆ 2739.706 ┆ … ┆ 2733.836 ┆ 0      ┆ 3600      ┆ 0.0   │</span>
+<span class="sd">            │           ┆ 09:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">            │ OMX Index ┆ 2025-11-05   ┆ 2733.747 ┆ 2734.827 ┆ … ┆ 2731.724 ┆ 0      ┆ 3600      ┆ 0.0   │</span>
+<span class="sd">            │           ┆ 10:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">            │ OMX Index ┆ 2025-11-05   ┆ 2731.721 ┆ 2742.015 ┆ … ┆ 2741.185 ┆ 0      ┆ 3600      ┆ 0.0   │</span>
+<span class="sd">            │           ┆ 11:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">            │ OMX Index ┆ 2025-11-05   ┆ 2741.256 ┆ 2747.291 ┆ … ┆ 2747.291 ┆ 0      ┆ 3600      ┆ 0.0   │</span>
+<span class="sd">            │           ┆ 12:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">            │ OMX Index ┆ 2025-11-05   ┆ 2747.291 ┆ 2748.815 ┆ … ┆ 2748.287 ┆ 0      ┆ 3600      ┆ 0.0   │</span>
+<span class="sd">            │           ┆ 13:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">            │ OMX Index ┆ 2025-11-05   ┆ 2748.273 ┆ 2752.301 ┆ … ┆ 2752.181 ┆ 0      ┆ 3600      ┆ 0.0   │</span>
+<span class="sd">            │           ┆ 14:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">            │ OMX Index ┆ 2025-11-05   ┆ 2752.181 ┆ 2758.978 ┆ … ┆ 2752.495 ┆ 0      ┆ 3600      ┆ 0.0   │</span>
+<span class="sd">            │           ┆ 15:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">            │ OMX Index ┆ 2025-11-05   ┆ 2752.402 ┆ 2752.85  ┆ … ┆ 2751.404 ┆ 0      ┆ 2100      ┆ 0.0   │</span>
+<span class="sd">            │           ┆ 16:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">            └───────────┴──────────────┴──────────┴──────────┴───┴──────────┴────────┴───────────┴───────┘</span>
+<span class="sd">            ```</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_intraday_bar_request</span><span class="p">(</span>
+            <span class="n">security</span><span class="o">=</span><span class="n">security</span><span class="p">,</span>
+            <span class="n">event_type</span><span class="o">=</span><span class="n">event_type</span><span class="p">,</span>
+            <span class="n">interval</span><span class="o">=</span><span class="n">interval</span><span class="p">,</span>
+            <span class="n">start_datetime</span><span class="o">=</span><span class="n">start_datetime</span><span class="p">,</span>
+            <span class="n">end_datetime</span><span class="o">=</span><span class="n">end_datetime</span><span class="p">,</span>
+            <span class="n">overrides</span><span class="o">=</span><span class="n">overrides</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">responses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_bdib_responses</span><span class="p">(</span><span class="n">responses</span><span class="p">,</span> <span class="n">fallback_security</span><span class="o">=</span><span class="n">security</span><span class="p">)</span>
+        <span class="n">schema</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;security&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Utf8</span><span class="p">,</span>
+            <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Datetime</span><span class="p">,</span>
+            <span class="s2">&quot;open&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Float64</span><span class="p">,</span>
+            <span class="s2">&quot;high&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Float64</span><span class="p">,</span>
+            <span class="s2">&quot;low&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Float64</span><span class="p">,</span>
+            <span class="s2">&quot;close&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Float64</span><span class="p">,</span>
+            <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span>
+            <span class="s2">&quot;numEvents&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Float64</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">schema</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">infer_schema_length</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">sort</span><span class="p">([</span><span class="s2">&quot;security&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">is_empty</span><span class="p">()</span> <span class="k">else</span> <span class="n">df</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">bql</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BqlResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute a Bloomberg Query Language (BQL) query.</span>
 
 <span class="sd">        BQL is Bloomberg&#39;s domain-specific language for complex financial queries. It allows</span>
@@ -1009,7 +1292,7 @@ print(df)
         <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">table</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">BqlResult</span><span class="p">(</span><span class="n">dataframes</span><span class="p">,</span> <span class="n">names</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_create_request</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_request</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">request_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">securities</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
@@ -1046,14 +1329,55 @@ print(df)
 
         <span class="k">return</span> <span class="n">request</span>
 
-    <span class="k">def</span> <span class="nf">_create_bql_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">blpapi</span><span class="o">.</span><span class="n">Request</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_intraday_bar_request</span><span class="p">(</span>  <span class="c1"># noqa: PLR0913</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">security</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">event_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">interval</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">start_datetime</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+        <span class="n">end_datetime</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+        <span class="n">overrides</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">options</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">blpapi</span><span class="o">.</span><span class="n">Request</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an IntradayBarRequest with overrides and options support.&quot;&quot;&quot;</span>
+        <span class="n">service</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">getService</span><span class="p">(</span><span class="s2">&quot;//blp/refdata&quot;</span><span class="p">)</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">createRequest</span><span class="p">(</span><span class="s2">&quot;IntradayBarRequest&quot;</span><span class="p">)</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;security&quot;</span><span class="p">,</span> <span class="n">security</span><span class="p">)</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;eventType&quot;</span><span class="p">,</span> <span class="n">event_type</span><span class="p">)</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;interval&quot;</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;startDateTime&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_datetime</span><span class="p">(</span><span class="n">start_datetime</span><span class="p">))</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;endDateTime&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_datetime</span><span class="p">(</span><span class="n">end_datetime</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">overrides</span><span class="p">:</span>
+            <span class="n">overrides_element</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">getElement</span><span class="p">(</span><span class="s2">&quot;overrides&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">field_id</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">overrides</span><span class="p">:</span>
+                <span class="n">override_element</span> <span class="o">=</span> <span class="n">overrides_element</span><span class="o">.</span><span class="n">appendElement</span><span class="p">()</span>
+                <span class="n">override_element</span><span class="o">.</span><span class="n">setElement</span><span class="p">(</span><span class="s2">&quot;fieldId&quot;</span><span class="p">,</span> <span class="n">field_id</span><span class="p">)</span>
+                <span class="n">override_element</span><span class="o">.</span><span class="n">setElement</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">options</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">request</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_bql_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">blpapi</span><span class="o">.</span><span class="n">Request</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a BQL request.&quot;&quot;&quot;</span>
         <span class="n">service</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">getService</span><span class="p">(</span><span class="s2">&quot;//blp/bqlsvc&quot;</span><span class="p">)</span>
         <span class="n">request</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">createRequest</span><span class="p">(</span><span class="s2">&quot;sendQuery&quot;</span><span class="p">)</span>
         <span class="n">request</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;expression&quot;</span><span class="p">,</span> <span class="n">expression</span><span class="p">)</span>
+        <span class="c1"># BLPAPI requires setting sub-elements on the sequence element.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ctx</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">getElement</span><span class="p">(</span><span class="s2">&quot;clientContext&quot;</span><span class="p">)</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">setElement</span><span class="p">(</span><span class="s2">&quot;appName&quot;</span><span class="p">,</span> <span class="s2">&quot;EXCEL&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">blpapi</span><span class="o">.</span><span class="n">NotFoundException</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;BQL request has no &#39;clientContext&#39; element in this SDK/schema.&quot;</span>
+            <span class="p">)</span>
+
         <span class="k">return</span> <span class="n">request</span>
 
-    <span class="k">def</span> <span class="nf">_send_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_send_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Send a Bloomberg request and collect responses with timeout handling.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">sendRequest</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
         <span class="n">responses</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1077,7 +1401,7 @@ print(df)
                 <span class="k">break</span>
         <span class="k">return</span> <span class="n">responses</span>
 
-    <span class="k">def</span> <span class="nf">_parse_bdp_responses</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_bdp_responses</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">responses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1092,7 +1416,7 @@ print(df)
                 <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span>
 
-    <span class="k">def</span> <span class="nf">_parse_bdh_responses</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_bdh_responses</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">responses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1107,7 +1431,31 @@ print(df)
                 <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span>
 
-    <span class="k">def</span> <span class="nf">_parse_bql_responses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">responses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_bdib_responses</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">responses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">fallback_security</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+        <span class="n">bars</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">response</span> <span class="ow">in</span> <span class="n">responses</span><span class="p">:</span>
+            <span class="n">bar_data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;barData&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">security</span> <span class="o">=</span> <span class="n">bar_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;security&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fallback_security</span>
+            <span class="n">entries</span> <span class="o">=</span> <span class="n">bar_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;barTickData&quot;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+                <span class="n">bar_entry</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;barTickData&quot;</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span>
+                <span class="n">record</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;security&quot;</span><span class="p">:</span> <span class="n">security</span><span class="p">,</span>
+                    <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">bar_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;open&quot;</span><span class="p">:</span> <span class="n">bar_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;open&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;high&quot;</span><span class="p">:</span> <span class="n">bar_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;high&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;low&quot;</span><span class="p">:</span> <span class="n">bar_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;low&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;close&quot;</span><span class="p">:</span> <span class="n">bar_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;close&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">bar_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;volume&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;numEvents&quot;</span><span class="p">:</span> <span class="n">bar_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;numEvents&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">bar_entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">),</span>
+                <span class="p">}</span>
+                <span class="n">bars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bars</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_bql_responses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">responses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse BQL responses into a list of SITable objects.&quot;&quot;&quot;</span>
         <span class="n">tables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SITable</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_results</span><span class="p">(</span><span class="n">responses</span><span class="p">)</span>
@@ -1116,7 +1464,7 @@ print(df)
             <span class="n">tables</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parse_result</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_apply_schema</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">_apply_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="n">SITable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SITable</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_apply_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="n">SITable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SITable</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert data based on the schema (e.g., str -&gt; date, &#39;NaN&#39; -&gt; None).&quot;&quot;&quot;</span>
         <span class="n">date_format</span> <span class="o">=</span> <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">T%H:%M:%SZ&quot;</span>
         <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1133,14 +1481,14 @@ print(df)
                 <span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="s2">&quot;NaN&quot;</span> <span class="k">else</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]]</span>
         <span class="k">return</span> <span class="n">table</span>
 
-    <span class="k">def</span> <span class="nf">_extract_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">responses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">responses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract the &#39;results&#39; section from each response, handling JSON strings.&quot;&quot;&quot;</span>
         <span class="n">extracted</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">response</span> <span class="ow">in</span> <span class="n">responses</span><span class="p">:</span>
             <span class="n">resp_dict</span> <span class="o">=</span> <span class="n">response</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">resp_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">))</span>
+                    <span class="n">resp_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
                 <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to decode JSON: </span><span class="si">%s</span><span class="s2">. Error: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
                     <span class="k">continue</span>
@@ -1149,7 +1497,7 @@ print(df)
                 <span class="n">extracted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">extracted</span>
 
-    <span class="k">def</span> <span class="nf">_parse_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SITable</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parse_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SITable</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a single BQL results dictionary into a list[SITable].&quot;&quot;&quot;</span>
         <span class="n">tables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SITable</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">content</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1176,7 +1524,7 @@ print(df)
 
         <span class="k">return</span> <span class="n">tables</span>
 
-    <span class="k">def</span> <span class="nf">_map_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataType</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_map_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataType</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Map string-based types to Polars data types. Default to Utf8.&quot;&quot;&quot;</span>
         <span class="n">mapping</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;STRING&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Utf8</span><span class="p">,</span>
@@ -1187,7 +1535,16 @@ print(df)
         <span class="p">}</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">col</span><span class="p">:</span> <span class="n">mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">pl</span><span class="o">.</span><span class="n">Utf8</span><span class="p">)</span> <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">type_map</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
-    <span class="k">def</span> <span class="nf">_save_debug_case</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_results</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">tables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SITable</span><span class="p">]):</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_format_datetime</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert datetime objects to Bloomberg&#39;s ISO8601 string format.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">value</span>
+        <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">tzinfo</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">T%H:%M:%S&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">astimezone</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">UTC</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">T%H:%M:%SZ&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_save_debug_case</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_results</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">tables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SITable</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Save input and output to a JSON file for debugging and test generation.&quot;&quot;&quot;</span>
         <span class="c1"># Create a directory for debug cases if it doesn&#39;t exist</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;debug_cases&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1258,7 +1615,7 @@ print(df)
                 <code>host</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1275,7 +1632,7 @@ Defaults to "localhost".</p>
                 <code>port</code>
             </td>
             <td>
-                  <code>int</code>
+                  <code><span title="int">int</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1292,7 +1649,7 @@ Defaults to 8194.</p>
                 <code>timeout</code>
             </td>
             <td>
-                  <code>int</code>
+                  <code><span title="int">int</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1309,7 +1666,7 @@ Defaults to 32000.</p>
                 <code>debug</code>
             </td>
             <td>
-                  <code>bool</code>
+                  <code><span title="bool">bool</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1336,7 +1693,7 @@ Defaults to False.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code>ConnectionError</code>
+                  <code><span title="ConnectionError">ConnectionError</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1347,11 +1704,10 @@ Defaults to False.</p>
       </tbody>
     </table>
 
+
             <details class="quote">
-              <summary>Source code in <code>polars_bloomberg\plbbg.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">230</span>
-<span class="normal">231</span>
-<span class="normal">232</span>
+              <summary>Source code in <code>polars_bloomberg/plbbg.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">232</span>
 <span class="normal">233</span>
 <span class="normal">234</span>
 <span class="normal">235</span>
@@ -1380,7 +1736,8 @@ Defaults to False.</p>
 <span class="normal">258</span>
 <span class="normal">259</span>
 <span class="normal">260</span>
-<span class="normal">261</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="normal">261</span>
+<span class="normal">262</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
     <span class="n">port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8194</span><span class="p">,</span>
@@ -1410,7 +1767,6 @@ Defaults to False.</p>
     <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">host</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -1449,7 +1805,7 @@ Defaults to False.</p>
                 <code>securities</code>
             </td>
             <td>
-                  <code>list[str]</code>
+                  <code><span title="list">list</span>[<span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1465,7 +1821,7 @@ Defaults to False.</p>
                 <code>fields</code>
             </td>
             <td>
-                  <code>list[str]</code>
+                  <code><span title="list">list</span>[<span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1513,7 +1869,7 @@ Defaults to False.</p>
                 <code>overrides</code>
             </td>
             <td>
-                  <code>list[tuple]</code>
+                  <code><span title="list">list</span>[<span title="tuple">tuple</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1529,7 +1885,7 @@ Defaults to False.</p>
                 <code>options</code>
             </td>
             <td>
-                  <code>dict</code>
+                  <code><span title="dict">dict</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1578,7 +1934,7 @@ Defaults to False.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code>ConnectionError</code>
+                  <code><span title="ConnectionError">ConnectionError</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1588,7 +1944,7 @@ Defaults to False.</p>
           </tr>
           <tr class="doc-section-item">
             <td>
-                  <code>ValueError</code>
+                  <code><span title="ValueError">ValueError</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1629,10 +1985,10 @@ print(df)
 └───────────────┴────────────┴─────────┘
 </code></pre>
 </details>
+
             <details class="quote">
-              <summary>Source code in <code>polars_bloomberg\plbbg.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">342</span>
-<span class="normal">343</span>
+              <summary>Source code in <code>polars_bloomberg/plbbg.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">343</span>
 <span class="normal">344</span>
 <span class="normal">345</span>
 <span class="normal">346</span>
@@ -1699,7 +2055,8 @@ print(df)
 <span class="normal">407</span>
 <span class="normal">408</span>
 <span class="normal">409</span>
-<span class="normal">410</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">bdh</span><span class="p">(</span>
+<span class="normal">410</span>
+<span class="normal">411</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">bdh</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">securities</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
@@ -1767,7 +2124,422 @@ print(df)
     <span class="n">request</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;endDate&quot;</span><span class="p">,</span> <span class="n">end_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">))</span>
     <span class="n">responses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
     <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_bdh_responses</span><span class="p">(</span><span class="n">responses</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">infer_schema_length</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="polars_bloomberg.BQuery.bdib" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">bdib</span><span class="p">(</span><span class="n">security</span><span class="p">,</span> <span class="n">event_type</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">start_datetime</span><span class="p">,</span> <span class="n">end_datetime</span><span class="p">,</span> <span class="n">overrides</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Fetch intraday bars from Bloomberg, mirroring Excel's BDIB() function.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>security</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Instrument identifier (for example 'AAPL US Equity').</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>event_type</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>One of TRADE, BID, ASK, BEST_BID, BEST_ASK.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>interval</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Bar length in minutes (1-1440).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>start_datetime</code>
+            </td>
+            <td>
+                  <code><span title="datetime.datetime">datetime</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>First bar timestamp; naive vals are treated as UTC
+tz-aware values are converted to UTC before the request is sent.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>end_datetime</code>
+            </td>
+            <td>
+                  <code><span title="datetime.datetime">datetime</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Last bar timestamp; handled same way as start_dtm</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>overrides</code>
+            </td>
+            <td>
+                  <code><span title="collections.abc.Sequence">Sequence</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Sequence of (field, value) overrides.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>options</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Additional Bloomberg request options.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="polars.DataFrame">DataFrame</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>pl.DataFrame: Bars sorted by security/time with columns
+['security', 'time', 'open', 'high', 'low', 'close', 'volume',
+'numEvents', 'value']. Bloomberg emits <code>time</code> in UTC and the DataFrame
+preserves that timezone.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <pre><code class="language-python">from datetime import datetime
+from polars_bloomberg import BQuery
+
+with BQuery() as bq:
+    df = bq.bdib(
+        &quot;OMX Index&quot;,
+        event_type=&quot;TRADE&quot;,
+        interval=60,
+        start_datetime=datetime(2025, 11, 5),
+        end_datetime=datetime(2025, 11, 6),
+    )
+    print(df)
+</code></pre>
+<p>Expected output:</p>
+<pre><code class="language-python">shape: (4, 3)
+┌───────────┬──────────────┬──────────┬──────────┬───┬──────────┬────────┬───────────┬───────┐
+│ security  ┆ time         ┆ open     ┆ high     ┆ … ┆ close    ┆ volume ┆ numEvents ┆ value │
+│ ---       ┆ ---          ┆ ---      ┆ ---      ┆   ┆ ---      ┆ ---    ┆ ---       ┆ ---   │
+│ str       ┆ datetime[μs] ┆ f64      ┆ f64      ┆   ┆ f64      ┆ i64    ┆ i64       ┆ f64   │
+╞═══════════╪══════════════╪══════════╪══════════╪═══╪══════════╪════════╪═══════════╪═══════╡
+│ OMX Index ┆ 2025-11-05   ┆ 2726.603 ┆ 2742.014 ┆ … ┆ 2739.321 ┆ 0      ┆ 3591      ┆ 0.0   │
+│           ┆ 08:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+│ OMX Index ┆ 2025-11-05   ┆ 2739.466 ┆ 2739.706 ┆ … ┆ 2733.836 ┆ 0      ┆ 3600      ┆ 0.0   │
+│           ┆ 09:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+│ OMX Index ┆ 2025-11-05   ┆ 2733.747 ┆ 2734.827 ┆ … ┆ 2731.724 ┆ 0      ┆ 3600      ┆ 0.0   │
+│           ┆ 10:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+│ OMX Index ┆ 2025-11-05   ┆ 2731.721 ┆ 2742.015 ┆ … ┆ 2741.185 ┆ 0      ┆ 3600      ┆ 0.0   │
+│           ┆ 11:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+│ OMX Index ┆ 2025-11-05   ┆ 2741.256 ┆ 2747.291 ┆ … ┆ 2747.291 ┆ 0      ┆ 3600      ┆ 0.0   │
+│           ┆ 12:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+│ OMX Index ┆ 2025-11-05   ┆ 2747.291 ┆ 2748.815 ┆ … ┆ 2748.287 ┆ 0      ┆ 3600      ┆ 0.0   │
+│           ┆ 13:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+│ OMX Index ┆ 2025-11-05   ┆ 2748.273 ┆ 2752.301 ┆ … ┆ 2752.181 ┆ 0      ┆ 3600      ┆ 0.0   │
+│           ┆ 14:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+│ OMX Index ┆ 2025-11-05   ┆ 2752.181 ┆ 2758.978 ┆ … ┆ 2752.495 ┆ 0      ┆ 3600      ┆ 0.0   │
+│           ┆ 15:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+│ OMX Index ┆ 2025-11-05   ┆ 2752.402 ┆ 2752.85  ┆ … ┆ 2751.404 ┆ 0      ┆ 2100      ┆ 0.0   │
+│           ┆ 16:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+└───────────┴──────────────┴──────────┴──────────┴───┴──────────┴────────┴───────────┴───────┘
+</code></pre>
+</details>
+
+            <details class="quote">
+              <summary>Source code in <code>polars_bloomberg/plbbg.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">413</span>
+<span class="normal">414</span>
+<span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span>
+<span class="normal">419</span>
+<span class="normal">420</span>
+<span class="normal">421</span>
+<span class="normal">422</span>
+<span class="normal">423</span>
+<span class="normal">424</span>
+<span class="normal">425</span>
+<span class="normal">426</span>
+<span class="normal">427</span>
+<span class="normal">428</span>
+<span class="normal">429</span>
+<span class="normal">430</span>
+<span class="normal">431</span>
+<span class="normal">432</span>
+<span class="normal">433</span>
+<span class="normal">434</span>
+<span class="normal">435</span>
+<span class="normal">436</span>
+<span class="normal">437</span>
+<span class="normal">438</span>
+<span class="normal">439</span>
+<span class="normal">440</span>
+<span class="normal">441</span>
+<span class="normal">442</span>
+<span class="normal">443</span>
+<span class="normal">444</span>
+<span class="normal">445</span>
+<span class="normal">446</span>
+<span class="normal">447</span>
+<span class="normal">448</span>
+<span class="normal">449</span>
+<span class="normal">450</span>
+<span class="normal">451</span>
+<span class="normal">452</span>
+<span class="normal">453</span>
+<span class="normal">454</span>
+<span class="normal">455</span>
+<span class="normal">456</span>
+<span class="normal">457</span>
+<span class="normal">458</span>
+<span class="normal">459</span>
+<span class="normal">460</span>
+<span class="normal">461</span>
+<span class="normal">462</span>
+<span class="normal">463</span>
+<span class="normal">464</span>
+<span class="normal">465</span>
+<span class="normal">466</span>
+<span class="normal">467</span>
+<span class="normal">468</span>
+<span class="normal">469</span>
+<span class="normal">470</span>
+<span class="normal">471</span>
+<span class="normal">472</span>
+<span class="normal">473</span>
+<span class="normal">474</span>
+<span class="normal">475</span>
+<span class="normal">476</span>
+<span class="normal">477</span>
+<span class="normal">478</span>
+<span class="normal">479</span>
+<span class="normal">480</span>
+<span class="normal">481</span>
+<span class="normal">482</span>
+<span class="normal">483</span>
+<span class="normal">484</span>
+<span class="normal">485</span>
+<span class="normal">486</span>
+<span class="normal">487</span>
+<span class="normal">488</span>
+<span class="normal">489</span>
+<span class="normal">490</span>
+<span class="normal">491</span>
+<span class="normal">492</span>
+<span class="normal">493</span>
+<span class="normal">494</span>
+<span class="normal">495</span>
+<span class="normal">496</span>
+<span class="normal">497</span>
+<span class="normal">498</span>
+<span class="normal">499</span>
+<span class="normal">500</span>
+<span class="normal">501</span>
+<span class="normal">502</span>
+<span class="normal">503</span>
+<span class="normal">504</span>
+<span class="normal">505</span>
+<span class="normal">506</span>
+<span class="normal">507</span>
+<span class="normal">508</span>
+<span class="normal">509</span>
+<span class="normal">510</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">bdib</span><span class="p">(</span>  <span class="c1"># noqa: PLR0913</span>
+    <span class="bp">self</span><span class="p">,</span>
+    <span class="n">security</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">event_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">interval</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">start_datetime</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+    <span class="n">end_datetime</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+    <span class="n">overrides</span><span class="p">:</span> <span class="n">Sequence</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">options</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch intraday bars from Bloomberg, mirroring Excel&#39;s BDIB() function.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        security (str): Instrument identifier (for example &#39;AAPL US Equity&#39;).</span>
+<span class="sd">        event_type (str): One of TRADE, BID, ASK, BEST_BID, BEST_ASK.</span>
+<span class="sd">        interval (int): Bar length in minutes (1-1440).</span>
+<span class="sd">        start_datetime (datetime): First bar timestamp; naive vals are treated as UTC</span>
+<span class="sd">            tz-aware values are converted to UTC before the request is sent.</span>
+<span class="sd">        end_datetime (datetime): Last bar timestamp; handled same way as start_dtm</span>
+<span class="sd">        overrides (Sequence | None, optional): Sequence of (field, value) overrides.</span>
+<span class="sd">        options (dict | None, optional): Additional Bloomberg request options.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pl.DataFrame: Bars sorted by security/time with columns</span>
+<span class="sd">            [&#39;security&#39;, &#39;time&#39;, &#39;open&#39;, &#39;high&#39;, &#39;low&#39;, &#39;close&#39;, &#39;volume&#39;,</span>
+<span class="sd">            &#39;numEvents&#39;, &#39;value&#39;]. Bloomberg emits `time` in UTC and the DataFrame</span>
+<span class="sd">            preserves that timezone.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        ```python</span>
+<span class="sd">        from datetime import datetime</span>
+<span class="sd">        from polars_bloomberg import BQuery</span>
+
+<span class="sd">        with BQuery() as bq:</span>
+<span class="sd">            df = bq.bdib(</span>
+<span class="sd">                &quot;OMX Index&quot;,</span>
+<span class="sd">                event_type=&quot;TRADE&quot;,</span>
+<span class="sd">                interval=60,</span>
+<span class="sd">                start_datetime=datetime(2025, 11, 5),</span>
+<span class="sd">                end_datetime=datetime(2025, 11, 6),</span>
+<span class="sd">            )</span>
+<span class="sd">            print(df)</span>
+<span class="sd">        ```</span>
+
+<span class="sd">         Expected output:</span>
+<span class="sd">        ```python</span>
+<span class="sd">        shape: (4, 3)</span>
+<span class="sd">        ┌───────────┬──────────────┬──────────┬──────────┬───┬──────────┬────────┬───────────┬───────┐</span>
+<span class="sd">        │ security  ┆ time         ┆ open     ┆ high     ┆ … ┆ close    ┆ volume ┆ numEvents ┆ value │</span>
+<span class="sd">        │ ---       ┆ ---          ┆ ---      ┆ ---      ┆   ┆ ---      ┆ ---    ┆ ---       ┆ ---   │</span>
+<span class="sd">        │ str       ┆ datetime[μs] ┆ f64      ┆ f64      ┆   ┆ f64      ┆ i64    ┆ i64       ┆ f64   │</span>
+<span class="sd">        ╞═══════════╪══════════════╪══════════╪══════════╪═══╪══════════╪════════╪═══════════╪═══════╡</span>
+<span class="sd">        │ OMX Index ┆ 2025-11-05   ┆ 2726.603 ┆ 2742.014 ┆ … ┆ 2739.321 ┆ 0      ┆ 3591      ┆ 0.0   │</span>
+<span class="sd">        │           ┆ 08:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">        │ OMX Index ┆ 2025-11-05   ┆ 2739.466 ┆ 2739.706 ┆ … ┆ 2733.836 ┆ 0      ┆ 3600      ┆ 0.0   │</span>
+<span class="sd">        │           ┆ 09:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">        │ OMX Index ┆ 2025-11-05   ┆ 2733.747 ┆ 2734.827 ┆ … ┆ 2731.724 ┆ 0      ┆ 3600      ┆ 0.0   │</span>
+<span class="sd">        │           ┆ 10:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">        │ OMX Index ┆ 2025-11-05   ┆ 2731.721 ┆ 2742.015 ┆ … ┆ 2741.185 ┆ 0      ┆ 3600      ┆ 0.0   │</span>
+<span class="sd">        │           ┆ 11:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">        │ OMX Index ┆ 2025-11-05   ┆ 2741.256 ┆ 2747.291 ┆ … ┆ 2747.291 ┆ 0      ┆ 3600      ┆ 0.0   │</span>
+<span class="sd">        │           ┆ 12:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">        │ OMX Index ┆ 2025-11-05   ┆ 2747.291 ┆ 2748.815 ┆ … ┆ 2748.287 ┆ 0      ┆ 3600      ┆ 0.0   │</span>
+<span class="sd">        │           ┆ 13:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">        │ OMX Index ┆ 2025-11-05   ┆ 2748.273 ┆ 2752.301 ┆ … ┆ 2752.181 ┆ 0      ┆ 3600      ┆ 0.0   │</span>
+<span class="sd">        │           ┆ 14:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">        │ OMX Index ┆ 2025-11-05   ┆ 2752.181 ┆ 2758.978 ┆ … ┆ 2752.495 ┆ 0      ┆ 3600      ┆ 0.0   │</span>
+<span class="sd">        │           ┆ 15:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">        │ OMX Index ┆ 2025-11-05   ┆ 2752.402 ┆ 2752.85  ┆ … ┆ 2751.404 ┆ 0      ┆ 2100      ┆ 0.0   │</span>
+<span class="sd">        │           ┆ 16:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │</span>
+<span class="sd">        └───────────┴──────────────┴──────────┴──────────┴───┴──────────┴────────┴───────────┴───────┘</span>
+<span class="sd">        ```</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_intraday_bar_request</span><span class="p">(</span>
+        <span class="n">security</span><span class="o">=</span><span class="n">security</span><span class="p">,</span>
+        <span class="n">event_type</span><span class="o">=</span><span class="n">event_type</span><span class="p">,</span>
+        <span class="n">interval</span><span class="o">=</span><span class="n">interval</span><span class="p">,</span>
+        <span class="n">start_datetime</span><span class="o">=</span><span class="n">start_datetime</span><span class="p">,</span>
+        <span class="n">end_datetime</span><span class="o">=</span><span class="n">end_datetime</span><span class="p">,</span>
+        <span class="n">overrides</span><span class="o">=</span><span class="n">overrides</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">responses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_bdib_responses</span><span class="p">(</span><span class="n">responses</span><span class="p">,</span> <span class="n">fallback_security</span><span class="o">=</span><span class="n">security</span><span class="p">)</span>
+    <span class="n">schema</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;security&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Utf8</span><span class="p">,</span>
+        <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Datetime</span><span class="p">,</span>
+        <span class="s2">&quot;open&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Float64</span><span class="p">,</span>
+        <span class="s2">&quot;high&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Float64</span><span class="p">,</span>
+        <span class="s2">&quot;low&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Float64</span><span class="p">,</span>
+        <span class="s2">&quot;close&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Float64</span><span class="p">,</span>
+        <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span>
+        <span class="s2">&quot;numEvents&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Int64</span><span class="p">,</span>
+        <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">Float64</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">schema</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">infer_schema_length</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">sort</span><span class="p">([</span><span class="s2">&quot;security&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">df</span><span class="o">.</span><span class="n">is_empty</span><span class="p">()</span> <span class="k">else</span> <span class="n">df</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -1805,7 +2577,7 @@ print(df)
                 <code>securities</code>
             </td>
             <td>
-                  <code>list[str]</code>
+                  <code><span title="list">list</span>[<span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1821,7 +2593,7 @@ print(df)
                 <code>fields</code>
             </td>
             <td>
-                  <code>list[str]</code>
+                  <code><span title="list">list</span>[<span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1837,7 +2609,7 @@ print(df)
                 <code>overrides</code>
             </td>
             <td>
-                  <code>list[tuple]</code>
+                  <code><span title="list">list</span>[<span title="tuple">tuple</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1853,7 +2625,7 @@ print(df)
                 <code>options</code>
             </td>
             <td>
-                  <code>dict</code>
+                  <code><span title="dict">dict</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1902,7 +2674,7 @@ print(df)
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code>ConnectionError</code>
+                  <code><span title="ConnectionError">ConnectionError</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1912,7 +2684,7 @@ print(df)
           </tr>
           <tr class="doc-section-item">
             <td>
-                  <code>ValueError</code>
+                  <code><span title="ValueError">ValueError</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -1945,10 +2717,10 @@ print(df)
 └────────────────┴──────────┘
 </code></pre>
 </details>
+
             <details class="quote">
-              <summary>Source code in <code>polars_bloomberg\plbbg.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">286</span>
-<span class="normal">287</span>
+              <summary>Source code in <code>polars_bloomberg/plbbg.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">287</span>
 <span class="normal">288</span>
 <span class="normal">289</span>
 <span class="normal">290</span>
@@ -2001,7 +2773,8 @@ print(df)
 <span class="normal">337</span>
 <span class="normal">338</span>
 <span class="normal">339</span>
-<span class="normal">340</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">bdp</span><span class="p">(</span>
+<span class="normal">340</span>
+<span class="normal">341</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">bdp</span><span class="p">(</span>
     <span class="bp">self</span><span class="p">,</span>
     <span class="n">securities</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">fields</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
@@ -2094,7 +2867,7 @@ for advanced data retrieval, screening, and analysis.</p>
                 <code>expression</code>
             </td>
             <td>
-                  <code>str</code>
+                  <code><span title="str">str</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2121,7 +2894,12 @@ get(), let(), for(), filter(), etc.</p>
       <tbody>
           <tr class="doc-section-item">
 <td><code>BqlResult</code></td>            <td>
-                  <code><a class="autorefs autorefs-internal" title="polars_bloomberg.plbbg.BqlResult" href="#polars_bloomberg.BqlResult">BqlResult</a></code>
+                  <code><a class="autorefs autorefs-internal" title="polars_bloomberg.BqlResult
+
+
+  
+      dataclass
+   (polars_bloomberg.plbbg.BqlResult)" href="#polars_bloomberg.BqlResult">BqlResult</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2146,7 +2924,7 @@ get(), let(), for(), filter(), etc.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code>ConnectionError</code>
+                  <code><span title="ConnectionError">ConnectionError</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2156,7 +2934,7 @@ get(), let(), for(), filter(), etc.</p>
           </tr>
           <tr class="doc-section-item">
             <td>
-                  <code>ValueError</code>
+                  <code><span title="ValueError">ValueError</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2221,97 +2999,98 @@ shape: (1, 3)
 ...     print(df)
 </code></pre>
 </details>
+
             <details class="quote">
-              <summary>Source code in <code>polars_bloomberg\plbbg.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">412</span>
-<span class="normal">413</span>
-<span class="normal">414</span>
-<span class="normal">415</span>
-<span class="normal">416</span>
-<span class="normal">417</span>
-<span class="normal">418</span>
-<span class="normal">419</span>
-<span class="normal">420</span>
-<span class="normal">421</span>
-<span class="normal">422</span>
-<span class="normal">423</span>
-<span class="normal">424</span>
-<span class="normal">425</span>
-<span class="normal">426</span>
-<span class="normal">427</span>
-<span class="normal">428</span>
-<span class="normal">429</span>
-<span class="normal">430</span>
-<span class="normal">431</span>
-<span class="normal">432</span>
-<span class="normal">433</span>
-<span class="normal">434</span>
-<span class="normal">435</span>
-<span class="normal">436</span>
-<span class="normal">437</span>
-<span class="normal">438</span>
-<span class="normal">439</span>
-<span class="normal">440</span>
-<span class="normal">441</span>
-<span class="normal">442</span>
-<span class="normal">443</span>
-<span class="normal">444</span>
-<span class="normal">445</span>
-<span class="normal">446</span>
-<span class="normal">447</span>
-<span class="normal">448</span>
-<span class="normal">449</span>
-<span class="normal">450</span>
-<span class="normal">451</span>
-<span class="normal">452</span>
-<span class="normal">453</span>
-<span class="normal">454</span>
-<span class="normal">455</span>
-<span class="normal">456</span>
-<span class="normal">457</span>
-<span class="normal">458</span>
-<span class="normal">459</span>
-<span class="normal">460</span>
-<span class="normal">461</span>
-<span class="normal">462</span>
-<span class="normal">463</span>
-<span class="normal">464</span>
-<span class="normal">465</span>
-<span class="normal">466</span>
-<span class="normal">467</span>
-<span class="normal">468</span>
-<span class="normal">469</span>
-<span class="normal">470</span>
-<span class="normal">471</span>
-<span class="normal">472</span>
-<span class="normal">473</span>
-<span class="normal">474</span>
-<span class="normal">475</span>
-<span class="normal">476</span>
-<span class="normal">477</span>
-<span class="normal">478</span>
-<span class="normal">479</span>
-<span class="normal">480</span>
-<span class="normal">481</span>
-<span class="normal">482</span>
-<span class="normal">483</span>
-<span class="normal">484</span>
-<span class="normal">485</span>
-<span class="normal">486</span>
-<span class="normal">487</span>
-<span class="normal">488</span>
-<span class="normal">489</span>
-<span class="normal">490</span>
-<span class="normal">491</span>
-<span class="normal">492</span>
-<span class="normal">493</span>
-<span class="normal">494</span>
-<span class="normal">495</span>
-<span class="normal">496</span>
-<span class="normal">497</span>
-<span class="normal">498</span>
-<span class="normal">499</span>
-<span class="normal">500</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">bql</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BqlResult</span><span class="p">:</span>
+              <summary>Source code in <code>polars_bloomberg/plbbg.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">512</span>
+<span class="normal">513</span>
+<span class="normal">514</span>
+<span class="normal">515</span>
+<span class="normal">516</span>
+<span class="normal">517</span>
+<span class="normal">518</span>
+<span class="normal">519</span>
+<span class="normal">520</span>
+<span class="normal">521</span>
+<span class="normal">522</span>
+<span class="normal">523</span>
+<span class="normal">524</span>
+<span class="normal">525</span>
+<span class="normal">526</span>
+<span class="normal">527</span>
+<span class="normal">528</span>
+<span class="normal">529</span>
+<span class="normal">530</span>
+<span class="normal">531</span>
+<span class="normal">532</span>
+<span class="normal">533</span>
+<span class="normal">534</span>
+<span class="normal">535</span>
+<span class="normal">536</span>
+<span class="normal">537</span>
+<span class="normal">538</span>
+<span class="normal">539</span>
+<span class="normal">540</span>
+<span class="normal">541</span>
+<span class="normal">542</span>
+<span class="normal">543</span>
+<span class="normal">544</span>
+<span class="normal">545</span>
+<span class="normal">546</span>
+<span class="normal">547</span>
+<span class="normal">548</span>
+<span class="normal">549</span>
+<span class="normal">550</span>
+<span class="normal">551</span>
+<span class="normal">552</span>
+<span class="normal">553</span>
+<span class="normal">554</span>
+<span class="normal">555</span>
+<span class="normal">556</span>
+<span class="normal">557</span>
+<span class="normal">558</span>
+<span class="normal">559</span>
+<span class="normal">560</span>
+<span class="normal">561</span>
+<span class="normal">562</span>
+<span class="normal">563</span>
+<span class="normal">564</span>
+<span class="normal">565</span>
+<span class="normal">566</span>
+<span class="normal">567</span>
+<span class="normal">568</span>
+<span class="normal">569</span>
+<span class="normal">570</span>
+<span class="normal">571</span>
+<span class="normal">572</span>
+<span class="normal">573</span>
+<span class="normal">574</span>
+<span class="normal">575</span>
+<span class="normal">576</span>
+<span class="normal">577</span>
+<span class="normal">578</span>
+<span class="normal">579</span>
+<span class="normal">580</span>
+<span class="normal">581</span>
+<span class="normal">582</span>
+<span class="normal">583</span>
+<span class="normal">584</span>
+<span class="normal">585</span>
+<span class="normal">586</span>
+<span class="normal">587</span>
+<span class="normal">588</span>
+<span class="normal">589</span>
+<span class="normal">590</span>
+<span class="normal">591</span>
+<span class="normal">592</span>
+<span class="normal">593</span>
+<span class="normal">594</span>
+<span class="normal">595</span>
+<span class="normal">596</span>
+<span class="normal">597</span>
+<span class="normal">598</span>
+<span class="normal">599</span>
+<span class="normal">600</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">bql</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expression</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BqlResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute a Bloomberg Query Language (BQL) query.</span>
 
 <span class="sd">    BQL is Bloomberg&#39;s domain-specific language for complex financial queries. It allows</span>
@@ -2450,7 +3229,7 @@ providing methods to access and manipulate the data.</p>
           <tr class="doc-section-item">
             <td><code><span title="polars_bloomberg.BqlResult.dataframes">dataframes</span></code></td>
             <td>
-                  <code>list[<span title="polars.DataFrame">DataFrame</span>]</code>
+                  <code><span title="list">list</span>[<span title="polars.DataFrame">DataFrame</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2461,7 +3240,7 @@ providing methods to access and manipulate the data.</p>
           <tr class="doc-section-item">
             <td><code><span title="polars_bloomberg.BqlResult.names">names</span></code></td>
             <td>
-                  <code>list[str]</code>
+                  <code><span title="list">list</span>[<span title="str">str</span>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -2518,7 +3297,7 @@ print(f&quot;Number of DataFrames: {num_dfs}&quot;)
       </thead>
       <tbody>
             <tr class="doc-section-item">
-              <td><code><a class="autorefs autorefs-internal" title="polars_bloomberg.BqlResult.combine" href="#polars_bloomberg.BqlResult.combine">combine</a></code></td>
+              <td><code><a class="autorefs autorefs-internal" title="combine() (polars_bloomberg.BqlResult.combine)" href="#polars_bloomberg.BqlResult.combine">combine</a></code></td>
               <td>
                 <div class="doc-md-description">
                   <p>Combine all dataframes into one by joining on common columns.</p>
@@ -2533,8 +3312,9 @@ print(f&quot;Number of DataFrames: {num_dfs}&quot;)
 
 
 
+
               <details class="quote">
-                <summary>Source code in <code>polars_bloomberg\plbbg.py</code></summary>
+                <summary>Source code in <code>polars_bloomberg/plbbg.py</code></summary>
                 <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 58</span>
 <span class="normal"> 59</span>
 <span class="normal"> 60</span>
@@ -2677,7 +3457,7 @@ print(f&quot;Number of DataFrames: {num_dfs}&quot;)
 <span class="normal">197</span>
 <span class="normal">198</span>
 <span class="normal">199</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">BqlResult</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BqlResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Holds the result of a BQL query as a list of Polars DataFrames.</span>
 
 <span class="sd">    This class encapsulates the results of a Bloomberg Query Language (BQL) query,</span>
@@ -2741,7 +3521,7 @@ print(f&quot;Number of DataFrames: {num_dfs}&quot;)
     <span class="n">dataframes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]</span>
     <span class="n">names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">combine</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">combine</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Combine all dataframes into one by joining on common columns.</span>
 
 <span class="sd">        This method merges all the DataFrames in the `dataframes` attribute into a single</span>
@@ -2807,15 +3587,15 @@ print(f&quot;Number of DataFrames: {num_dfs}&quot;)
             <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">common_cols</span><span class="p">),</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;full&quot;</span><span class="p">,</span> <span class="n">coalesce</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span>
 
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Access individual DataFrames by index.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataframes</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the number of dataframes.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataframes</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return an iterator over the dataframes.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataframes</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -2846,11 +3626,12 @@ print(f&quot;Number of DataFrames: {num_dfs}&quot;)
 
         <p>Access individual DataFrames by index.</p>
 
+
             <details class="quote">
-              <summary>Source code in <code>polars_bloomberg\plbbg.py</code></summary>
+              <summary>Source code in <code>polars_bloomberg/plbbg.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">189</span>
 <span class="normal">190</span>
-<span class="normal">191</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="normal">191</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Access individual DataFrames by index.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataframes</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
 </code></pre></div></td></tr></table></div>
@@ -2872,11 +3653,12 @@ print(f&quot;Number of DataFrames: {num_dfs}&quot;)
 
         <p>Return an iterator over the dataframes.</p>
 
+
             <details class="quote">
-              <summary>Source code in <code>polars_bloomberg\plbbg.py</code></summary>
+              <summary>Source code in <code>polars_bloomberg/plbbg.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">197</span>
 <span class="normal">198</span>
-<span class="normal">199</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="normal">199</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return an iterator over the dataframes.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataframes</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -2898,11 +3680,12 @@ print(f&quot;Number of DataFrames: {num_dfs}&quot;)
 
         <p>Return the number of dataframes.</p>
 
+
             <details class="quote">
-              <summary>Source code in <code>polars_bloomberg\plbbg.py</code></summary>
+              <summary>Source code in <code>polars_bloomberg/plbbg.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">193</span>
 <span class="normal">194</span>
-<span class="normal">195</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="normal">195</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the number of dataframes.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataframes</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
@@ -2962,7 +3745,7 @@ are found, it raises a ValueError.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code>ValueError</code>
+                  <code><span title="ValueError">ValueError</span></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3007,8 +3790,9 @@ with BQuery() as bq:
 <pre><code>No common columns found to join on.
 </code></pre>
 </details>
+
             <details class="quote">
-              <summary>Source code in <code>polars_bloomberg\plbbg.py</code></summary>
+              <summary>Source code in <code>polars_bloomberg/plbbg.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">123</span>
 <span class="normal">124</span>
 <span class="normal">125</span>
@@ -3073,7 +3857,7 @@ with BQuery() as bq:
 <span class="normal">184</span>
 <span class="normal">185</span>
 <span class="normal">186</span>
-<span class="normal">187</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">combine</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="normal">187</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">combine</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Combine all dataframes into one by joining on common columns.</span>
 
 <span class="sd">    This method merges all the DataFrames in the `dataframes` attribute into a single</span>
