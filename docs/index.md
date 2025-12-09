@@ -3,7 +3,7 @@
 # Polars + Bloomberg Open API
 [![Tests](https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml/badge.svg)](https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml)
 
-> Documentation for **polars-bloomberg v0.5.0**.
+> Documentation for **polars-bloomberg v0.5.1**.
 
 **polars-bloomberg** is a Python library that extracts Bloomberg’s financial data directly into [Polars](https://www.pola.rs/) DataFrames.   
 If you’re a quant financial analyst, data scientist, or quant developer working in capital markets, this library makes it easy to fetch, transform, and analyze Bloomberg data right in Polars—offering speed, efficient memory usage, and a lot of fun to use!
