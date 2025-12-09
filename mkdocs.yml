@@ -30,4 +30,5 @@ nav:
   - Examples:
     - Equity: examples/equity.ipynb
     - Credits: examples/credits.ipynb
+    - Macro: examples/macro.ipynb
   - API Reference: api.md
