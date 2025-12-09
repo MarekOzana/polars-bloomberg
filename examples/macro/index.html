@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../../img/favicon.ico">
-        <title>Credits - Polars-Bloomberg</title>
+        <title>Macro Examples - Polars-Bloomberg</title>
         <link href="../../css/bootstrap.min.css" rel="stylesheet">
         <link href="../../css/fontawesome.min.css" rel="stylesheet">
         <link href="../../css/brands.min.css" rel="stylesheet">
@@ -68,11 +68,11 @@
 </li>
                                     
 <li>
-    <a href="./" class="dropdown-item active" aria-current="page">Credits</a>
+    <a href="../credits/" class="dropdown-item">Credits</a>
 </li>
                                     
 <li>
-    <a href="../macro/" class="dropdown-item">Macro Examples</a>
+    <a href="./" class="dropdown-item active" aria-current="page">Macro Examples</a>
 </li>
                                 </ul>
                             </li>
@@ -88,17 +88,17 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href="../equity/" class="nav-link">
+                                <a rel="prev" href="../credits/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../macro/" class="nav-link">
+                                <a rel="next" href="../../api/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="https://github.com/MarekOzana/polars-bloomberg/edit/master/docs/examples/credits.ipynb" class="nav-link"><i class="fa-brands fa-github"></i> Edit on GitHub</a>
+                                <a href="https://github.com/MarekOzana/polars-bloomberg/edit/master/docs/examples/macro.ipynb" class="nav-link"><i class="fa-brands fa-github"></i> Edit on GitHub</a>
                             </li>
                     </ul>
                 </div>
@@ -118,9 +118,9 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="1"><a href="#credits" class="nav-link">Credits</a>
+            <li class="nav-item" data-bs-level="1"><a href="#macro-examples" class="nav-link">Macro Examples</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#monthly-index-stats" class="nav-link">Monthly Index Stats</a>
+            <li class="nav-item" data-bs-level="2"><a href="#visualizing-sp-500-valuation-scenarios" class="nav-link">Visualizing S&amp;P 500 Valuation Scenarios</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -567,18 +567,20 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </style>
 <!-- End of mermaid configuration --><div class="jupyter-wrapper">
 <div class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=e089a92d">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="credits">Credits<a class="anchor-link" href="#credits">¶</a></h1><p>(c) 2024 Marek Ozana</p>
+<h1 id="macro-examples">Macro Examples<a class="anchor-link" href="#macro-examples">¶</a></h1><p>© 2025 Jim Domeij &amp; Marek Ozana</p>
+<p>These examples show how to use <code>polars-bloomberg</code> for macro analysis, inspired by ideas from my friend <strong>Jim Domeij</strong>.<br/>
+Thank you, Jim, for contributing your perspective and making it possible for others to learn from your macro thinking.</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=6633ce89">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -596,32 +598,38 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">altair</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">alt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-1">from polars_bloomberg import BQuery</div>
+<div class="clipboard-copy-txt" id="cell-1">import altair as alt
+import polars as pl
+
+from polars_bloomberg import BQuery</div>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=d8d840a7">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="monthly-index-stats">Monthly Index Stats<a class="anchor-link" href="#monthly-index-stats">¶</a></h2>
+<h2 id="visualizing-sp-500-valuation-scenarios">Visualizing S&amp;P 500 Valuation Scenarios<a class="anchor-link" href="#visualizing-sp-500-valuation-scenarios">¶</a></h2><p>This chart shows potential S&amp;P 500 price levels and returns for the next 12 months. It uses a scenario matrix driven by two factors: Forward P/E ratios (vertical axis, from historical averages) and Forward EPS growth (horizontal axis, centered on consensus). Each cell displays the resulting index price and percentage return from the current price. This helps investors visualize risk and potential upside under different market conditions.</p>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=1ab3363e">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-2">
@@ -634,185 +642,173 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Get data</span>
-<span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">    let(</span>
-<span class="s2">        #oas_s=spread(spread_type=OAS_SWAP, universe_type=RETURNS);</span>
-<span class="s2">        #dOAS = diff(#oas_s);</span>
-<span class="s2">        #dur = duration(universe_type=RETURNS);</span>
-<span class="s2">        #ret = pct_diff(px_last());</span>
+<span class="s2">        #last_price = px_last();</span>
+<span class="s2">        #12m_trail_eps = headline_eps_market(fpt=LTM);</span>
+<span class="s2">        #12m_fwd_eps = headline_eps_market(fpt=BT, fpo=1);</span>
+<span class="s2">        #epsg_consensus = #12m_fwd_eps/#12m_trail_eps - 1;</span>
+<span class="s2">        #current_pe = headline_pe_ratio(fpt=BT, fpo=1);</span>
+<span class="s2">        #5y_avg_pe = avg(headline_pe_ratio(fpt=BT, fpo=1, fill=PREV, dates=range(-5Y, 0D, frq=W)));</span>
+<span class="s2">        #10y_avg_pe = avg(headline_pe_ratio(fpt=BT, fpo=1, fill=PREV, dates=range(-10Y, 0D, frq=W)));</span>
+<span class="s2">        #20y_avg_pe = avg(headline_pe_ratio(fpt=BT, fpo=1, fill=PREV, dates=range(-20Y, 0D, frq=W)));</span>
+<span class="s2">        #35y_avg_pe = avg(headline_pe_ratio(fpt=BT, fpo=1, fill=PREV, dates=range(-35Y, 0D, frq=W)));</span>
+<span class="s2">        #max_pe = max(headline_pe_ratio(fpt=BT, fpo=1, fill=PREV, dates=range(-35Y, 0D, frq=W)));</span>
 <span class="s2">    )</span>
-<span class="s2">    get(name, #oas_s, #dOAS, #dur, #ret)</span>
-<span class="s2">    for(['LF98TRUU Index', 'LP01TREU Index', 'H38098EU Index'])</span>
-<span class="s2">    with(dates=range(-3M, 0D), fill=PREV, per=M)</span>
-<span class="s2">"""</span>
-
+<span class="s2">    get(</span>
+<span class="s2">        #last_price,</span>
+<span class="s2">        #12m_trail_eps,</span>
+<span class="s2">        #12m_fwd_eps,</span>
+<span class="s2">        #epsg_consensus,</span>
+<span class="s2">        #current_pe,</span>
+<span class="s2">        #5y_avg_pe,</span>
+<span class="s2">        #10y_avg_pe,</span>
+<span class="s2">        #20y_avg_pe,</span>
+<span class="s2">        #35y_avg_pe,</span>
+<span class="s2">        #max_pe</span>
+<span class="s2">    )</span>
+<span class="s2">    preferences(dropCols=['CURRENCY', 'DATE', 'AS_OF_DATE', 'REVISION_DATE', 'PERIOD_END_DATE'])</span>
+<span class="s2">    for('SPX Index')</span>
+<span class="s2">"""</span>  <span class="c1"># noqa: E501</span>
 <span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
-</pre></div>
-<div class="clipboard-copy-txt" id="cell-2"># Get data
-query = """
-    let(
-        #oas_s=spread(spread_type=OAS_SWAP, universe_type=RETURNS);
-        #dOAS = diff(#oas_s);
-        #dur = duration(universe_type=RETURNS);
-        #ret = pct_diff(px_last());
-    )
-    get(name, #oas_s, #dOAS, #dur, #ret)
-    for(['LF98TRUU Index', 'LP01TREU Index', 'H38098EU Index'])
-    with(dates=range(-3M, 0D), fill=PREV, per=M)
-"""
+    <span class="n">res</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
 
+<span class="n">df</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
+<span class="n">df</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-2">query = """
+    let(
+        #last_price = px_last();
+        #12m_trail_eps = headline_eps_market(fpt=LTM);
+        #12m_fwd_eps = headline_eps_market(fpt=BT, fpo=1);
+        #epsg_consensus = #12m_fwd_eps/#12m_trail_eps - 1;
+        #current_pe = headline_pe_ratio(fpt=BT, fpo=1);
+        #5y_avg_pe = avg(headline_pe_ratio(fpt=BT, fpo=1, fill=PREV, dates=range(-5Y, 0D, frq=W)));
+        #10y_avg_pe = avg(headline_pe_ratio(fpt=BT, fpo=1, fill=PREV, dates=range(-10Y, 0D, frq=W)));
+        #20y_avg_pe = avg(headline_pe_ratio(fpt=BT, fpo=1, fill=PREV, dates=range(-20Y, 0D, frq=W)));
+        #35y_avg_pe = avg(headline_pe_ratio(fpt=BT, fpo=1, fill=PREV, dates=range(-35Y, 0D, frq=W)));
+        #max_pe = max(headline_pe_ratio(fpt=BT, fpo=1, fill=PREV, dates=range(-35Y, 0D, frq=W)));
+    )
+    get(
+        #last_price,
+        #12m_trail_eps,
+        #12m_fwd_eps,
+        #epsg_consensus,
+        #current_pe,
+        #5y_avg_pe,
+        #10y_avg_pe,
+        #20y_avg_pe,
+        #35y_avg_pe,
+        #max_pe
+    )
+    preferences(dropCols=['CURRENCY', 'DATE', 'AS_OF_DATE', 'REVISION_DATE', 'PERIOD_END_DATE'])
+    for('SPX Index')
+"""  # noqa: E501
 with BQuery() as bq:
-    df = bq.bql(query).combine()</div>
+    res = bq.bql(query)
+
+df = res.combine()
+df</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
+<div><style>
+.dataframe > thead > tr,
+.dataframe > tbody > tr {
+  text-align: right;
+  white-space: pre-wrap;
+}
+</style>
+<small>shape: (1, 11)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>#last_price</th><th>#12m_trail_eps</th><th>#12m_fwd_eps</th><th>#epsg_consensus</th><th>#current_pe</th><th>#5y_avg_pe</th><th>#10y_avg_pe</th><th>#20y_avg_pe</th><th>#35y_avg_pe</th><th>#max_pe</th></tr><tr><td>str</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td></tr></thead><tbody><tr><td>"SPX Index"</td><td>6850.44</td><td>269.074714</td><td>306.176329</td><td>0.137886</td><td>22.36133</td><td>20.048068</td><td>18.824081</td><td>16.315795</td><td>16.525469</td><td>24.071401</td></tr></tbody></table></div>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide_code">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide_code">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide_code" id="cell-id=ad5d2deb">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
-<div id="rcthixshpb" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
 <style>
-#rcthixshpb table {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-        }
+  #altair-viz-93d0f5703a9145ddaa4038192392956e.vega-embed {
+    width: 100%;
+    display: flex;
+  }
 
-#rcthixshpb thead, tbody, tfoot, tr, td, th { border-style: none !important; }
- tr { background-color: transparent !important; }
-#rcthixshpb p { margin: 0 !important; padding: 0 !important; }
- #rcthixshpb .gt_table { display: table !important; border-collapse: collapse !important; line-height: normal !important; margin-left: auto !important; margin-right: auto !important; color: #333333 !important; font-size: 16px !important; font-weight: normal !important; font-style: normal !important; background-color: #FFFFFF !important; width: auto !important; border-top-style: solid !important; border-top-width: 2px !important; border-top-color: #A8A8A8 !important; border-right-style: none !important; border-right-width: 2px !important; border-right-color: #D3D3D3 !important; border-bottom-style: solid !important; border-bottom-width: 2px !important; border-bottom-color: #A8A8A8 !important; border-left-style: none !important; border-left-width: 2px !important; border-left-color: #D3D3D3 !important; }
- #rcthixshpb .gt_caption { padding-top: 4px !important; padding-bottom: 4px !important; }
- #rcthixshpb .gt_title { color: #333333 !important; font-size: 125% !important; font-weight: initial !important; padding-top: 4px !important; padding-bottom: 4px !important; padding-left: 5px !important; padding-right: 5px !important; border-bottom-color: #FFFFFF !important; border-bottom-width: 0 !important; }
- #rcthixshpb .gt_subtitle { color: #333333 !important; font-size: 85% !important; font-weight: initial !important; padding-top: 3px !important; padding-bottom: 5px !important; padding-left: 5px !important; padding-right: 5px !important; border-top-color: #FFFFFF !important; border-top-width: 0 !important; }
- #rcthixshpb .gt_heading { background-color: #FFFFFF !important; text-align: center !important; border-bottom-color: #FFFFFF !important; border-left-style: none !important; border-left-width: 1px !important; border-left-color: #D3D3D3 !important; border-right-style: none !important; border-right-width: 1px !important; border-right-color: #D3D3D3 !important; }
- #rcthixshpb .gt_bottom_border { border-bottom-style: solid !important; border-bottom-width: 2px !important; border-bottom-color: #D3D3D3 !important; }
- #rcthixshpb .gt_col_headings { border-top-style: solid !important; border-top-width: 2px !important; border-top-color: #D3D3D3 !important; border-bottom-style: solid !important; border-bottom-width: 2px !important; border-bottom-color: #D3D3D3 !important; border-left-style: none !important; border-left-width: 1px !important; border-left-color: #D3D3D3 !important; border-right-style: none !important; border-right-width: 1px !important; border-right-color: #D3D3D3 !important; }
- #rcthixshpb .gt_col_heading { color: #333333 !important; background-color: #FFFFFF !important; font-size: 100% !important; font-weight: normal !important; text-transform: inherit !important; border-left-style: none !important; border-left-width: 1px !important; border-left-color: #D3D3D3 !important; border-right-style: none !important; border-right-width: 1px !important; border-right-color: #D3D3D3 !important; vertical-align: bottom !important; padding-top: 5px !important; padding-bottom: 5px !important; padding-left: 5px !important; padding-right: 5px !important; overflow-x: hidden !important; }
- #rcthixshpb .gt_column_spanner_outer { color: #333333 !important; background-color: #FFFFFF !important; font-size: 100% !important; font-weight: normal !important; text-transform: inherit !important; padding-top: 0 !important; padding-bottom: 0 !important; padding-left: 4px !important; padding-right: 4px !important; }
- #rcthixshpb .gt_column_spanner_outer:first-child { padding-left: 0 !important; }
- #rcthixshpb .gt_column_spanner_outer:last-child { padding-right: 0 !important; }
- #rcthixshpb .gt_column_spanner { border-bottom-style: solid !important; border-bottom-width: 2px !important; border-bottom-color: #D3D3D3 !important; vertical-align: bottom !important; padding-top: 5px !important; padding-bottom: 5px !important; overflow-x: hidden !important; display: inline-block !important; width: 100% !important; }
- #rcthixshpb .gt_spanner_row { border-bottom-style: hidden !important; }
- #rcthixshpb .gt_group_heading { padding-top: 8px !important; padding-bottom: 8px !important; padding-left: 5px !important; padding-right: 5px !important; color: #333333 !important; background-color: #FFFFFF !important; font-size: 100% !important; font-weight: initial !important; text-transform: inherit !important; border-top-style: solid !important; border-top-width: 2px !important; border-top-color: #D3D3D3 !important; border-bottom-style: solid !important; border-bottom-width: 2px !important; border-bottom-color: #D3D3D3 !important; border-left-style: none !important; border-left-width: 1px !important; border-left-color: #D3D3D3 !important; border-right-style: none !important; border-right-width: 1px !important; border-right-color: #D3D3D3 !important; vertical-align: middle !important; text-align: left !important; }
- #rcthixshpb .gt_empty_group_heading { padding: 0.5px !important; color: #333333 !important; background-color: #FFFFFF !important; font-size: 100% !important; font-weight: initial !important; border-top-style: solid !important; border-top-width: 2px !important; border-top-color: #D3D3D3 !important; border-bottom-style: solid !important; border-bottom-width: 2px !important; border-bottom-color: #D3D3D3 !important; vertical-align: middle !important; }
- #rcthixshpb .gt_from_md> :first-child { margin-top: 0 !important; }
- #rcthixshpb .gt_from_md> :last-child { margin-bottom: 0 !important; }
- #rcthixshpb .gt_row { padding-top: 8px !important; padding-bottom: 8px !important; padding-left: 5px !important; padding-right: 5px !important; margin: 10px !important; border-top-style: solid !important; border-top-width: 1px !important; border-top-color: #D3D3D3 !important; border-left-style: none !important; border-left-width: 1px !important; border-left-color: #D3D3D3 !important; border-right-style: none !important; border-right-width: 1px !important; border-right-color: #D3D3D3 !important; vertical-align: middle !important; overflow-x: hidden !important; }
- #rcthixshpb .gt_stub { color: #333333 !important; background-color: #FFFFFF !important; font-size: 100% !important; font-weight: initial !important; text-transform: inherit !important; border-right-style: solid !important; border-right-width: 2px !important; border-right-color: #D3D3D3 !important; padding-left: 5px !important; padding-right: 5px !important; }
- #rcthixshpb .gt_stub_row_group { color: #333333 !important; background-color: #FFFFFF !important; font-size: 100% !important; font-weight: initial !important; text-transform: inherit !important; border-right-style: solid !important; border-right-width: 2px !important; border-right-color: #D3D3D3 !important; padding-left: 5px !important; padding-right: 5px !important; vertical-align: top !important; }
- #rcthixshpb .gt_row_group_first td { border-top-width: 2px !important; }
- #rcthixshpb .gt_row_group_first th { border-top-width: 2px !important; }
- #rcthixshpb .gt_striped { background-color: rgba(128,128,128,0.05) !important; }
- #rcthixshpb .gt_table_body { border-top-style: solid !important; border-top-width: 2px !important; border-top-color: #D3D3D3 !important; border-bottom-style: solid !important; border-bottom-width: 2px !important; border-bottom-color: #D3D3D3 !important; }
- #rcthixshpb .gt_sourcenotes { color: #333333 !important; background-color: #FFFFFF !important; border-bottom-style: none !important; border-bottom-width: 2px !important; border-bottom-color: #D3D3D3 !important; border-left-style: none !important; border-left-width: 2px !important; border-left-color: #D3D3D3 !important; border-right-style: none !important; border-right-width: 2px !important; border-right-color: #D3D3D3 !important; }
- #rcthixshpb .gt_sourcenote { font-size: 90% !important; padding-top: 4px !important; padding-bottom: 4px !important; padding-left: 5px !important; padding-right: 5px !important; text-align: left !important; }
- #rcthixshpb .gt_left { text-align: left !important; }
- #rcthixshpb .gt_center { text-align: center !important; }
- #rcthixshpb .gt_right { text-align: right !important; font-variant-numeric: tabular-nums !important; }
- #rcthixshpb .gt_font_normal { font-weight: normal !important; }
- #rcthixshpb .gt_font_bold { font-weight: bold !important; }
- #rcthixshpb .gt_font_italic { font-style: italic !important; }
- #rcthixshpb .gt_super { font-size: 65% !important; }
- #rcthixshpb .gt_footnote_marks { font-size: 75% !important; vertical-align: 0.4em !important; position: initial !important; }
- #rcthixshpb .gt_asterisk { font-size: 100% !important; vertical-align: 0 !important; }
- 
+  #altair-viz-93d0f5703a9145ddaa4038192392956e.vega-embed details,
+  #altair-viz-93d0f5703a9145ddaa4038192392956e.vega-embed details summary {
+    position: relative;
+  }
 </style>
-<table class="gt_table" data-quarto-bootstrap="false" data-quarto-disable-processing="false">
-<thead>
-<tr class="gt_col_headings">
-<th class="gt_col_heading gt_columns_bottom_border gt_left" colspan="1" id="" rowspan="1" scope="col"></th>
-<th class="gt_col_heading gt_columns_bottom_border gt_right" colspan="1" id="oas" rowspan="1" scope="col">oas</th>
-<th class="gt_col_heading gt_columns_bottom_border gt_right" colspan="1" id="dOAS" rowspan="1" scope="col">dOAS</th>
-<th class="gt_col_heading gt_columns_bottom_border gt_right" colspan="1" id="dur" rowspan="1" scope="col">dur</th>
-<th class="gt_col_heading gt_columns_bottom_border gt_right" colspan="1" id="ret" rowspan="1" scope="col">ret</th>
-</tr>
-</thead>
-<tbody class="gt_table_body">
-<tr class="gt_group_heading_row">
-<th class="gt_group_heading" colspan="5">2024-10-31</th>
-</tr>
-<tr>
-<th class="gt_row gt_left gt_stub">Bloomberg US Corporate High Yi</th>
-<td class="gt_row gt_right">313</td>
-<td class="gt_row gt_right">−7</td>
-<td class="gt_row gt_right">3.00</td>
-<td class="gt_row gt_right">−0.54%</td>
-</tr>
-<tr>
-<th class="gt_row gt_left gt_stub">Bloomberg Pan-European High Yi</th>
-<td class="gt_row gt_right">316</td>
-<td class="gt_row gt_right">−16</td>
-<td class="gt_row gt_right">2.72</td>
-<td class="gt_row gt_right">0.51%</td>
-</tr>
-<tr>
-<th class="gt_row gt_left gt_stub">Bloomberg US and Euro High Yie</th>
-<td class="gt_row gt_right">310</td>
-<td class="gt_row gt_right">−11</td>
-<td class="gt_row gt_right">2.98</td>
-<td class="gt_row gt_right">−0.36%</td>
-</tr>
-<tr class="gt_group_heading_row">
-<th class="gt_group_heading" colspan="5">2024-11-29</th>
-</tr>
-<tr>
-<th class="gt_row gt_left gt_stub">Bloomberg US Corporate High Yi</th>
-<td class="gt_row gt_right">293</td>
-<td class="gt_row gt_right">−20</td>
-<td class="gt_row gt_right">2.93</td>
-<td class="gt_row gt_right">1.15%</td>
-</tr>
-<tr>
-<th class="gt_row gt_left gt_stub">Bloomberg Pan-European High Yi</th>
-<td class="gt_row gt_right">323</td>
-<td class="gt_row gt_right">7</td>
-<td class="gt_row gt_right">2.72</td>
-<td class="gt_row gt_right">0.75%</td>
-</tr>
-<tr>
-<th class="gt_row gt_left gt_stub">Bloomberg US and Euro High Yie</th>
-<td class="gt_row gt_right">298</td>
-<td class="gt_row gt_right">−12</td>
-<td class="gt_row gt_right">2.94</td>
-<td class="gt_row gt_right">0.86%</td>
-</tr>
-<tr class="gt_group_heading_row">
-<th class="gt_group_heading" colspan="5">2024-12-24</th>
-</tr>
-<tr>
-<th class="gt_row gt_left gt_stub">Bloomberg US Corporate High Yi</th>
-<td class="gt_row gt_right">308</td>
-<td class="gt_row gt_right">16</td>
-<td class="gt_row gt_right">3.08</td>
-<td class="gt_row gt_right">−0.59%</td>
-</tr>
-<tr>
-<th class="gt_row gt_left gt_stub">Bloomberg Pan-European High Yi</th>
-<td class="gt_row gt_right">307</td>
-<td class="gt_row gt_right">−16</td>
-<td class="gt_row gt_right">2.74</td>
-<td class="gt_row gt_right">0.59%</td>
-</tr>
-<tr>
-<th class="gt_row gt_left gt_stub">Bloomberg US and Euro High Yie</th>
-<td class="gt_row gt_right">301</td>
-<td class="gt_row gt_right">3</td>
-<td class="gt_row gt_right">3.04</td>
-<td class="gt_row gt_right">−0.32%</td>
-</tr>
-</tbody>
-</table>
-</div>
+<div id="altair-viz-93d0f5703a9145ddaa4038192392956e"></div>
+<script type="text/javascript">
+  var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
+  (function(spec, embedOpt){
+    let outputDiv = document.currentScript.previousElementSibling;
+    if (outputDiv.id !== "altair-viz-93d0f5703a9145ddaa4038192392956e") {
+      outputDiv = document.getElementById("altair-viz-93d0f5703a9145ddaa4038192392956e");
+    }
+
+    const paths = {
+      "vega": "https://cdn.jsdelivr.net/npm/vega@5?noext",
+      "vega-lib": "https://cdn.jsdelivr.net/npm/vega-lib?noext",
+      "vega-lite": "https://cdn.jsdelivr.net/npm/vega-lite@5.20.1?noext",
+      "vega-embed": "https://cdn.jsdelivr.net/npm/vega-embed@6?noext",
+    };
+
+    function maybeLoadScript(lib, version) {
+      var key = `${lib.replace("-", "")}_version`;
+      return (VEGA_DEBUG[key] == version) ?
+        Promise.resolve(paths[lib]) :
+        new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          document.getElementsByTagName("head")[0].appendChild(s);
+          s.async = true;
+          s.onload = () => {
+            VEGA_DEBUG[key] = version;
+            return resolve(paths[lib]);
+          };
+          s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+          s.src = paths[lib];
+        });
+    }
+
+    function showError(err) {
+      outputDiv.innerHTML = `<div class="error" style="color:red;">${err}</div>`;
+      throw err;
+    }
+
+    function displayChart(vegaEmbed) {
+      vegaEmbed(outputDiv, spec, embedOpt)
+        .catch(err => showError(`Javascript Error: ${err.message}<br>This usually means there's a typo in your chart specification. See the javascript console for the full traceback.`));
+    }
+
+    if(typeof define === "function" && define.amd) {
+      requirejs.config({paths});
+      let deps = ["vega-embed"];
+      require(deps, displayChart, err => showError(`Error loading script: ${err.message}`));
+    } else {
+      maybeLoadScript("vega", "5")
+        .then(() => maybeLoadScript("vega-lite", "5.20.1"))
+        .then(() => maybeLoadScript("vega-embed", "6"))
+        .catch(showError)
+        .then(() => displayChart(vegaEmbed));
+    }
+  })({"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}}, "layer": [{"mark": {"type": "rect", "opacity": 0.7}, "encoding": {"color": {"field": "return_pct", "legend": null, "scale": {"scheme": "blueorange", "reverse": true}, "title": "Price return", "type": "quantitative"}, "tooltip": [{"field": "fwd_pe", "format": ".1f", "title": "Fwd P/E", "type": "quantitative"}, {"field": "fwd_eps", "format": ".2f", "title": "Fwd EPS", "type": "quantitative"}, {"field": "price", "format": ".0f", "title": "Price target", "type": "quantitative"}, {"field": "return_pct", "format": "+.1f", "title": "Return (%)", "type": "quantitative"}], "x": {"axis": {"format": "+.1%"}, "field": "fwd_eps_growth", "sort": "ascending", "title": "12m forward EPS growth", "type": "ordinal"}, "y": {"field": "pe_display", "sort": {"field": "fwd_pe", "order": "descending"}, "title": "12m fwd P/E", "type": "ordinal"}}}, {"mark": {"type": "rect", "fill": null, "stroke": "black", "strokeWidth": 3}, "encoding": {"x": {"axis": {"format": "+.1%"}, "field": "fwd_eps_growth", "sort": "ascending", "title": "12m forward EPS growth", "type": "ordinal"}, "y": {"field": "pe_display", "sort": {"field": "fwd_pe", "order": "descending"}, "title": "12m fwd P/E", "type": "ordinal"}}, "transform": [{"filter": "datum.is_current"}]}, {"mark": {"type": "text", "baseline": "middle", "dy": -8, "fontWeight": "bold"}, "encoding": {"text": {"field": "price_label", "type": "nominal"}, "x": {"axis": {"format": "+.1%"}, "field": "fwd_eps_growth", "sort": "ascending", "title": "12m forward EPS growth", "type": "ordinal"}, "y": {"field": "pe_display", "sort": {"field": "fwd_pe", "order": "descending"}, "title": "12m fwd P/E", "type": "ordinal"}}}, {"mark": {"type": "text", "baseline": "middle", "dy": 8, "size": 10}, "encoding": {"color": {"value": "black"}, "text": {"field": "return_label", "type": "nominal"}, "x": {"axis": {"format": "+.1%"}, "field": "fwd_eps_growth", "sort": "ascending", "title": "12m forward EPS growth", "type": "ordinal"}, "y": {"field": "pe_display", "sort": {"field": "fwd_pe", "order": "descending"}, "title": "12m fwd P/E", "type": "ordinal"}}}], "data": {"name": "data-0e43b7934ed626572100ff8a142ce779"}, "height": 360, "title": "S&P 500 12-month price level (return) based on EPS and P/E", "width": 650, "$schema": "https://vega.github.io/schema/vega-lite/v5.20.1.json", "datasets": {"data-0e43b7934ed626572100ff8a142ce779": [{"fwd_pe": 16.315794903185942, "fwd_eps_growth": 0.07788591995681787, "pe_label_text": "20y avg", "fwd_eps": 290.03184594490244, "price": 4732.10011382945, "is_current": false, "return_pct": -30.92268359653614, "price_label": "4732", "return_label": "(-31%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.315794903185942, "fwd_eps_growth": 0.09788591995681786, "pe_label_text": "20y avg", "fwd_eps": 295.41334023061535, "price": 4819.903470867809, "is_current": false, "return_pct": -29.64096509322307, "price_label": "4820", "return_label": "(-30%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.315794903185942, "fwd_eps_growth": 0.11788591995681787, "pe_label_text": "20y avg", "fwd_eps": 300.7948345163283, "price": 4907.706827906169, "is_current": false, "return_pct": -28.359246589910004, "price_label": "4908", "return_label": "(-28%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.315794903185942, "fwd_eps_growth": 0.13788591995681787, "pe_label_text": "20y avg", "fwd_eps": 306.17632880204127, "price": 4995.510184944528, "is_current": false, "return_pct": -27.077528086596946, "price_label": "4996", "return_label": "(-27%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.315794903185942, "fwd_eps_growth": 0.15788591995681786, "pe_label_text": "20y avg", "fwd_eps": 311.5578230877542, "price": 5083.313541982888, "is_current": false, "return_pct": -25.79580958328388, "price_label": "5083", "return_label": "(-26%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.315794903185942, "fwd_eps_growth": 0.17788591995681788, "pe_label_text": "20y avg", "fwd_eps": 316.93931737346713, "price": 5171.116899021246, "is_current": false, "return_pct": -24.514091079970825, "price_label": "5171", "return_label": "(-25%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.315794903185942, "fwd_eps_growth": 0.19788591995681787, "pe_label_text": "20y avg", "fwd_eps": 322.3208116591801, "price": 5258.920256059606, "is_current": false, "return_pct": -23.232372576657756, "price_label": "5259", "return_label": "(-23%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.525469032030486, "fwd_eps_growth": 0.07788591995681787, "pe_label_text": "35y avg", "fwd_eps": 290.03184594490244, "price": 4792.9122884651215, "is_current": false, "return_pct": -30.034971644666307, "price_label": "4793", "return_label": "(-30%)", "pe_display": "16.5 35y avg"}, {"fwd_pe": 16.525469032030486, "fwd_eps_growth": 0.09788591995681786, "pe_label_text": "35y avg", "fwd_eps": 295.41334023061535, "price": 4881.8440056297195, "is_current": false, "return_pct": -28.736781788765107, "price_label": "4882", "return_label": "(-29%)", "pe_display": "16.5 35y avg"}, {"fwd_pe": 16.525469032030486, "fwd_eps_growth": 0.11788591995681787, "pe_label_text": "35y avg", "fwd_eps": 300.7948345163283, "price": 4970.775722794318, "is_current": false, "return_pct": -27.438591932863897, "price_label": "4971", "return_label": "(-27%)", "pe_display": "16.5 35y avg"}, {"fwd_pe": 16.525469032030486, "fwd_eps_growth": 0.13788591995681787, "pe_label_text": "35y avg", "fwd_eps": 306.17632880204127, "price": 5059.707439958916, "is_current": false, "return_pct": -26.140402076962697, "price_label": "5060", "return_label": "(-26%)", "pe_display": "16.5 35y avg"}, {"fwd_pe": 16.525469032030486, "fwd_eps_growth": 0.15788591995681786, "pe_label_text": "35y avg", "fwd_eps": 311.5578230877542, "price": 5148.639157123514, "is_current": false, "return_pct": -24.842212221061498, "price_label": "5149", "return_label": "(-25%)", "pe_display": "16.5 35y avg"}, {"fwd_pe": 16.525469032030486, "fwd_eps_growth": 0.17788591995681788, "pe_label_text": "35y avg", "fwd_eps": 316.93931737346713, "price": 5237.5708742881125, "is_current": false, "return_pct": -23.5440223651603, "price_label": "5238", "return_label": "(-24%)", "pe_display": "16.5 35y avg"}, {"fwd_pe": 16.525469032030486, "fwd_eps_growth": 0.19788591995681787, "pe_label_text": "35y avg", "fwd_eps": 322.3208116591801, "price": 5326.502591452711, "is_current": false, "return_pct": -22.24583250925909, "price_label": "5327", "return_label": "(-22%)", "pe_display": "16.5 35y avg"}, {"fwd_pe": 18.824080785031676, "fwd_eps_growth": 0.07788591995681787, "pe_label_text": "10y avg", "fwd_eps": 290.03184594490244, "price": 5459.582898298704, "is_current": false, "return_pct": -20.303179090705058, "price_label": "5460", "return_label": "(-20%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.824080785031676, "fwd_eps_growth": 0.09788591995681786, "pe_label_text": "10y avg", "fwd_eps": 295.41334023061535, "price": 5560.884581477151, "is_current": false, "return_pct": -18.824417388121763, "price_label": "5561", "return_label": "(-19%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.824080785031676, "fwd_eps_growth": 0.11788591995681787, "pe_label_text": "10y avg", "fwd_eps": 300.7948345163283, "price": 5662.186264655598, "is_current": false, "return_pct": -17.345655685538475, "price_label": "5662", "return_label": "(-17%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.824080785031676, "fwd_eps_growth": 0.13788591995681787, "pe_label_text": "10y avg", "fwd_eps": 306.17632880204127, "price": 5763.4879478340445, "is_current": false, "return_pct": -15.866893982955188, "price_label": "5763", "return_label": "(-16%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.824080785031676, "fwd_eps_growth": 0.15788591995681786, "pe_label_text": "10y avg", "fwd_eps": 311.5578230877542, "price": 5864.789631012492, "is_current": false, "return_pct": -14.38813228037189, "price_label": "5865", "return_label": "(-14%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.824080785031676, "fwd_eps_growth": 0.17788591995681788, "pe_label_text": "10y avg", "fwd_eps": 316.93931737346713, "price": 5966.091314190939, "is_current": false, "return_pct": -12.909370577788593, "price_label": "5966", "return_label": "(-13%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.824080785031676, "fwd_eps_growth": 0.19788591995681787, "pe_label_text": "10y avg", "fwd_eps": 322.3208116591801, "price": 6067.392997369385, "is_current": false, "return_pct": -11.430608875205317, "price_label": "6067", "return_label": "(-11%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 20.048068471572524, "fwd_eps_growth": 0.07788591995681787, "pe_label_text": "5y avg", "fwd_eps": 290.03184594490244, "price": 5814.5783064399775, "is_current": false, "return_pct": -15.12109723696613, "price_label": "5815", "return_label": "(-15%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.048068471572524, "fwd_eps_growth": 0.09788591995681786, "pe_label_text": "5y avg", "fwd_eps": 295.41334023061535, "price": 5922.466872359327, "is_current": false, "return_pct": -13.546182838484434, "price_label": "5922", "return_label": "(-14%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.048068471572524, "fwd_eps_growth": 0.11788591995681787, "pe_label_text": "5y avg", "fwd_eps": 300.7948345163283, "price": 6030.355438278677, "is_current": false, "return_pct": -11.971268440002724, "price_label": "6030", "return_label": "(-12%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.048068471572524, "fwd_eps_growth": 0.13788591995681787, "pe_label_text": "5y avg", "fwd_eps": 306.17632880204127, "price": 6138.244004198026, "is_current": false, "return_pct": -10.39635404152104, "price_label": "6138", "return_label": "(-10%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.048068471572524, "fwd_eps_growth": 0.15788591995681786, "pe_label_text": "5y avg", "fwd_eps": 311.5578230877542, "price": 6246.1325701173755, "is_current": false, "return_pct": -8.82143964303934, "price_label": "6246", "return_label": "(-9%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.048068471572524, "fwd_eps_growth": 0.17788591995681788, "pe_label_text": "5y avg", "fwd_eps": 316.93931737346713, "price": 6354.021136036725, "is_current": false, "return_pct": -7.2465252445576445, "price_label": "6354", "return_label": "(-7%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.048068471572524, "fwd_eps_growth": 0.19788591995681787, "pe_label_text": "5y avg", "fwd_eps": 322.3208116591801, "price": 6461.909701956074, "is_current": false, "return_pct": -5.671610846075959, "price_label": "6462", "return_label": "(-6%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 22.361330239956665, "fwd_eps_growth": 0.07788591995681787, "pe_label_text": "current", "fwd_eps": 290.03184594490244, "price": 6485.497887278199, "is_current": false, "return_pct": -5.327279893288617, "price_label": "6485", "return_label": "(-5%)", "pe_display": "22.4 current"}, {"fwd_pe": 22.361330239956665, "fwd_eps_growth": 0.09788591995681786, "pe_label_text": "current", "fwd_eps": 295.41334023061535, "price": 6605.835258185467, "is_current": false, "return_pct": -3.5706427881206593, "price_label": "6606", "return_label": "(-4%)", "pe_display": "22.4 current"}, {"fwd_pe": 22.361330239956665, "fwd_eps_growth": 0.11788591995681787, "pe_label_text": "current", "fwd_eps": 300.7948345163283, "price": 6726.172629092734, "is_current": false, "return_pct": -1.814005682952713, "price_label": "6726", "return_label": "(-2%)", "pe_display": "22.4 current"}, {"fwd_pe": 22.361330239956665, "fwd_eps_growth": 0.13788591995681787, "pe_label_text": "current", "fwd_eps": 306.17632880204127, "price": 6846.51, "is_current": true, "return_pct": -0.05736857778477766, "price_label": "6847", "return_label": "(0%)", "pe_display": "22.4 current"}, {"fwd_pe": 22.361330239956665, "fwd_eps_growth": 0.15788591995681786, "pe_label_text": "current", "fwd_eps": 311.5578230877542, "price": 6966.847370907267, "is_current": false, "return_pct": 1.6992685273831576, "price_label": "6967", "return_label": "(2%)", "pe_display": "22.4 current"}, {"fwd_pe": 22.361330239956665, "fwd_eps_growth": 0.17788591995681788, "pe_label_text": "current", "fwd_eps": 316.93931737346713, "price": 7087.1847418145335, "is_current": false, "return_pct": 3.455905632551093, "price_label": "7087", "return_label": "(3%)", "pe_display": "22.4 current"}, {"fwd_pe": 22.361330239956665, "fwd_eps_growth": 0.19788591995681787, "pe_label_text": "current", "fwd_eps": 322.3208116591801, "price": 7207.522112721801, "is_current": false, "return_pct": 5.21254273771905, "price_label": "7208", "return_label": "(5%)", "pe_display": "22.4 current"}, {"fwd_pe": 24.071400551584883, "fwd_eps_growth": 0.07788591995681787, "pe_label_text": "highest", "fwd_eps": 290.03184594490244, "price": 6981.472736455306, "is_current": false, "return_pct": 1.9127637999209801, "price_label": "6981", "return_label": "(2%)", "pe_display": "24.1 highest"}, {"fwd_pe": 24.071400551584883, "fwd_eps_growth": 0.09788591995681786, "pe_label_text": "highest", "fwd_eps": 295.41334023061535, "price": 7111.012840972768, "is_current": false, "return_pct": 3.8037387521497656, "price_label": "7111", "return_label": "(4%)", "pe_display": "24.1 highest"}, {"fwd_pe": 24.071400551584883, "fwd_eps_growth": 0.11788591995681787, "pe_label_text": "highest", "fwd_eps": 300.7948345163283, "price": 7240.552945490229, "is_current": false, "return_pct": 5.694713704378529, "price_label": "7241", "return_label": "(6%)", "pe_display": "24.1 highest"}, {"fwd_pe": 24.071400551584883, "fwd_eps_growth": 0.13788591995681787, "pe_label_text": "highest", "fwd_eps": 306.17632880204127, "price": 7370.09305000769, "is_current": false, "return_pct": 7.5856886566073145, "price_label": "7370", "return_label": "(8%)", "pe_display": "24.1 highest"}, {"fwd_pe": 24.071400551584883, "fwd_eps_growth": 0.15788591995681786, "pe_label_text": "highest", "fwd_eps": 311.5578230877542, "price": 7499.633154525151, "is_current": false, "return_pct": 9.4766636088361, "price_label": "7500", "return_label": "(9%)", "pe_display": "24.1 highest"}, {"fwd_pe": 24.071400551584883, "fwd_eps_growth": 0.17788591995681788, "pe_label_text": "highest", "fwd_eps": 316.93931737346713, "price": 7629.173259042613, "is_current": false, "return_pct": 11.367638561064886, "price_label": "7629", "return_label": "(11%)", "pe_display": "24.1 highest"}, {"fwd_pe": 24.071400551584883, "fwd_eps_growth": 0.19788591995681787, "pe_label_text": "highest", "fwd_eps": 322.3208116591801, "price": 7758.713363560075, "is_current": false, "return_pct": 13.258613513293671, "price_label": "7759", "return_label": "(13%)", "pe_display": "24.1 highest"}]}}, {"mode": "vega-lite"});
+</script>
 </div>
 </div>
 </div>
