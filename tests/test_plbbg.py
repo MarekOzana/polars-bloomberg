@@ -223,6 +223,18 @@ def test_issue_7_bql_with_single_quote(bq):
     assert_frame_equal(df, df_exp)
 
 
+
+def test_issue_14_bql_with_infinity(bq):
+    """Replay a BQL response that returns Infinity and ensure it maps to float('inf')."""
+    query = "let(#colP = 1 / 0; #colM = -1 / 0;) get(#colP, #colM) for('OMX Index')"
+    res = bq.bql(query)
+    expected_result_count: Final[int] = 2
+    assert len(res) == expected_result_count
+    df = res.combine()
+    assert isinstance(df, pl.DataFrame)
+    assert df["#colP"].to_list() == [float("inf")]
+    assert df["#colM"].to_list() == [float("-inf")]
+
 @pytest.mark.no_bbg
 def test_bdh_leading_nulls():
     """Test on dataset with leading nulls in a field."""
@@ -1116,6 +1128,19 @@ class TestSchemaMappingAndDataConversion:
                 {
                     "is_verified": [None, True, False, False],
                     "user_role": ["admin", "user", "guest", "user"],
+                },
+            ),
+            # Infinity handling
+            (
+                {"number_col": ["Infinity", "-Infinity", "NaN", 1.5]},
+                {"number_col": pl.Float64},
+                {
+                    "number_col": [
+                        float("inf"),
+                        float("-inf"),
+                        None,
+                        1.5,
+                    ]
                 },
             ),
         ],

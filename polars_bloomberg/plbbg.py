@@ -785,7 +785,18 @@ class BQuery:
                     for v in table.data[col]
                 ]
             elif dtype in {pl.Float64, pl.Int64}:
-                table.data[col] = [None if x == "NaN" else x for x in table.data[col]]
+                def _convert_number(val: Any):
+                    if isinstance(val, str):
+                        lower_val = val.lower()
+                        if lower_val == "nan":
+                            return None
+                        if lower_val in {"infinity", "inf"}:
+                            return float("inf")
+                        if lower_val in {"-infinity", "-inf"}:
+                            return float("-inf")
+                    return val
+
+                table.data[col] = [_convert_number(x) for x in table.data[col]]
         return table
 
     def _extract_results(self, responses: list[Any]) -> list[dict]:
