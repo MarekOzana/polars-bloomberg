@@ -610,7 +610,7 @@ class BQuery:
         r"""Bloomberg SRCH (search) via ExcelGetGridRequest on //blp/exrsvc.
 
         Args:
-            domain: Domain string, e.g. ``\"FI:SRCHEX.@CLOSUB\"``.
+            domain: Domain string, e.g. ``\"FI:SRCHEX.@COCO\"``.
             overrides: Optional override map (e.g. ``{\"LIMIT\": 20000}``).
             options: Additional request options applied directly to the request.
 
@@ -621,15 +621,37 @@ class BQuery:
             ValueError: When Bloomberg returns an error string in GridResponse.
             TimeoutError/ConnectionError: As surfaced by the session helpers.
 
+        Example:
+            Fetch Contingent COnvertible bonds based on Example Search @COCO
+            For sake of example limit number of bonds to two
+
+            ```python
+            from polars_bloomberg import BQuery
+
+            with BQuery() as bq:
+                df = bq.bsrch("FI:SRCHEX.@COCO", {"LIMIT": 2})
+                print(df)
+            ```
+
+            Expected output:
+            ```python
+            BSRCH response reached internal limit; consider using LIMIT override.
+            shape: (2, 1)
+            ┌───────────────┐
+            │ id            │
+            │ ---           │
+            │ str           │
+            ╞═══════════════╡
+            │ DA785784 Corp │
+            │ DA773901 Corp │
+            └───────────────┘
+            ```
+
         """
-        try:
-            request = self._create_bsrch_request(domain, overrides, options)
-        except Exception:
-            if self.debug:
-                logger.exception("BSRCH request build failed. Request so far: %s", request if 'request' in locals() else 'N/A')
-            raise
+        request = self._create_bsrch_request(domain, overrides, options)
         responses = self._send_request(request)
-        rows = self._parse_bsrch_responses(responses)
+        limit_applied = bool(overrides and "LIMIT" in overrides)
+        rows = self._parse_bsrch_responses(responses, limit_applied=limit_applied)
         return pl.DataFrame(rows, infer_schema_length=None, strict=False)
 
     def _create_request(
@@ -679,20 +701,6 @@ class BQuery:
         service = self.session.getService("//blp/exrsvc")
         request = service.createRequest("ExcelGetGridRequest")
         request.set("Domain", domain)
-
-        if self.debug:
-            os.makedirs("debug_cases", exist_ok=True)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-            with open(
-                f"debug_cases/bsrch_request_{timestamp}.txt", "w", encoding="utf-8"
-            ) as f:
-                f.write(f"Domain param: {domain!r}\n")
-                f.write(f"Overrides param: {overrides!r}\n")
-                f.write(f"Options param: {options!r}\n\n")
-                f.write("Service schema:\n")
-                f.write(str(service))
-                f.write("\n\nRequest:\n")
-                f.write(str(request))
 
         if overrides:
             overrides_element = request.getElement("Overrides")
@@ -841,7 +849,9 @@ class BQuery:
                 bars.append(record)
         return bars
 
-    def _parse_bsrch_responses(self, responses: list[dict]) -> list[dict]:
+    def _parse_bsrch_responses(
+        self, responses: list[dict], *, limit_applied: bool = False
+    ) -> list[dict]:
         """Parse GridResponse payloads from ExcelGetGridRequest."""
         rows: list[dict[str, Any]] = []
         errors: list[str] = []
@@ -881,7 +891,7 @@ class BQuery:
         if errors and not rows:
             raise ValueError(f"BSRCH error: {errors[0]}")
 
-        if reach_max:
+        if reach_max and not limit_applied:
             logger.warning(
                 "BSRCH response reached internal limit; consider using LIMIT override."
             )

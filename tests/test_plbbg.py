@@ -3,11 +3,12 @@
 The tests REQUIRE an active Bloomberg Terminal connection.
 
 :author: Marek Ozana
-:date: 2024-12-06
+:date: 2025-12-11
 """
 
 import json
 import re
+import logging
 from collections.abc import Generator
 from datetime import date, datetime
 from pathlib import Path
@@ -295,18 +296,23 @@ def test_bdib(bq: BQuery):
 
     assert_frame_equal(df, df_exp)
 
-def test_bsrch(bq: BQuery):
+
+def test_bsrch(bq: BQuery, caplog):
     """Test the BSRCH function."""
+    caplog.set_level(logging.WARNING, logger="polars_bloomberg.plbbg")
     bq.debug = True
     df = bq.bsrch(
         "BI:TPD",
         overrides={
-            "BIKEY": "1F8VLDYPSGPCBXUDVZX90KCUD",
+            "BIKEY": "DKOCVGXJVU8II8M90W8JSQEKR",
+            "LIMIT": 20000,
         },
     )
-    assert df.shape == (16, 27)
+    assert df.shape == (16, 6)
     exp_df = pl.read_csv("tests/data/bsrch_bi_tpd.csv")
     assert_frame_equal(df, exp_df)
+    assert not any("reached internal limit" in rec.message for rec in caplog.records)
+
 
 def test_create_request(bq: BQuery):
     """Test the _create_request method."""
@@ -1291,7 +1297,7 @@ class TestBsrch:
 
         create_mock.assert_called_once()
         send_mock.assert_called_once_with(mock_request)
-        parse_mock.assert_called_once_with(["raw_response"])
+        parse_mock.assert_called_once_with(["raw_response"], limit_applied=True)
 
         assert isinstance(df, pl.DataFrame)
         assert df.shape == (2, 1)
