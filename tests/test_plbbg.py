@@ -300,7 +300,6 @@ def test_bdib(bq: BQuery):
 def test_bsrch(bq: BQuery, caplog):
     """Test the BSRCH function."""
     caplog.set_level(logging.WARNING, logger="polars_bloomberg.plbbg")
-    bq.debug = True
     df = bq.bsrch(
         "BI:TPD",
         overrides={
@@ -1275,6 +1274,42 @@ class TestBsrch:
 
         assert rows == [{"Ticker": "AAPL US Equity"}]
         assert any("reached internal limit" in rec.message for rec in caplog.records)
+
+    def test_parse_bsrch_responses_coerces_numeric_whitespace(self):
+        """Whitespace strings in numeric columns should coerce to None allowing float inference."""
+        bq = BQuery()
+        responses = [
+            {
+                "GridResponse": {
+                    "ColumnTitles": ["Ticker", "PX_LAST", "COUNT"],
+                    "DataRecords": [
+                        {
+                            "DataFields": [
+                                {"StringValue": "IBM US Equity"},
+                                {"DoubleValue": 125.3},
+                                {"StringValue": " "},
+                            ]
+                        },
+                        {
+                            "DataFields": [
+                                {"StringValue": "MSFT US Equity"},
+                                {"StringValue": ""},
+                                {"IntValue": 4},
+                            ]
+                        },
+                    ],
+                    "ReachMax": False,
+                }
+            }
+        ]
+
+        rows = bq._parse_bsrch_responses(responses)
+        df = pl.DataFrame(rows, infer_schema_length=None, strict=False)
+
+        assert df.schema["PX_LAST"] == pl.Float64
+        assert df.schema["COUNT"] == pl.Int64
+        assert df["PX_LAST"].to_list() == [125.3, None]
+        assert df["COUNT"].to_list() == [None, 4]
 
     def test_bsrch_calls_components(self):
         """Bsrch should build request, send, parse, and return DataFrame."""

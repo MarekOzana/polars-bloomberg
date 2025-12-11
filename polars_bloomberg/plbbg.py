@@ -896,6 +896,9 @@ class BQuery:
                 "BSRCH response reached internal limit; consider using LIMIT override."
             )
 
+        if rows:
+            self._coerce_bsrch_numeric_columns(rows)
+
         return rows
 
     @staticmethod
@@ -940,6 +943,38 @@ class BQuery:
                 return val
         # If no known key found, return the dict itself
         return field
+
+    @staticmethod
+    def _coerce_bsrch_numeric_columns(rows: list[dict[str, Any]]) -> None:
+        """Convert empty/whitespace strings to None to allow numeric inference."""
+        if not rows:
+            return
+
+        cols = rows[0].keys()
+        for col in cols:
+            values = [row.get(col) for row in rows]
+            cleaned: list[Any] = []
+            numeric_candidate = True
+
+            for val in values:
+                if isinstance(val, str) and val.strip() == "":
+                    cleaned.append(None)
+                    continue
+                cleaned.append(val)
+                if val is None or isinstance(val, (int, float)):
+                    continue
+                numeric_candidate = False
+                # leave column untouched if any non-numeric string present
+                # other than whitespace
+                # Note: do not break early to align cleaned length
+
+            if numeric_candidate:
+                for idx, cleaned_val in enumerate(cleaned):
+                    rows[idx][col] = cleaned_val
+
+            if numeric_candidate:
+                for idx, cleaned_val in enumerate(cleaned):
+                    rows[idx][col] = cleaned_val
 
     def _parse_bql_responses(self, responses: list[Any]):
         """Parse BQL responses into a list of SITable objects."""
