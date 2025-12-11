@@ -4,28 +4,28 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="Polars DataFrame interface for Bloomberg API">
         
         
-        <link rel="shortcut icon" href="img/favicon.ico">
-        <title>Polars-Bloomberg</title>
-        <link href="css/bootstrap.min.css" rel="stylesheet">
-        <link href="css/fontawesome.min.css" rel="stylesheet">
-        <link href="css/brands.min.css" rel="stylesheet">
-        <link href="css/solid.min.css" rel="stylesheet">
-        <link href="css/v4-font-face.min.css" rel="stylesheet">
-        <link href="css/base.css" rel="stylesheet">
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>BSRCH - Polars-Bloomberg</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
         <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
         <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
-        <link href="assets/_mkdocstrings.css" rel="stylesheet">
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
         <script>hljs.highlightAll();</script> 
     </head>
 
-    <body class="homepage">
+    <body>
         <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
             <div class="container">
-                <a class="navbar-brand" href=".">Polars-Bloomberg</a>
+                <a class="navbar-brand" href="../..">Polars-Bloomberg</a>
                 <!-- Expander button -->
                 <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -36,26 +36,26 @@
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
                             <li class="nav-item">
-                                <a href="." class="nav-link active" aria-current="page">Home</a>
+                                <a href="../.." class="nav-link">Home</a>
                             </li>
                             <li class="nav-item dropdown">
                                 <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Usage & Tutorials</a>
                                 <ul class="dropdown-menu">
                                     
 <li>
-    <a href="usage/bdp/" class="dropdown-item">BDP</a>
+    <a href="../bdp/" class="dropdown-item">BDP</a>
 </li>
                                     
 <li>
-    <a href="usage/bdh/" class="dropdown-item">BDH</a>
+    <a href="../bdh/" class="dropdown-item">BDH</a>
 </li>
                                     
 <li>
-    <a href="usage/bdib/" class="dropdown-item">BDIB</a>
+    <a href="../bdib/" class="dropdown-item">BDIB</a>
 </li>
                                     
 <li>
-    <a href="usage/bql/" class="dropdown-item">BQL</a>
+    <a href="../bql/" class="dropdown-item">BQL</a>
 </li>
                                 </ul>
                             </li>
@@ -64,20 +64,20 @@
                                 <ul class="dropdown-menu">
                                     
 <li>
-    <a href="examples/equity/" class="dropdown-item">Equity Examples</a>
+    <a href="../../examples/equity/" class="dropdown-item">Equity Examples</a>
 </li>
                                     
 <li>
-    <a href="examples/credits/" class="dropdown-item">Credits</a>
+    <a href="../../examples/credits/" class="dropdown-item">Credits</a>
 </li>
                                     
 <li>
-    <a href="examples/macro/" class="dropdown-item">Macro Examples</a>
+    <a href="../../examples/macro/" class="dropdown-item">Macro Examples</a>
 </li>
                                 </ul>
                             </li>
                             <li class="nav-item">
-                                <a href="api/" class="nav-link">API Reference</a>
+                                <a href="../../api/" class="nav-link">API Reference</a>
                             </li>
                         </ul>
 
@@ -88,17 +88,7 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" class="nav-link disabled">
-                                    <i class="fa fa-arrow-left"></i> Previous
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a rel="next" href="usage/bdp/" class="nav-link">
-                                    Next <i class="fa fa-arrow-right"></i>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="https://github.com/MarekOzana/polars-bloomberg/edit/master/docs/index.md" class="nav-link"><i class="fa-brands fa-github"></i> Edit on GitHub</a>
+                                <a href="https://github.com/MarekOzana/polars-bloomberg/edit/master/docs/usage/bsrch.md" class="nav-link"><i class="fa-brands fa-github"></i> Edit on GitHub</a>
                             </li>
                     </ul>
                 </div>
@@ -118,17 +108,13 @@
     <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
         <ul class="nav flex-column">
             
-            <li class="nav-item" data-bs-level="1"><a href="#polars-bloomberg-open-api" class="nav-link">Polars + Bloomberg Open API</a>
+            <li class="nav-item" data-bs-level="1"><a href="#bsrch" class="nav-link">BSRCH</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#installation-requirements" class="nav-link">Installation &amp; Requirements</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#quick-start" class="nav-link">Quick Start</a>
+            <li class="nav-item" data-bs-level="2"><a href="#example-two-coco-bonds-limit2" class="nav-link">Example: two COCO bonds (LIMIT=2)</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#cheat-sheet" class="nav-link">Cheat Sheet</a>
+            <li class="nav-item" data-bs-level="2"><a href="#example-bi-template-bitpd-with-bikey-limit" class="nav-link">Example: BI template (BI:TPD) with BIKEY + LIMIT</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -139,75 +125,50 @@
 </div></div>
                     <div class="col-md-9" role="main">
 
-<p><img alt="Polars Bloomberg Logo" src="https://raw.githubusercontent.com/MarekOzana/polars-bloomberg/main/assets/polars-bloomberg-logo.jpg" /></p>
-<h1 id="polars-bloomberg-open-api">Polars + Bloomberg Open API</h1>
-<p><a href="https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml"><img alt="Tests" src="https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml/badge.svg" /></a></p>
-<blockquote>
-<p>Documentation for <strong>polars-bloomberg v0.5.2</strong>.</p>
-</blockquote>
-<p><strong>polars-bloomberg</strong> is a Python library that extracts Bloomberg’s financial data directly into <a href="https://www.pola.rs/">Polars</a> DataFrames. <br />
-If you’re a quant financial analyst, data scientist, or quant developer working in capital markets, this library makes it easy to fetch, transform, and analyze Bloomberg data right in Polars—offering speed, efficient memory usage, and a lot of fun to use!</p>
-<h2 id="installation-requirements">Installation &amp; Requirements</h2>
-<ul>
-<li><strong>Bloomberg Access:</strong> A valid Bloomberg terminal license is required!</li>
-<li><strong>Bloomberg Python API:</strong> The <code>blpapi</code> library must be installed. See the <a href="https://www.bloomberg.com/professional/support/api-library/">Bloomberg API Library</a>.</li>
-<li><strong>Python Version:</strong> Python 3.12+ recommended.</li>
-</ul>
-<pre><code class="language-bash">pip install polars-bloomberg
-</code></pre>
-<h2 id="quick-start">Quick Start</h2>
-<p>"Hello World" Example (under 1 minute):</p>
+<h1 id="bsrch">BSRCH</h1>
+<p>Use case: Excel-style searches (SRCH/BI domains). Good for running saved SRCH screens or Bloomberg BI templates.</p>
+<p>Key points:
+- Pass <code>overrides</code> as a dict; values are stringified. Common keys: <code>LIMIT</code> to raise the row cap (default ~5k), custom keys like <code>BIKEY</code> for BI templates, or domain-specific parameters.</p>
+<h2 id="example-two-coco-bonds-limit2">Example: two COCO bonds (LIMIT=2)</h2>
 <pre><code class="language-python">from polars_bloomberg import BQuery
 
-# Fetch the latest price for Apple (AAPL US Equity)
 with BQuery() as bq:
-    df = bq.bdp([&quot;AAPL US Equity&quot;], [&quot;PX_LAST&quot;])
+    df = bq.bsrch(&quot;FI:SRCHEX.@COCO&quot;, overrides={&quot;LIMIT&quot;: 2})
     print(df)
 
-┌────────────────┬─────────┐
-│ security       ┆ PX_LAST │
-│ ---            ┆ ---     │
-│ str            ┆ f64     │
-╞════════════════╪═════════╡
-│ AAPL US Equity ┆ 248.13  │
-└────────────────┴─────────┘
+# shape: (2, 1)
+# ┌──────────────┐
+# │ id           │
+# │ ---          │
+# │ str          │
+# ╞══════════════╡
+# │ DA785784 Corp│
+# │ DA773901 Corp│
+# └──────────────┘
 </code></pre>
-<p>What this does:
-- Establishes a Bloomberg connection using the context manager.
-- Retrieves the last price of Apple shares.
-- Returns the result as a Polars DataFrame.</p>
-<p>If you see a price in <code>df</code>, your setup is working 🤩!!!</p>
-<h2 id="cheat-sheet">Cheat Sheet</h2>
-<table>
-<thead>
-<tr>
-<th>Method</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>bdp()</code></td>
-<td>Fetch single-value fields (e.g., last price). <a href="usage/bdp/">more.. </a></td>
-</tr>
-<tr>
-<td><code>bdh()</code></td>
-<td>Retrieve historical data (e.g., time series). <a href="usage/bdh/">more.. </a></td>
-</tr>
-<tr>
-<td><code>bdib()</code></td>
-<td>Download intraday bar data at minute resolution. <a href="usage/bdib/">more.. </a></td>
-</tr>
-<tr>
-<td><code>bsrch()</code></td>
-<td>Excel-style search grids (SRCH/BI/COMDTY domains). <a href="usage/bsrch/">more.. </a></td>
-</tr>
-<tr>
-<td><code>bql()</code></td>
-<td>Execute complex Bloomberg Query Language requests. <a href="usage/bql/">more.. </a></td>
-</tr>
-</tbody>
-</table></div>
+<h2 id="example-bi-template-bitpd-with-bikey-limit">Example: BI template (BI:TPD) with BIKEY + LIMIT</h2>
+<pre><code class="language-python">from polars_bloomberg import BQuery
+
+with BQuery() as bq:
+    df = bq.bsrch(
+        &quot;BI:TPD&quot;,
+        overrides={
+            &quot;BIKEY&quot;: &quot;DKOCVGXJVU8II8M90W8JSQEKR&quot;,
+            &quot;LIMIT&quot;: 20000,  # avoid ReachMax
+        },
+    )
+    print(df.head())
+
+# Example output (truncated):
+# shape: (16, 6)
+# ┌──────────┬──────────┬─────────┬──────────┬──────────┬─────────┐
+# │ Main_Cat ┆ Bclass3_ ┆ Category┆ 06/30/20 ┆ 03/31/20 ┆ 12/31/20│
+# │ ...      ┆ ...      ┆ ...     ┆ 25       ┆ 25       ┆ 24      │
+# │ str      ┆ str      ┆ str     ┆ f64      ┆ f64      ┆ f64     │
+# ╞══════════╪══════════╪═════════╪══════════╪══════════╪═════════╡
+# │ Leverage ┆ Non-Fin… ┆ B       ┆ 3.956051 ┆ 4.118212 ┆ 4.269732│
+# └──────────┴──────────┴─────────┴──────────┴──────────┴─────────┘
+</code></pre></div>
             </div>
         </div>
 
@@ -215,13 +176,13 @@ with BQuery() as bq:
             <hr>
             <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
         </footer>
-        <script src="js/bootstrap.bundle.min.js"></script>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
         <script>
-            var base_url = ".",
+            var base_url = "../..",
                 shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
         </script>
-        <script src="js/base.js"></script>
-        <script src="search/main.js"></script>
+        <script src="../../js/base.js"></script>
+        <script src="../../search/main.js"></script>
 
         <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -286,8 +247,3 @@ with BQuery() as bq:
 
     </body>
 </html>
-
-<!--
-MkDocs version : 1.6.1
-Build Date UTC : 2025-12-11 18:28:54.213436+00:00
--->
