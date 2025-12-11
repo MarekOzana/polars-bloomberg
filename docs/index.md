@@ -50,4 +50,5 @@ If you see a price in `df`, your setup is working 🤩!!!
 | `bdp()` | Fetch single-value fields (e.g., last price). [more.. ](usage/bdp.md) |
 | `bdh()` | Retrieve historical data (e.g., time series). [more.. ](usage/bdh.md)  |
 | `bdib()` | Download intraday bar data at minute resolution. [more.. ](usage/bdib.md)  |
+| `bsrch()` | Excel-style search grids (SRCH/BI/COMDTY domains). [more.. ](usage/bsrch.md)  |
 | `bql()` | Execute complex Bloomberg Query Language requests. [more.. ](usage/bql.md)  |

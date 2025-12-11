@@ -7,8 +7,8 @@ The tests REQUIRE an active Bloomberg Terminal connection.
 """
 
 import json
-import re
 import logging
+import re
 from collections.abc import Generator
 from datetime import date, datetime
 from pathlib import Path
@@ -1276,7 +1276,7 @@ class TestBsrch:
         assert any("reached internal limit" in rec.message for rec in caplog.records)
 
     def test_parse_bsrch_responses_coerces_numeric_whitespace(self):
-        """Whitespace strings in numeric columns should coerce to None allowing float inference."""
+        """Whitespace strings in numeric columns should coerce to None."""
         bq = BQuery()
         responses = [
             {

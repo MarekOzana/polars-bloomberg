@@ -4,7 +4,7 @@
 [![Tests](https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml/badge.svg)](https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
-**polars-bloomberg** is a Python library that extracts Bloomberg’s financial data directly into [Polars](https://www.pola.rs/) DataFrames.   
+**polars-bloomberg** is a Python library that extracts Bloomberg’s financial data directly into [Polars](https://www.pola.rs/) DataFrames.
 If you’re a quant financial analyst, data scientist, or quant developer working in capital markets, this library makes it easy to fetch, transform, and analyze Bloomberg data right in Polars—offering speed, efficient memory usage, and a lot of fun to use!
 
 **Why use polars-bloomberg?**
@@ -25,6 +25,7 @@ If you’re a quant financial analyst, data scientist, or quant developer workin
     - [BDP (Bloomberg Data Point)](#bdp)
     - [BDH (Bloomberg Data History)](#bdh)
     - [BDIB (Bloomberg Data Intraday Bar)](#bdib)
+    - [BSRCH (Bloomberg Search)](#bsrch)
     - [BQL (Bloomberg Query Language)](#bql) <details><summary>BQL Examples</summary>
         - [Single Item and Single Security](#1-basic-example-single-item-and-single-security)
         - [Multiple Securities with Single Item](#2-multiple-securities-with-a-single-item)
@@ -44,9 +45,9 @@ If you’re a quant financial analyst, data scientist, or quant developer workin
 
 ## Introduction
 Working with Bloomberg data in Python often feels more complicated than using their well-known Excel interface.
-Great projects like [blp](https://github.com/matthewgilbert/blp), [xbbg](https://github.com/alpha-xone/xbbg), and [pdblp](https://github.com/matthewgilbert/pdblp) have made this easier by pulling data directly into pandas. 
+Great projects like [blp](https://github.com/matthewgilbert/blp), [xbbg](https://github.com/alpha-xone/xbbg), and [pdblp](https://github.com/matthewgilbert/pdblp) have made this easier by pulling data directly into pandas.
 
-With polars-bloomberg, you can enjoy the speed and simplicity of [Polars](https://www.pola.rs/) DataFrames—accessing both familiar Excel-style calls (`bdp`, `bdh`) and advanced `bql` queries—without extra pandas conversions. 
+With polars-bloomberg, you can enjoy the speed and simplicity of [Polars](https://www.pola.rs/) DataFrames—accessing both familiar Excel-style calls (`bdp`, `bdh` ,`bdip`, `bsrch`) and advanced `bql` queries—without extra pandas conversions.
 
 For detailed documentation and function references, visit the documentation site [https://marekozana.github.io/polars-bloomberg](https://marekozana.github.io/polars-bloomberg/).
 
@@ -95,6 +96,8 @@ If you see a price in `df`, your setup is working 🤩!!!
 - `bq.bdp()` for Bloomberg Data Points (single-value fields).
 - `bq.bdh()` for Historical Data (time series).
 - `bq.bql()` for complex Bloomberg Query Language requests.
+- `bq.bsrch()` for saved custom SRCH searches and BI templates.
+- `bq.bdip()` for intraday bars
 
 ## BDP
 Use Case: Fetch the latest single-value data points (like last price, currency, or descriptive fields).
@@ -173,8 +176,8 @@ with BQuery() as bq:
 
 ```python
 with BQuery() as bq:
-    df = bq.bdp(['USDSEK Curncy', 'SEKCZK Curncy'], 
-                ['SETTLE_DT', 'PX_LAST'], 
+    df = bq.bdp(['USDSEK Curncy', 'SEKCZK Curncy'],
+                ['SETTLE_DT', 'PX_LAST'],
                 overrides=[('REFERENCE_DATE', '20200715')]
                )
 
@@ -251,9 +254,9 @@ shape: (14, 4)
 ### BDH with options - periodicitySelection: Monthly
 ```python
 with BQuery() as bq:
-    df = bq.bdh(['AAPL US Equity'], 
-                ['PX_LAST'], 
-                start_date=date(2019, 1, 1), 
+    df = bq.bdh(['AAPL US Equity'],
+                ['PX_LAST'],
+                start_date=date(2019, 1, 1),
                 end_date=date(2019, 3, 29),
                 options={"periodicitySelection": "MONTHLY"})
 
@@ -275,9 +278,6 @@ Use Case: Retrieve intraday bars (1- to 1440-minute intervals) over a precise in
 window without managing tick aggregation yourself.
 
 ```python
-from datetime import datetime
-from polars_bloomberg import BQuery
-
 with BQuery() as bq:  # set debug=False for normal usage
     df = bq.bdib(
         "OMX Index",
@@ -311,6 +311,53 @@ shape: (4, 9)
 Each row is a 60-minute bar built from TRADE events, and the `time` column is returned
 in UTC (matching Bloomberg's wide format).
 
+## BSRCH
+Use Case: Excel-style searches (SRCH/BI domains). Supports overrides such as `LIMIT` and custom keys (e.g., `BIKEY`).
+
+### Small example: two COCO bonds (limit = 2)
+```python
+with BQuery() as bq:
+    df = bq.bsrch("FI:SRCHEX.@COCO", overrides={"LIMIT": 2})
+    print(df)
+```
+Example output:
+```
+shape: (2, 1)
+┌──────────────┐
+│ id           │
+│ ---          │
+│ str          │
+╞══════════════╡
+│ DA785784 Corp│
+│ DA773901 Corp│
+└──────────────┘
+```
+
+### Larger example: BI template (BI:TPD) with BIKEY and LIMIT
+```python
+with BQuery() as bq:
+    df = bq.bsrch(
+        "BI:TPD",
+        overrides={
+            "BIKEY": "DKOCVGXJVU8II8M90W8JSQEKR",
+            "LIMIT": 20000,  # avoid ReachMax warning
+        },
+    )
+    print(df.head())
+```
+Example output (truncated):
+```
+shape: (16, 6)
+┌──────────┬──────────┬─────────┬──────────┬──────────┬─────────┐
+│ Main_Cat ┆ Bclass3_ ┆ Category┆ 06/30/20 ┆ 03/31/20 ┆ 12/31/20│
+│ ...      ┆ ...      ┆ ...     ┆ 25       ┆ 25       ┆ 24      │
+│ str      ┆ str      ┆ str     ┆ f64      ┆ f64      ┆ f64     │
+╞══════════╪══════════╪═════════╪══════════╪══════════╪═════════╡
+│ Leverage ┆ Non-Fin… ┆ B       ┆ 3.956051 ┆ 4.118212 ┆ 4.269732│
+│ …        ┆ …        ┆ …       ┆ …        ┆ …        ┆ …       │
+└──────────┴──────────┴─────────┴──────────┴──────────┴─────────┘
+```
+
 ## BQL
 *Use Case*: Run more advanced queries to screen securities, calculate analytics (like moving averages), or pull fundamental data with complex conditions.
 
@@ -335,7 +382,7 @@ Output:
 │ IBM US Equity ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
 └───────────────┴─────────┴────────────┴──────────┘
 ```
-    
+
 ### 2. Multiple Securities with a Single Item
 ```python
 # Fetch the last price for IBM and SEB
@@ -406,10 +453,10 @@ Output:
 Find list of SEB and Handelsbanken's AT1 bonds and print their names, duration and Z-Spread.
 ```python
 query="""
-    let(#dur=duration(duration_type=MODIFIED); 
-        #zsprd=spread(spread_type=Z);) 
-    get(name(), #dur, #zsprd) 
-    for(filter(screenresults(type=SRCH, screen_name='@COCO'), 
+    let(#dur=duration(duration_type=MODIFIED);
+        #zsprd=spread(spread_type=Z);)
+    get(name(), #dur, #zsprd)
+    for(filter(screenresults(type=SRCH, screen_name='@COCO'),
             ticker in ['SEB', 'SHBASS']))
 """
 
@@ -524,7 +571,7 @@ Output:
 
 
 ### Segments
-The following example shows handling of two data-items with different length. The first dataframe 
+The following example shows handling of two data-items with different length. The first dataframe
 describes the segments (and has length 5 in this case), while the second dataframe contains time series.
 One can join the dataframes on common columns and pivot the segments into columns as shown below:
 ```python
