@@ -223,7 +223,6 @@ def test_issue_7_bql_with_single_quote(bq):
     assert_frame_equal(df, df_exp)
 
 
-
 def test_issue_14_bql_with_infinity(bq):
     """Replay a BQL response that returns Infinity and ensure it maps to float('inf')."""
     query = "let(#colP = 1 / 0; #colM = -1 / 0;) get(#colP, #colM) for('OMX Index')"
@@ -234,6 +233,7 @@ def test_issue_14_bql_with_infinity(bq):
     assert isinstance(df, pl.DataFrame)
     assert df["#colP"].to_list() == [float("inf")]
     assert df["#colM"].to_list() == [float("-inf")]
+
 
 @pytest.mark.no_bbg
 def test_bdh_leading_nulls():
@@ -295,6 +295,18 @@ def test_bdib(bq: BQuery):
 
     assert_frame_equal(df, df_exp)
 
+def test_bsrch(bq: BQuery):
+    """Test the BSRCH function."""
+    bq.debug = True
+    df = bq.bsrch(
+        "BI:TPD",
+        overrides={
+            "BIKEY": "1F8VLDYPSGPCBXUDVZX90KCUD",
+        },
+    )
+    assert df.shape == (16, 27)
+    exp_df = pl.read_csv("tests/data/bsrch_bi_tpd.csv")
+    assert_frame_equal(df, exp_df)
 
 def test_create_request(bq: BQuery):
     """Test the _create_request method."""
@@ -1151,6 +1163,139 @@ class TestSchemaMappingAndDataConversion:
         out_table = bq._apply_schema(in_table)
         assert out_table.data == exp_data
         assert out_table.schema == schema
+
+
+@pytest.mark.no_bbg
+class TestBsrch:
+    """Unit tests for the BQuery.bsrch method."""
+
+    def test_create_bsrch_request(self):
+        """Ensure ExcelGetGridRequest is built with domain and overrides."""
+        bq = BQuery()
+        session_mock = MagicMock()
+        service_mock = MagicMock()
+        request_mock = MagicMock()
+        overrides_element = MagicMock()
+        override_entry = MagicMock()
+
+        overrides_element.appendElement.return_value = override_entry
+
+        def request_get_element(name):
+            if name == "Overrides":
+                return overrides_element
+            return MagicMock()
+
+        request_mock.getElement.side_effect = request_get_element
+
+        service_mock.createRequest.return_value = request_mock
+        session_mock.getService.return_value = service_mock
+        bq.session = session_mock
+
+        bq._create_bsrch_request("FI:SRCHEX.@CLOSUB", overrides={"LIMIT": 20000})
+
+        session_mock.getService.assert_called_once_with("//blp/exrsvc")
+        service_mock.createRequest.assert_called_once_with("ExcelGetGridRequest")
+        request_mock.set.assert_any_call("Domain", "FI:SRCHEX.@CLOSUB")
+        overrides_element.appendElement.assert_called_once()
+        override_entry.setElement.assert_any_call("name", "LIMIT")
+        override_entry.setElement.assert_any_call("value", "20000")
+
+    def test_parse_bsrch_responses_success(self):
+        """Parse a GridResponse into row dicts with correct typing."""
+        bq = BQuery()
+        responses = [
+            {
+                "GridResponse": {
+                    "ColumnTitles": ["Ticker", "PX_LAST", "COUNT"],
+                    "DataRecords": [
+                        {
+                            "DataFields": [
+                                {"Ticker": "IBM US Equity"},
+                                {"DoubleData": 125.3},
+                                {"Int32Data": 5},
+                            ]
+                        },
+                        {
+                            "DataFields": [
+                                {"Ticker": "MSFT US Equity"},
+                                {"DoubleValue": 402.1},
+                                {"Int32Value": 4},
+                            ]
+                        },
+                    ],
+                    "ReachMax": False,
+                }
+            }
+        ]
+
+        rows = bq._parse_bsrch_responses(responses)
+
+        assert rows == [
+            {"Ticker": "IBM US Equity", "PX_LAST": 125.3, "COUNT": 5},
+            {"Ticker": "MSFT US Equity", "PX_LAST": 402.1, "COUNT": 4},
+        ]
+
+    def test_parse_bsrch_responses_error(self):
+        """Raise ValueError when GridResponse has an error and no data."""
+        bq = BQuery()
+        responses = [
+            {
+                "GridResponse": {
+                    "Error": "Invalid domain",
+                    "NumOfRecords": 0,
+                    "DataRecords": [],
+                }
+            }
+        ]
+
+        with pytest.raises(ValueError, match="BSRCH error: Invalid domain"):
+            bq._parse_bsrch_responses(responses)
+
+    def test_parse_bsrch_responses_reachmax(self, caplog):
+        """Warn when ReachMax is true."""
+        bq = BQuery()
+        responses = [
+            {
+                "GridResponse": {
+                    "ColumnTitles": ["Ticker"],
+                    "DataRecords": [{"DataFields": [{"StringData": "AAPL US Equity"}]}],
+                    "ReachMax": True,
+                }
+            }
+        ]
+
+        with caplog.at_level("WARNING"):
+            rows = bq._parse_bsrch_responses(responses)
+
+        assert rows == [{"Ticker": "AAPL US Equity"}]
+        assert any("reached internal limit" in rec.message for rec in caplog.records)
+
+    def test_bsrch_calls_components(self):
+        """Bsrch should build request, send, parse, and return DataFrame."""
+        bq = BQuery()
+        mock_request = MagicMock()
+        parsed_rows = [{"Ticker": "IBM US Equity"}, {"Ticker": "MSFT US Equity"}]
+
+        with (
+            patch.object(
+                bq, "_create_bsrch_request", return_value=mock_request
+            ) as create_mock,
+            patch.object(
+                bq, "_send_request", return_value=["raw_response"]
+            ) as send_mock,
+            patch.object(
+                bq, "_parse_bsrch_responses", return_value=parsed_rows
+            ) as parse_mock,
+        ):
+            df = bq.bsrch("FI:SRCHEX.@CLOSUB", overrides={"LIMIT": 10000})
+
+        create_mock.assert_called_once()
+        send_mock.assert_called_once_with(mock_request)
+        parse_mock.assert_called_once_with(["raw_response"])
+
+        assert isinstance(df, pl.DataFrame)
+        assert df.shape == (2, 1)
+        assert df["Ticker"].to_list() == ["IBM US Equity", "MSFT US Equity"]
 
 
 @pytest.mark.no_bbg

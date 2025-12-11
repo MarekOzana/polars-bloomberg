@@ -276,6 +276,8 @@ class BQuery:
             raise ConnectionError("Failed to open service //blp/refdata.")
         if not self.session.openService("//blp/bqlsvc"):
             raise ConnectionError("Failed to open service //blp/bqlsvc.")
+        if not self.session.openService("//blp/exrsvc"):
+            raise ConnectionError("Failed to open service //blp/exrsvc.")
 
         return self
 
@@ -599,6 +601,37 @@ class BQuery:
         names = [table.name for table in tables]
         return BqlResult(dataframes, names)
 
+    def bsrch(
+        self,
+        domain: str,
+        overrides: dict[str, Any] | None = None,
+        options: dict | None = None,
+    ) -> pl.DataFrame:
+        r"""Bloomberg SRCH (search) via ExcelGetGridRequest on //blp/exrsvc.
+
+        Args:
+            domain: Domain string, e.g. ``\"FI:SRCHEX.@CLOSUB\"``.
+            overrides: Optional override map (e.g. ``{\"LIMIT\": 20000}``).
+            options: Additional request options applied directly to the request.
+
+        Returns:
+            pl.DataFrame with one row per search record and columns from the grid.
+
+        Raises:
+            ValueError: When Bloomberg returns an error string in GridResponse.
+            TimeoutError/ConnectionError: As surfaced by the session helpers.
+
+        """
+        try:
+            request = self._create_bsrch_request(domain, overrides, options)
+        except Exception:
+            if self.debug:
+                logger.exception("BSRCH request build failed. Request so far: %s", request if 'request' in locals() else 'N/A')
+            raise
+        responses = self._send_request(request)
+        rows = self._parse_bsrch_responses(responses)
+        return pl.DataFrame(rows, infer_schema_length=None, strict=False)
+
     def _create_request(
         self,
         request_type: str,
@@ -630,6 +663,44 @@ class BQuery:
                 override_element.setElement("value", value)
 
         # Add additional options if provided
+        if options:
+            for key, value in options.items():
+                request.set(key, value)
+
+        return request
+
+    def _create_bsrch_request(
+        self,
+        domain: str,
+        overrides: dict[str, Any] | None = None,
+        options: dict | None = None,
+    ) -> blpapi.Request:
+        """Create an ExcelGetGridRequest for BSRCH on //blp/exrsvc."""
+        service = self.session.getService("//blp/exrsvc")
+        request = service.createRequest("ExcelGetGridRequest")
+        request.set("Domain", domain)
+
+        if self.debug:
+            os.makedirs("debug_cases", exist_ok=True)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            with open(
+                f"debug_cases/bsrch_request_{timestamp}.txt", "w", encoding="utf-8"
+            ) as f:
+                f.write(f"Domain param: {domain!r}\n")
+                f.write(f"Overrides param: {overrides!r}\n")
+                f.write(f"Options param: {options!r}\n\n")
+                f.write("Service schema:\n")
+                f.write(str(service))
+                f.write("\n\nRequest:\n")
+                f.write(str(request))
+
+        if overrides:
+            overrides_element = request.getElement("Overrides")
+            for name, value in overrides.items():
+                override = overrides_element.appendElement()
+                override.setElement("name", str(name))
+                override.setElement("value", str(value))
+
         if options:
             for key, value in options.items():
                 request.set(key, value)
@@ -706,6 +777,14 @@ class BQuery:
             # Break the loop when the final response is received
             if event.eventType() == blpapi.Event.RESPONSE:
                 break
+
+        if getattr(self, "debug", False):
+            os.makedirs("debug_cases", exist_ok=True)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            with open(
+                f"debug_cases/responses_{timestamp}.json", "w", encoding="utf-8"
+            ) as f:
+                json.dump(responses, f, default=str, indent=2)
         return responses
 
     def _parse_bdp_responses(
@@ -762,6 +841,96 @@ class BQuery:
                 bars.append(record)
         return bars
 
+    def _parse_bsrch_responses(self, responses: list[dict]) -> list[dict]:
+        """Parse GridResponse payloads from ExcelGetGridRequest."""
+        rows: list[dict[str, Any]] = []
+        errors: list[str] = []
+        reach_max = False
+        column_titles: list[str] | None = None
+
+        for response in responses:
+            grid = response.get("GridResponse", {})
+            if not grid and any(
+                key in response for key in ("NumOfFields", "NumOfRecords", "DataRecords")
+            ):
+                grid = response
+            if not grid:
+                continue
+
+            column_titles = grid.get("ColumnTitles") or column_titles
+            reach_max = reach_max or bool(grid.get("ReachMax"))
+            data_records = grid.get("DataRecords", []) or []
+            error_text = grid.get("Error")
+            if error_text and not data_records:
+                errors.append(error_text)
+                continue
+
+            for record in data_records:
+                data_fields = record.get("DataFields", []) or []
+                row: dict[str, Any] = {}
+                for idx, field in enumerate(data_fields):
+                    value = self._extract_bsrch_field_value(field)
+                    col_name = (
+                        column_titles[idx]
+                        if column_titles and idx < len(column_titles)
+                        else f"col_{idx}"
+                    )
+                    row[col_name] = value
+                rows.append(row)
+
+        if errors and not rows:
+            raise ValueError(f"BSRCH error: {errors[0]}")
+
+        if reach_max:
+            logger.warning(
+                "BSRCH response reached internal limit; consider using LIMIT override."
+            )
+
+        return rows
+
+    @staticmethod
+    def _extract_bsrch_field_value(field: Any) -> Any:  # noqa: PLR0911
+        """Extract typed value from a GridResponse DataField."""
+        if not isinstance(field, dict):
+            return field
+
+        # Possible keys observed in GridResponse DataFields
+        key_order = [
+            "Ticker",
+            "StringValue",
+            "StringData",
+            "value",
+            "Value",
+            "DoubleData",
+            "DoubleValue",
+            "FloatValue",
+            "Int32Data",
+            "Int32Value",
+            "IntValue",
+            "LongValue",
+            "DateValue",
+            "TimeValue",
+            "DateTimeValue",
+        ]
+        for key in key_order:
+            if key in field:
+                val = field.get(key)
+                if key.startswith("Double") or key.startswith("Float"):
+                    try:
+                        return float(val)
+                    except (TypeError, ValueError):
+                        return val
+                if key.startswith("Int32") or key in {"IntValue", "LongValue"}:
+                    try:
+                        return int(val)
+                    except (TypeError, ValueError):
+                        return val
+                if key in {"DateValue", "TimeValue", "DateTimeValue"}:
+                    return val
+                return val
+        # If no known key found, return the dict itself
+        return field
+
     def _parse_bql_responses(self, responses: list[Any]):
         """Parse BQL responses into a list of SITable objects."""
         tables: list[SITable] = []
@@ -785,6 +954,7 @@ class BQuery:
                     for v in table.data[col]
                 ]
             elif dtype in {pl.Float64, pl.Int64}:
+
                 def _convert_number(val: Any):
                     if isinstance(val, str):
                         lower_val = val.lower()
