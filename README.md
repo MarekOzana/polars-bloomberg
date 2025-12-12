@@ -1,10 +1,22 @@
-![Polars Bloomberg Logo](https://raw.githubusercontent.com/MarekOzana/polars-bloomberg/main/assets/polars-bloomberg-logo.jpg)
+<!-- markdownlint-disable MD033 MD041 -->
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/MarekOzana/polars-bloomberg/main/assets/polars-bloomberg-logo.jpg" alt="Polars Bloomberg Logo">
 
 # Polars + Bloomberg Open API
+
+[![PyPI version](https://img.shields.io/pypi/v/polars-bloomberg.svg?color=5FA8FF)](https://pypi.org/project/polars-bloomberg/)
+[![Python versions](https://img.shields.io/pypi/pyversions/polars-bloomberg.svg)](https://pypi.org/project/polars-bloomberg/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/polars-bloomberg?color=4c1)](https://pypistats.org/packages/polars-bloomberg)
+[![Docs](https://img.shields.io/badge/docs-site-1E3A8A?logo=readthedocs&logoColor=white)](https://marekozana.github.io/polars-bloomberg/)
+<br>
 [![Tests](https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml/badge.svg)](https://github.com/MarekOzana/polars-bloomberg/actions/workflows/python-package.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
-**polars-bloomberg** is a Python library that extracts Bloomberg’s financial data directly into [Polars](https://www.pola.rs/) DataFrames.
+</div>
+<!-- markdownlint-enable MD033 MD041 -->
+
+**polars-bloomberg** is a Python library that extracts Bloomberg's financial data directly into [Polars](https://www.pola.rs/) DataFrames.
 If you’re a quant financial analyst, data scientist, or quant developer working in capital markets, this library makes it easy to fetch, transform, and analyze Bloomberg data right in Polars—offering speed, efficient memory usage, and a lot of fun to use!
 
 **Why use polars-bloomberg?**
