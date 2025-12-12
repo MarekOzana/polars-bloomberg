@@ -4,4 +4,4 @@ from .plbbg import BqlResult, BQuery
 
 __all__ = ["BQuery", "BqlResult"]
 
-__version__ = "0.5.2"
+__version__ = "0.5.3"
