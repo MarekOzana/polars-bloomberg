@@ -7,10 +7,11 @@ name = "polars-bloomberg"
 version = "0.5.2"
 description = "Python library providing a Polars DataFrame interface for easy and intuitive access to Bloomberg API."
 readme = "README.md"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 authors = [{ name = "Marek Ozana, Ph.D." }]
 dependencies = ["polars>=1.7.1", "blpapi>=3.24.0"]
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.11"
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -18,8 +19,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries",
   "Topic :: Office/Business :: Financial",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.12",
-  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.14",
   "Operating System :: OS Independent",
 ]
 
@@ -88,4 +88,3 @@ name = "blpapi"
 url = "https://blpapi.bloomberg.com/repository/releases/python/simple"
 default = false
 explicit = true
-
