@@ -128,6 +128,10 @@
               <ul class="nav flex-column">
               </ul>
             </li>
+            <li class="nav-item" data-bs-level="2"><a href="#sp-500-earning-revisions-breadth" class="nav-link">S&amp;P 500 Earning Revisions Breadth</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
               </ul>
             </li>
         </ul>
@@ -633,7 +637,7 @@ from polars_bloomberg import BQuery</div>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-2">
@@ -722,7 +726,7 @@ df</div>
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[ ]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[2]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <div><style>
 .dataframe > thead > tr,
@@ -731,7 +735,7 @@ df</div>
   white-space: pre-wrap;
 }
 </style>
-<small>shape: (1, 11)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>#last_price</th><th>#12m_trail_eps</th><th>#12m_fwd_eps</th><th>#epsg_consensus</th><th>#current_pe</th><th>#5y_avg_pe</th><th>#10y_avg_pe</th><th>#20y_avg_pe</th><th>#35y_avg_pe</th><th>#max_pe</th></tr><tr><td>str</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td></tr></thead><tbody><tr><td>"SPX Index"</td><td>6850.44</td><td>269.074714</td><td>306.176329</td><td>0.137886</td><td>22.36133</td><td>20.048068</td><td>18.824081</td><td>16.315795</td><td>16.525469</td><td>24.071401</td></tr></tbody></table></div>
+<small>shape: (1, 11)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>#last_price</th><th>#12m_trail_eps</th><th>#12m_fwd_eps</th><th>#epsg_consensus</th><th>#current_pe</th><th>#5y_avg_pe</th><th>#10y_avg_pe</th><th>#20y_avg_pe</th><th>#35y_avg_pe</th><th>#max_pe</th></tr><tr><td>str</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td><td>f64</td></tr></thead><tbody><tr><td>"SPX Index"</td><td>6833.33</td><td>269.207986</td><td>307.10891</td><td>0.140787</td><td>22.231234</td><td>20.040917</td><td>18.823455</td><td>16.3336</td><td>16.773689</td><td>25.312711</td></tr></tbody></table></div>
 </div>
 </div>
 </div>
@@ -747,30 +751,30 @@ df</div>
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output" data-mime-type="text/html" tabindex="0">
 <style>
-  #altair-viz-93d0f5703a9145ddaa4038192392956e.vega-embed {
+  #altair-viz-a40e11427bf749908adadbc6ccf2290d.vega-embed {
     width: 100%;
     display: flex;
   }
 
-  #altair-viz-93d0f5703a9145ddaa4038192392956e.vega-embed details,
-  #altair-viz-93d0f5703a9145ddaa4038192392956e.vega-embed details summary {
+  #altair-viz-a40e11427bf749908adadbc6ccf2290d.vega-embed details,
+  #altair-viz-a40e11427bf749908adadbc6ccf2290d.vega-embed details summary {
     position: relative;
   }
 </style>
-<div id="altair-viz-93d0f5703a9145ddaa4038192392956e"></div>
+<div id="altair-viz-a40e11427bf749908adadbc6ccf2290d"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-93d0f5703a9145ddaa4038192392956e") {
-      outputDiv = document.getElementById("altair-viz-93d0f5703a9145ddaa4038192392956e");
+    if (outputDiv.id !== "altair-viz-a40e11427bf749908adadbc6ccf2290d") {
+      outputDiv = document.getElementById("altair-viz-a40e11427bf749908adadbc6ccf2290d");
     }
 
     const paths = {
-      "vega": "https://cdn.jsdelivr.net/npm/vega@5?noext",
+      "vega": "https://cdn.jsdelivr.net/npm/vega@6?noext",
       "vega-lib": "https://cdn.jsdelivr.net/npm/vega-lib?noext",
-      "vega-lite": "https://cdn.jsdelivr.net/npm/vega-lite@5.20.1?noext",
-      "vega-embed": "https://cdn.jsdelivr.net/npm/vega-embed@6?noext",
+      "vega-lite": "https://cdn.jsdelivr.net/npm/vega-lite@6.1.0?noext",
+      "vega-embed": "https://cdn.jsdelivr.net/npm/vega-embed@7?noext",
     };
 
     function maybeLoadScript(lib, version) {
@@ -805,13 +809,188 @@ df</div>
       let deps = ["vega-embed"];
       require(deps, displayChart, err => showError(`Error loading script: ${err.message}`));
     } else {
-      maybeLoadScript("vega", "5")
-        .then(() => maybeLoadScript("vega-lite", "5.20.1"))
-        .then(() => maybeLoadScript("vega-embed", "6"))
+      maybeLoadScript("vega", "6")
+        .then(() => maybeLoadScript("vega-lite", "6.1.0"))
+        .then(() => maybeLoadScript("vega-embed", "7"))
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}}, "layer": [{"mark": {"type": "rect", "opacity": 0.7}, "encoding": {"color": {"field": "return_pct", "legend": null, "scale": {"scheme": "blueorange", "reverse": true}, "title": "Price return", "type": "quantitative"}, "tooltip": [{"field": "fwd_pe", "format": ".1f", "title": "Fwd P/E", "type": "quantitative"}, {"field": "fwd_eps", "format": ".2f", "title": "Fwd EPS", "type": "quantitative"}, {"field": "price", "format": ".0f", "title": "Price target", "type": "quantitative"}, {"field": "return_pct", "format": "+.1f", "title": "Return (%)", "type": "quantitative"}], "x": {"axis": {"format": "+.1%"}, "field": "fwd_eps_growth", "sort": "ascending", "title": "12m forward EPS growth", "type": "ordinal"}, "y": {"field": "pe_display", "sort": {"field": "fwd_pe", "order": "descending"}, "title": "12m fwd P/E", "type": "ordinal"}}}, {"mark": {"type": "rect", "fill": null, "stroke": "black", "strokeWidth": 3}, "encoding": {"x": {"axis": {"format": "+.1%"}, "field": "fwd_eps_growth", "sort": "ascending", "title": "12m forward EPS growth", "type": "ordinal"}, "y": {"field": "pe_display", "sort": {"field": "fwd_pe", "order": "descending"}, "title": "12m fwd P/E", "type": "ordinal"}}, "transform": [{"filter": "datum.is_current"}]}, {"mark": {"type": "text", "baseline": "middle", "dy": -8, "fontWeight": "bold"}, "encoding": {"text": {"field": "price_label", "type": "nominal"}, "x": {"axis": {"format": "+.1%"}, "field": "fwd_eps_growth", "sort": "ascending", "title": "12m forward EPS growth", "type": "ordinal"}, "y": {"field": "pe_display", "sort": {"field": "fwd_pe", "order": "descending"}, "title": "12m fwd P/E", "type": "ordinal"}}}, {"mark": {"type": "text", "baseline": "middle", "dy": 8, "size": 10}, "encoding": {"color": {"value": "black"}, "text": {"field": "return_label", "type": "nominal"}, "x": {"axis": {"format": "+.1%"}, "field": "fwd_eps_growth", "sort": "ascending", "title": "12m forward EPS growth", "type": "ordinal"}, "y": {"field": "pe_display", "sort": {"field": "fwd_pe", "order": "descending"}, "title": "12m fwd P/E", "type": "ordinal"}}}], "data": {"name": "data-0e43b7934ed626572100ff8a142ce779"}, "height": 360, "title": "S&P 500 12-month price level (return) based on EPS and P/E", "width": 650, "$schema": "https://vega.github.io/schema/vega-lite/v5.20.1.json", "datasets": {"data-0e43b7934ed626572100ff8a142ce779": [{"fwd_pe": 16.315794903185942, "fwd_eps_growth": 0.07788591995681787, "pe_label_text": "20y avg", "fwd_eps": 290.03184594490244, "price": 4732.10011382945, "is_current": false, "return_pct": -30.92268359653614, "price_label": "4732", "return_label": "(-31%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.315794903185942, "fwd_eps_growth": 0.09788591995681786, "pe_label_text": "20y avg", "fwd_eps": 295.41334023061535, "price": 4819.903470867809, "is_current": false, "return_pct": -29.64096509322307, "price_label": "4820", "return_label": "(-30%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.315794903185942, "fwd_eps_growth": 0.11788591995681787, "pe_label_text": "20y avg", "fwd_eps": 300.7948345163283, "price": 4907.706827906169, "is_current": false, "return_pct": -28.359246589910004, "price_label": "4908", "return_label": "(-28%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.315794903185942, "fwd_eps_growth": 0.13788591995681787, "pe_label_text": "20y avg", "fwd_eps": 306.17632880204127, "price": 4995.510184944528, "is_current": false, "return_pct": -27.077528086596946, "price_label": "4996", "return_label": "(-27%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.315794903185942, "fwd_eps_growth": 0.15788591995681786, "pe_label_text": "20y avg", "fwd_eps": 311.5578230877542, "price": 5083.313541982888, "is_current": false, "return_pct": -25.79580958328388, "price_label": "5083", "return_label": "(-26%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.315794903185942, "fwd_eps_growth": 0.17788591995681788, "pe_label_text": "20y avg", "fwd_eps": 316.93931737346713, "price": 5171.116899021246, "is_current": false, "return_pct": -24.514091079970825, "price_label": "5171", "return_label": "(-25%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.315794903185942, "fwd_eps_growth": 0.19788591995681787, "pe_label_text": "20y avg", "fwd_eps": 322.3208116591801, "price": 5258.920256059606, "is_current": false, "return_pct": -23.232372576657756, "price_label": "5259", "return_label": "(-23%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.525469032030486, "fwd_eps_growth": 0.07788591995681787, "pe_label_text": "35y avg", "fwd_eps": 290.03184594490244, "price": 4792.9122884651215, "is_current": false, "return_pct": -30.034971644666307, "price_label": "4793", "return_label": "(-30%)", "pe_display": "16.5 35y avg"}, {"fwd_pe": 16.525469032030486, "fwd_eps_growth": 0.09788591995681786, "pe_label_text": "35y avg", "fwd_eps": 295.41334023061535, "price": 4881.8440056297195, "is_current": false, "return_pct": -28.736781788765107, "price_label": "4882", "return_label": "(-29%)", "pe_display": "16.5 35y avg"}, {"fwd_pe": 16.525469032030486, "fwd_eps_growth": 0.11788591995681787, "pe_label_text": "35y avg", "fwd_eps": 300.7948345163283, "price": 4970.775722794318, "is_current": false, "return_pct": -27.438591932863897, "price_label": "4971", "return_label": "(-27%)", "pe_display": "16.5 35y avg"}, {"fwd_pe": 16.525469032030486, "fwd_eps_growth": 0.13788591995681787, "pe_label_text": "35y avg", "fwd_eps": 306.17632880204127, "price": 5059.707439958916, "is_current": false, "return_pct": -26.140402076962697, "price_label": "5060", "return_label": "(-26%)", "pe_display": "16.5 35y avg"}, {"fwd_pe": 16.525469032030486, "fwd_eps_growth": 0.15788591995681786, "pe_label_text": "35y avg", "fwd_eps": 311.5578230877542, "price": 5148.639157123514, "is_current": false, "return_pct": -24.842212221061498, "price_label": "5149", "return_label": "(-25%)", "pe_display": "16.5 35y avg"}, {"fwd_pe": 16.525469032030486, "fwd_eps_growth": 0.17788591995681788, "pe_label_text": "35y avg", "fwd_eps": 316.93931737346713, "price": 5237.5708742881125, "is_current": false, "return_pct": -23.5440223651603, "price_label": "5238", "return_label": "(-24%)", "pe_display": "16.5 35y avg"}, {"fwd_pe": 16.525469032030486, "fwd_eps_growth": 0.19788591995681787, "pe_label_text": "35y avg", "fwd_eps": 322.3208116591801, "price": 5326.502591452711, "is_current": false, "return_pct": -22.24583250925909, "price_label": "5327", "return_label": "(-22%)", "pe_display": "16.5 35y avg"}, {"fwd_pe": 18.824080785031676, "fwd_eps_growth": 0.07788591995681787, "pe_label_text": "10y avg", "fwd_eps": 290.03184594490244, "price": 5459.582898298704, "is_current": false, "return_pct": -20.303179090705058, "price_label": "5460", "return_label": "(-20%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.824080785031676, "fwd_eps_growth": 0.09788591995681786, "pe_label_text": "10y avg", "fwd_eps": 295.41334023061535, "price": 5560.884581477151, "is_current": false, "return_pct": -18.824417388121763, "price_label": "5561", "return_label": "(-19%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.824080785031676, "fwd_eps_growth": 0.11788591995681787, "pe_label_text": "10y avg", "fwd_eps": 300.7948345163283, "price": 5662.186264655598, "is_current": false, "return_pct": -17.345655685538475, "price_label": "5662", "return_label": "(-17%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.824080785031676, "fwd_eps_growth": 0.13788591995681787, "pe_label_text": "10y avg", "fwd_eps": 306.17632880204127, "price": 5763.4879478340445, "is_current": false, "return_pct": -15.866893982955188, "price_label": "5763", "return_label": "(-16%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.824080785031676, "fwd_eps_growth": 0.15788591995681786, "pe_label_text": "10y avg", "fwd_eps": 311.5578230877542, "price": 5864.789631012492, "is_current": false, "return_pct": -14.38813228037189, "price_label": "5865", "return_label": "(-14%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.824080785031676, "fwd_eps_growth": 0.17788591995681788, "pe_label_text": "10y avg", "fwd_eps": 316.93931737346713, "price": 5966.091314190939, "is_current": false, "return_pct": -12.909370577788593, "price_label": "5966", "return_label": "(-13%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.824080785031676, "fwd_eps_growth": 0.19788591995681787, "pe_label_text": "10y avg", "fwd_eps": 322.3208116591801, "price": 6067.392997369385, "is_current": false, "return_pct": -11.430608875205317, "price_label": "6067", "return_label": "(-11%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 20.048068471572524, "fwd_eps_growth": 0.07788591995681787, "pe_label_text": "5y avg", "fwd_eps": 290.03184594490244, "price": 5814.5783064399775, "is_current": false, "return_pct": -15.12109723696613, "price_label": "5815", "return_label": "(-15%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.048068471572524, "fwd_eps_growth": 0.09788591995681786, "pe_label_text": "5y avg", "fwd_eps": 295.41334023061535, "price": 5922.466872359327, "is_current": false, "return_pct": -13.546182838484434, "price_label": "5922", "return_label": "(-14%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.048068471572524, "fwd_eps_growth": 0.11788591995681787, "pe_label_text": "5y avg", "fwd_eps": 300.7948345163283, "price": 6030.355438278677, "is_current": false, "return_pct": -11.971268440002724, "price_label": "6030", "return_label": "(-12%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.048068471572524, "fwd_eps_growth": 0.13788591995681787, "pe_label_text": "5y avg", "fwd_eps": 306.17632880204127, "price": 6138.244004198026, "is_current": false, "return_pct": -10.39635404152104, "price_label": "6138", "return_label": "(-10%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.048068471572524, "fwd_eps_growth": 0.15788591995681786, "pe_label_text": "5y avg", "fwd_eps": 311.5578230877542, "price": 6246.1325701173755, "is_current": false, "return_pct": -8.82143964303934, "price_label": "6246", "return_label": "(-9%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.048068471572524, "fwd_eps_growth": 0.17788591995681788, "pe_label_text": "5y avg", "fwd_eps": 316.93931737346713, "price": 6354.021136036725, "is_current": false, "return_pct": -7.2465252445576445, "price_label": "6354", "return_label": "(-7%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.048068471572524, "fwd_eps_growth": 0.19788591995681787, "pe_label_text": "5y avg", "fwd_eps": 322.3208116591801, "price": 6461.909701956074, "is_current": false, "return_pct": -5.671610846075959, "price_label": "6462", "return_label": "(-6%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 22.361330239956665, "fwd_eps_growth": 0.07788591995681787, "pe_label_text": "current", "fwd_eps": 290.03184594490244, "price": 6485.497887278199, "is_current": false, "return_pct": -5.327279893288617, "price_label": "6485", "return_label": "(-5%)", "pe_display": "22.4 current"}, {"fwd_pe": 22.361330239956665, "fwd_eps_growth": 0.09788591995681786, "pe_label_text": "current", "fwd_eps": 295.41334023061535, "price": 6605.835258185467, "is_current": false, "return_pct": -3.5706427881206593, "price_label": "6606", "return_label": "(-4%)", "pe_display": "22.4 current"}, {"fwd_pe": 22.361330239956665, "fwd_eps_growth": 0.11788591995681787, "pe_label_text": "current", "fwd_eps": 300.7948345163283, "price": 6726.172629092734, "is_current": false, "return_pct": -1.814005682952713, "price_label": "6726", "return_label": "(-2%)", "pe_display": "22.4 current"}, {"fwd_pe": 22.361330239956665, "fwd_eps_growth": 0.13788591995681787, "pe_label_text": "current", "fwd_eps": 306.17632880204127, "price": 6846.51, "is_current": true, "return_pct": -0.05736857778477766, "price_label": "6847", "return_label": "(0%)", "pe_display": "22.4 current"}, {"fwd_pe": 22.361330239956665, "fwd_eps_growth": 0.15788591995681786, "pe_label_text": "current", "fwd_eps": 311.5578230877542, "price": 6966.847370907267, "is_current": false, "return_pct": 1.6992685273831576, "price_label": "6967", "return_label": "(2%)", "pe_display": "22.4 current"}, {"fwd_pe": 22.361330239956665, "fwd_eps_growth": 0.17788591995681788, "pe_label_text": "current", "fwd_eps": 316.93931737346713, "price": 7087.1847418145335, "is_current": false, "return_pct": 3.455905632551093, "price_label": "7087", "return_label": "(3%)", "pe_display": "22.4 current"}, {"fwd_pe": 22.361330239956665, "fwd_eps_growth": 0.19788591995681787, "pe_label_text": "current", "fwd_eps": 322.3208116591801, "price": 7207.522112721801, "is_current": false, "return_pct": 5.21254273771905, "price_label": "7208", "return_label": "(5%)", "pe_display": "22.4 current"}, {"fwd_pe": 24.071400551584883, "fwd_eps_growth": 0.07788591995681787, "pe_label_text": "highest", "fwd_eps": 290.03184594490244, "price": 6981.472736455306, "is_current": false, "return_pct": 1.9127637999209801, "price_label": "6981", "return_label": "(2%)", "pe_display": "24.1 highest"}, {"fwd_pe": 24.071400551584883, "fwd_eps_growth": 0.09788591995681786, "pe_label_text": "highest", "fwd_eps": 295.41334023061535, "price": 7111.012840972768, "is_current": false, "return_pct": 3.8037387521497656, "price_label": "7111", "return_label": "(4%)", "pe_display": "24.1 highest"}, {"fwd_pe": 24.071400551584883, "fwd_eps_growth": 0.11788591995681787, "pe_label_text": "highest", "fwd_eps": 300.7948345163283, "price": 7240.552945490229, "is_current": false, "return_pct": 5.694713704378529, "price_label": "7241", "return_label": "(6%)", "pe_display": "24.1 highest"}, {"fwd_pe": 24.071400551584883, "fwd_eps_growth": 0.13788591995681787, "pe_label_text": "highest", "fwd_eps": 306.17632880204127, "price": 7370.09305000769, "is_current": false, "return_pct": 7.5856886566073145, "price_label": "7370", "return_label": "(8%)", "pe_display": "24.1 highest"}, {"fwd_pe": 24.071400551584883, "fwd_eps_growth": 0.15788591995681786, "pe_label_text": "highest", "fwd_eps": 311.5578230877542, "price": 7499.633154525151, "is_current": false, "return_pct": 9.4766636088361, "price_label": "7500", "return_label": "(9%)", "pe_display": "24.1 highest"}, {"fwd_pe": 24.071400551584883, "fwd_eps_growth": 0.17788591995681788, "pe_label_text": "highest", "fwd_eps": 316.93931737346713, "price": 7629.173259042613, "is_current": false, "return_pct": 11.367638561064886, "price_label": "7629", "return_label": "(11%)", "pe_display": "24.1 highest"}, {"fwd_pe": 24.071400551584883, "fwd_eps_growth": 0.19788591995681787, "pe_label_text": "highest", "fwd_eps": 322.3208116591801, "price": 7758.713363560075, "is_current": false, "return_pct": 13.258613513293671, "price_label": "7759", "return_label": "(13%)", "pe_display": "24.1 highest"}]}}, {"mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}}, "layer": [{"mark": {"type": "rect", "opacity": 0.7}, "encoding": {"color": {"field": "return_pct", "legend": null, "scale": {"scheme": "blueorange", "reverse": true}, "title": "Price return", "type": "quantitative"}, "tooltip": [{"field": "fwd_pe", "format": ".1f", "title": "Fwd P/E", "type": "quantitative"}, {"field": "fwd_eps", "format": ".2f", "title": "Fwd EPS", "type": "quantitative"}, {"field": "price", "format": ".0f", "title": "Price target", "type": "quantitative"}, {"field": "return_pct", "format": "+.1f", "title": "Return (%)", "type": "quantitative"}], "x": {"axis": {"format": "+.1%"}, "field": "fwd_eps_growth", "sort": "ascending", "title": "12m forward EPS growth", "type": "ordinal"}, "y": {"field": "pe_display", "sort": {"field": "fwd_pe", "order": "descending"}, "title": "12m fwd P/E", "type": "ordinal"}}}, {"mark": {"type": "rect", "fill": null, "stroke": "black", "strokeWidth": 3}, "encoding": {"x": {"axis": {"format": "+.1%"}, "field": "fwd_eps_growth", "sort": "ascending", "title": "12m forward EPS growth", "type": "ordinal"}, "y": {"field": "pe_display", "sort": {"field": "fwd_pe", "order": "descending"}, "title": "12m fwd P/E", "type": "ordinal"}}, "transform": [{"filter": "datum.is_current"}]}, {"mark": {"type": "text", "baseline": "middle", "dy": -8, "fontWeight": "bold"}, "encoding": {"text": {"field": "price_label", "type": "nominal"}, "x": {"axis": {"format": "+.1%"}, "field": "fwd_eps_growth", "sort": "ascending", "title": "12m forward EPS growth", "type": "ordinal"}, "y": {"field": "pe_display", "sort": {"field": "fwd_pe", "order": "descending"}, "title": "12m fwd P/E", "type": "ordinal"}}}, {"mark": {"type": "text", "baseline": "middle", "dy": 8, "size": 10}, "encoding": {"color": {"value": "black"}, "text": {"field": "return_label", "type": "nominal"}, "x": {"axis": {"format": "+.1%"}, "field": "fwd_eps_growth", "sort": "ascending", "title": "12m forward EPS growth", "type": "ordinal"}, "y": {"field": "pe_display", "sort": {"field": "fwd_pe", "order": "descending"}, "title": "12m fwd P/E", "type": "ordinal"}}}], "data": {"name": "data-70a203323f58940faf07f5df7417bebc"}, "height": 360, "title": "S&P 500 12-month price level (return) based on EPS and P/E", "width": 650, "$schema": "https://vega.github.io/schema/vega-lite/v6.1.0.json", "datasets": {"data-70a203323f58940faf07f5df7417bebc": [{"fwd_pe": 16.333600021869277, "fwd_eps_growth": 0.080786773404592, "pe_label_text": "20y avg", "fwd_eps": 290.9564307921025, "price": 4752.365964348892, "is_current": false, "return_pct": -30.4531470842343, "price_label": "4752", "return_label": "(-30%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.333600021869277, "fwd_eps_growth": 0.100786773404592, "pe_label_text": "20y avg", "fwd_eps": 296.3405905163293, "price": 4840.308675738271, "is_current": false, "return_pct": -29.1661799483082, "price_label": "4840", "return_label": "(-29%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.333600021869277, "fwd_eps_growth": 0.120786773404592, "pe_label_text": "20y avg", "fwd_eps": 301.72475024055615, "price": 4928.25138712765, "is_current": false, "return_pct": -27.879212812382104, "price_label": "4928", "return_label": "(-28%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.333600021869277, "fwd_eps_growth": 0.140786773404592, "pe_label_text": "20y avg", "fwd_eps": 307.1089099647829, "price": 5016.194098517028, "is_current": false, "return_pct": -26.592245676456017, "price_label": "5016", "return_label": "(-27%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.333600021869277, "fwd_eps_growth": 0.160786773404592, "pe_label_text": "20y avg", "fwd_eps": 312.49306968900976, "price": 5104.136809906407, "is_current": false, "return_pct": -25.30527854052992, "price_label": "5104", "return_label": "(-25%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.333600021869277, "fwd_eps_growth": 0.180786773404592, "pe_label_text": "20y avg", "fwd_eps": 317.8772294132366, "price": 5192.0795212957855, "is_current": false, "return_pct": -24.01831140460382, "price_label": "5192", "return_label": "(-24%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.333600021869277, "fwd_eps_growth": 0.200786773404592, "pe_label_text": "20y avg", "fwd_eps": 323.26138913746337, "price": 5280.022232685164, "is_current": false, "return_pct": -22.731344268677724, "price_label": "5280", "return_label": "(-23%)", "pe_display": "16.3 20y avg"}, {"fwd_pe": 16.77368911468351, "fwd_eps_growth": 0.080786773404592, "pe_label_text": "35y avg", "fwd_eps": 290.9564307921025, "price": 4880.412716024655, "is_current": false, "return_pct": -28.57929126758615, "price_label": "4880", "return_label": "(-29%)", "pe_display": "16.8 35y avg"}, {"fwd_pe": 16.77368911468351, "fwd_eps_growth": 0.100786773404592, "pe_label_text": "35y avg", "fwd_eps": 296.3405905163293, "price": 4970.724937382636, "is_current": false, "return_pct": -27.257648359106955, "price_label": "4971", "return_label": "(-27%)", "pe_display": "16.8 35y avg"}, {"fwd_pe": 16.77368911468351, "fwd_eps_growth": 0.120786773404592, "pe_label_text": "35y avg", "fwd_eps": 301.72475024055615, "price": 5061.037158740616, "is_current": false, "return_pct": -25.936005450627786, "price_label": "5061", "return_label": "(-26%)", "pe_display": "16.8 35y avg"}, {"fwd_pe": 16.77368911468351, "fwd_eps_growth": 0.140786773404592, "pe_label_text": "35y avg", "fwd_eps": 307.1089099647829, "price": 5151.349380098597, "is_current": false, "return_pct": -24.614362542148594, "price_label": "5151", "return_label": "(-25%)", "pe_display": "16.8 35y avg"}, {"fwd_pe": 16.77368911468351, "fwd_eps_growth": 0.160786773404592, "pe_label_text": "35y avg", "fwd_eps": 312.49306968900976, "price": 5241.661601456578, "is_current": false, "return_pct": -23.292719633669414, "price_label": "5242", "return_label": "(-23%)", "pe_display": "16.8 35y avg"}, {"fwd_pe": 16.77368911468351, "fwd_eps_growth": 0.180786773404592, "pe_label_text": "35y avg", "fwd_eps": 317.8772294132366, "price": 5331.973822814559, "is_current": false, "return_pct": -21.97107672519022, "price_label": "5332", "return_label": "(-22%)", "pe_display": "16.8 35y avg"}, {"fwd_pe": 16.77368911468351, "fwd_eps_growth": 0.200786773404592, "pe_label_text": "35y avg", "fwd_eps": 323.26138913746337, "price": 5422.286044172539, "is_current": false, "return_pct": -20.64943381671105, "price_label": "5422", "return_label": "(-21%)", "pe_display": "16.8 35y avg"}, {"fwd_pe": 18.823454707348986, "fwd_eps_growth": 0.080786773404592, "pe_label_text": "10y avg", "fwd_eps": 290.9564307921025, "price": 5476.805196827062, "is_current": false, "return_pct": -19.851592169161126, "price_label": "5477", "return_label": "(-20%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.823454707348986, "fwd_eps_growth": 0.100786773404592, "pe_label_text": "10y avg", "fwd_eps": 296.3405905163293, "price": 5578.153683533178, "is_current": false, "return_pct": -18.368442859730493, "price_label": "5578", "return_label": "(-18%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.823454707348986, "fwd_eps_growth": 0.120786773404592, "pe_label_text": "10y avg", "fwd_eps": 301.72475024055615, "price": 5679.502170239294, "is_current": false, "return_pct": -16.885293550299863, "price_label": "5680", "return_label": "(-17%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.823454707348986, "fwd_eps_growth": 0.140786773404592, "pe_label_text": "10y avg", "fwd_eps": 307.1089099647829, "price": 5780.85065694541, "is_current": false, "return_pct": -15.40214424086923, "price_label": "5781", "return_label": "(-15%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.823454707348986, "fwd_eps_growth": 0.160786773404592, "pe_label_text": "10y avg", "fwd_eps": 312.49306968900976, "price": 5882.199143651525, "is_current": false, "return_pct": -13.918994931438611, "price_label": "5882", "return_label": "(-14%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.823454707348986, "fwd_eps_growth": 0.180786773404592, "pe_label_text": "10y avg", "fwd_eps": 317.8772294132366, "price": 5983.5476303576415, "is_current": false, "return_pct": -12.43584562200798, "price_label": "5984", "return_label": "(-12%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 18.823454707348986, "fwd_eps_growth": 0.200786773404592, "pe_label_text": "10y avg", "fwd_eps": 323.26138913746337, "price": 6084.896117063758, "is_current": false, "return_pct": -10.952696312577359, "price_label": "6085", "return_label": "(-11%)", "pe_display": "18.8 10y avg"}, {"fwd_pe": 20.040917278896814, "fwd_eps_growth": 0.080786773404592, "pe_label_text": "5y avg", "fwd_eps": 290.9564307921025, "price": 5831.033761267591, "is_current": false, "return_pct": -14.667756990111824, "price_label": "5831", "return_label": "(-15%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.040917278896814, "fwd_eps_growth": 0.100786773404592, "pe_label_text": "5y avg", "fwd_eps": 296.3405905163293, "price": 5938.937260917189, "is_current": false, "return_pct": -13.088680615202408, "price_label": "5939", "return_label": "(-13%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.040917278896814, "fwd_eps_growth": 0.120786773404592, "pe_label_text": "5y avg", "fwd_eps": 301.72475024055615, "price": 6046.840760566786, "is_current": false, "return_pct": -11.509604240293003, "price_label": "6047", "return_label": "(-12%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.040917278896814, "fwd_eps_growth": 0.140786773404592, "pe_label_text": "5y avg", "fwd_eps": 307.1089099647829, "price": 6154.744260216384, "is_current": false, "return_pct": -9.930527865383587, "price_label": "6155", "return_label": "(-10%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.040917278896814, "fwd_eps_growth": 0.160786773404592, "pe_label_text": "5y avg", "fwd_eps": 312.49306968900976, "price": 6262.647759865981, "is_current": false, "return_pct": -8.35145149047417, "price_label": "6263", "return_label": "(-8%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.040917278896814, "fwd_eps_growth": 0.180786773404592, "pe_label_text": "5y avg", "fwd_eps": 317.8772294132366, "price": 6370.551259515579, "is_current": false, "return_pct": -6.7723751155647545, "price_label": "6371", "return_label": "(-7%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 20.040917278896814, "fwd_eps_growth": 0.200786773404592, "pe_label_text": "5y avg", "fwd_eps": 323.26138913746337, "price": 6478.454759165176, "is_current": false, "return_pct": -5.193298740655338, "price_label": "6478", "return_label": "(-5%)", "pe_display": "20.0 5y avg"}, {"fwd_pe": 22.23123386678335, "fwd_eps_growth": 0.080786773404592, "pe_label_text": "current", "fwd_eps": 290.9564307921025, "price": 6468.320457983794, "is_current": false, "return_pct": -5.341605659556992, "price_label": "6468", "return_label": "(-5%)", "pe_display": "22.2 current"}, {"fwd_pe": 22.23123386678335, "fwd_eps_growth": 0.100786773404592, "pe_label_text": "current", "fwd_eps": 296.3405905163293, "price": 6588.0169719891965, "is_current": false, "return_pct": -3.5899485025720046, "price_label": "6588", "return_label": "(-4%)", "pe_display": "22.2 current"}, {"fwd_pe": 22.23123386678335, "fwd_eps_growth": 0.120786773404592, "pe_label_text": "current", "fwd_eps": 301.72475024055615, "price": 6707.713485994598, "is_current": false, "return_pct": -1.8382913455870176, "price_label": "6708", "return_label": "(-2%)", "pe_display": "22.2 current"}, {"fwd_pe": 22.23123386678335, "fwd_eps_growth": 0.140786773404592, "pe_label_text": "current", "fwd_eps": 307.1089099647829, "price": 6827.410000000001, "is_current": true, "return_pct": -0.08663418860203054, "price_label": "6827", "return_label": "(0%)", "pe_display": "22.2 current"}, {"fwd_pe": 22.23123386678335, "fwd_eps_growth": 0.160786773404592, "pe_label_text": "current", "fwd_eps": 312.49306968900976, "price": 6947.1065140054025, "is_current": false, "return_pct": 1.6650229683829565, "price_label": "6947", "return_label": "(2%)", "pe_display": "22.2 current"}, {"fwd_pe": 22.23123386678335, "fwd_eps_growth": 0.180786773404592, "pe_label_text": "current", "fwd_eps": 317.8772294132366, "price": 7066.803028010804, "is_current": false, "return_pct": 3.4166801253679324, "price_label": "7067", "return_label": "(3%)", "pe_display": "22.2 current"}, {"fwd_pe": 22.23123386678335, "fwd_eps_growth": 0.200786773404592, "pe_label_text": "current", "fwd_eps": 323.26138913746337, "price": 7186.499542016207, "is_current": false, "return_pct": 5.1683372823529306, "price_label": "7186", "return_label": "(5%)", "pe_display": "22.2 current"}, {"fwd_pe": 25.312711423394955, "fwd_eps_growth": 0.080786773404592, "pe_label_text": "highest", "fwd_eps": 290.9564307921025, "price": 7364.896169421476, "is_current": false, "return_pct": 7.779020908129364, "price_label": "7365", "return_label": "(8%)", "pe_display": "25.3 highest"}, {"fwd_pe": 25.312711423394955, "fwd_eps_growth": 0.100786773404592, "pe_label_text": "highest", "fwd_eps": 296.3405905163293, "price": 7501.183850778295, "is_current": false, "return_pct": 9.773475754548588, "price_label": "7501", "return_label": "(10%)", "pe_display": "25.3 highest"}, {"fwd_pe": 25.312711423394955, "fwd_eps_growth": 0.120786773404592, "pe_label_text": "highest", "fwd_eps": 301.72475024055615, "price": 7637.471532135114, "is_current": false, "return_pct": 11.767930600967812, "price_label": "7637", "return_label": "(12%)", "pe_display": "25.3 highest"}, {"fwd_pe": 25.312711423394955, "fwd_eps_growth": 0.140786773404592, "pe_label_text": "highest", "fwd_eps": 307.1089099647829, "price": 7773.759213491933, "is_current": false, "return_pct": 13.76238544738706, "price_label": "7774", "return_label": "(14%)", "pe_display": "25.3 highest"}, {"fwd_pe": 25.312711423394955, "fwd_eps_growth": 0.160786773404592, "pe_label_text": "highest", "fwd_eps": 312.49306968900976, "price": 7910.046894848752, "is_current": false, "return_pct": 15.756840293806285, "price_label": "7910", "return_label": "(16%)", "pe_display": "25.3 highest"}, {"fwd_pe": 25.312711423394955, "fwd_eps_growth": 0.180786773404592, "pe_label_text": "highest", "fwd_eps": 317.8772294132366, "price": 8046.3345762055715, "is_current": false, "return_pct": 17.75129514022551, "price_label": "8046", "return_label": "(18%)", "pe_display": "25.3 highest"}, {"fwd_pe": 25.312711423394955, "fwd_eps_growth": 0.200786773404592, "pe_label_text": "highest", "fwd_eps": 323.26138913746337, "price": 8182.622257562391, "is_current": false, "return_pct": 19.745749986644732, "price_label": "8183", "return_label": "(20%)", "pe_display": "25.3 highest"}]}}, {"mode": "vega-lite"});
+</script>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=7c514366">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="sp-500-earning-revisions-breadth">S&amp;P 500 Earning Revisions Breadth<a class="anchor-link" href="#sp-500-earning-revisions-breadth">¶</a></h2><p>This calculates, for each GICS sector within the S&amp;P 500, the number of companies with upward or downward EPS revisions over the past month. It can be used to track the breadth of change in analysts’ EPS estimates by sector.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=d5347236">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="CodeMirror cm-s-jupyter">
+<div class="zeroclipboard-container">
+<clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-3">
+<div>
+<span class="notice" hidden="">Copied!</span>
+<svg aria-hidden="true" class="clipboard-copy-icon" data-view-component="true" height="20" version="1.1" viewbox="0 0 16 16" width="20">
+<path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+<path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+</clipboard-copy>
+</div>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Get counts of comps with positive and negative earnings revisions over the past month</span>
+<span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">    let(</span>
+<span class="s2">        #rev = net_chg(is_eps(fpt=BT, fpo=1, ae=e, dates=range(-1M, 0d)));</span>
+<span class="s2">        #sector = classification_name(gics, 1);</span>
+
+<span class="s2">        #up   = sum(group(if(#rev &gt; 0, 1, 0), #sector));</span>
+<span class="s2">        #down = sum(group(if(#rev &lt; 0, 1, 0), #sector));</span>
+<span class="s2">    )</span>
+<span class="s2">    get(#up, #down)</span>
+<span class="s2">    for(members("SPX Index"))</span>
+<span class="s2">    preferences(dropCols=["ORIG_IDS", "#sector"])</span>
+<span class="s2">    """</span>
+
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+<div class="clipboard-copy-txt" id="cell-3"># Get counts of comps with positive and negative earnings revisions over the past month
+query = """
+    let(
+        #rev = net_chg(is_eps(fpt=BT, fpo=1, ae=e, dates=range(-1M, 0d)));
+        #sector = classification_name(gics, 1);
+
+        #up   = sum(group(if(#rev &gt; 0, 1, 0), #sector));
+        #down = sum(group(if(#rev &lt; 0, 1, 0), #sector));
+    )
+    get(#up, #down)
+    for(members("SPX Index"))
+    preferences(dropCols=["ORIG_IDS", "#sector"])
+    """
+
+with BQuery() as bq:
+    df = bq.bql(query).combine()
+print(df.head())</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>shape: (5, 3)
+┌────────────────────────┬──────┬───────┐
+│ ID                     ┆ #up  ┆ #down │
+│ ---                    ┆ ---  ┆ ---   │
+│ str                    ┆ f64  ┆ f64   │
+╞════════════════════════╪══════╪═══════╡
+│ Communication Services ┆ 18.0 ┆ 3.0   │
+│ Consumer Discretionary ┆ 41.0 ┆ 8.0   │
+│ Consumer Staples       ┆ 29.0 ┆ 7.0   │
+│ Energy                 ┆ 10.0 ┆ 12.0  │
+│ Financials             ┆ 66.0 ┆ 8.0   │
+└────────────────────────┴──────┴───────┘
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide_code">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide_code" id="cell-id=55ec148c">
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[5]:</div>
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
+<style>
+  #altair-viz-fe797bb4c9a34b1db05eac2ddcaf799e.vega-embed {
+    width: 100%;
+    display: flex;
+  }
+
+  #altair-viz-fe797bb4c9a34b1db05eac2ddcaf799e.vega-embed details,
+  #altair-viz-fe797bb4c9a34b1db05eac2ddcaf799e.vega-embed details summary {
+    position: relative;
+  }
+</style>
+<div id="altair-viz-fe797bb4c9a34b1db05eac2ddcaf799e"></div>
+<script type="text/javascript">
+  var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
+  (function(spec, embedOpt){
+    let outputDiv = document.currentScript.previousElementSibling;
+    if (outputDiv.id !== "altair-viz-fe797bb4c9a34b1db05eac2ddcaf799e") {
+      outputDiv = document.getElementById("altair-viz-fe797bb4c9a34b1db05eac2ddcaf799e");
+    }
+
+    const paths = {
+      "vega": "https://cdn.jsdelivr.net/npm/vega@6?noext",
+      "vega-lib": "https://cdn.jsdelivr.net/npm/vega-lib?noext",
+      "vega-lite": "https://cdn.jsdelivr.net/npm/vega-lite@6.1.0?noext",
+      "vega-embed": "https://cdn.jsdelivr.net/npm/vega-embed@7?noext",
+    };
+
+    function maybeLoadScript(lib, version) {
+      var key = `${lib.replace("-", "")}_version`;
+      return (VEGA_DEBUG[key] == version) ?
+        Promise.resolve(paths[lib]) :
+        new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          document.getElementsByTagName("head")[0].appendChild(s);
+          s.async = true;
+          s.onload = () => {
+            VEGA_DEBUG[key] = version;
+            return resolve(paths[lib]);
+          };
+          s.onerror = () => reject(`Error loading script: ${paths[lib]}`);
+          s.src = paths[lib];
+        });
+    }
+
+    function showError(err) {
+      outputDiv.innerHTML = `<div class="error" style="color:red;">${err}</div>`;
+      throw err;
+    }
+
+    function displayChart(vegaEmbed) {
+      vegaEmbed(outputDiv, spec, embedOpt)
+        .catch(err => showError(`Javascript Error: ${err.message}<br>This usually means there's a typo in your chart specification. See the javascript console for the full traceback.`));
+    }
+
+    if(typeof define === "function" && define.amd) {
+      requirejs.config({paths});
+      let deps = ["vega-embed"];
+      require(deps, displayChart, err => showError(`Error loading script: ${err.message}`));
+    } else {
+      maybeLoadScript("vega", "6")
+        .then(() => maybeLoadScript("vega-lite", "6.1.0"))
+        .then(() => maybeLoadScript("vega-embed", "7"))
+        .catch(showError)
+        .then(() => displayChart(vegaEmbed));
+    }
+  })({"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}}, "layer": [{"mark": {"type": "bar"}, "encoding": {"color": {"field": "key", "legend": {"orient": "bottom"}, "sort": ["up", "down"], "title": null, "type": "nominal"}, "x": {"field": "value", "title": "# of revisions last month", "type": "quantitative"}, "y": {"field": "ID", "title": null, "type": "nominal"}}, "title": "S&P 500 Earnings Revisions Breadth", "transform": [{"fold": ["up", "down"]}]}, {"mark": {"type": "tick", "color": "black", "size": 18, "thickness": 2}, "encoding": {"x": {"field": "net", "type": "quantitative"}, "y": {"field": "ID", "title": null, "type": "nominal"}}, "title": "S&P 500 Earnings Revisions Breadth"}], "data": {"name": "data-17b9cae9ac27eb9b308ba359ca588db1"}, "height": 400, "width": 600, "$schema": "https://vega.github.io/schema/vega-lite/v6.1.0.json", "datasets": {"data-17b9cae9ac27eb9b308ba359ca588db1": [{"ID": "Communication Services", "up": 18.0, "down": -3.0, "net": 15.0}, {"ID": "Consumer Discretionary", "up": 41.0, "down": -8.0, "net": 33.0}, {"ID": "Consumer Staples", "up": 29.0, "down": -7.0, "net": 22.0}, {"ID": "Energy", "up": 10.0, "down": -12.0, "net": -2.0}, {"ID": "Financials", "up": 66.0, "down": -8.0, "net": 58.0}, {"ID": "Health Care", "up": 51.0, "down": -9.0, "net": 42.0}, {"ID": "Industrials", "up": 72.0, "down": -7.0, "net": 65.0}, {"ID": "Information Technology", "up": 56.0, "down": -13.0, "net": 43.0}, {"ID": "Materials", "up": 21.0, "down": -5.0, "net": 16.0}, {"ID": "Real Estate", "up": 17.0, "down": -14.0, "net": 3.0}, {"ID": "Utilities", "up": 21.0, "down": -10.0, "net": 11.0}]}}, {"mode": "vega-lite"});
 </script>
 </div>
 </div>
