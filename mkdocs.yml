@@ -3,9 +3,11 @@ site_description: Polars DataFrame interface for Bloomberg API
 repo_url: https://github.com/MarekOzana/polars-bloomberg
 
 theme:
-  name: mkdocs
-  highlight_js: true
-  navigation_depth: 3
+  name: material
+  font:
+    text: "Roboto"
+    code: "Cascadia Mono" # "Cascadia Mono"
+
 
 plugins:
   - search

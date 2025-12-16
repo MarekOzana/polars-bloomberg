@@ -31,7 +31,8 @@ docs = [
     "mkdocs>=1.5.0",
     "mkdocstrings[python]>=0.22.0",
     "mkdocs-jupyter",
-    "great_tables"
+    "great_tables",
+    "mkdocs-material>=9.7.0",
 ]
 
 [project.urls]

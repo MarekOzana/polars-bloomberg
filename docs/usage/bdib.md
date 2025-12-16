@@ -8,7 +8,6 @@ yourself. Each bar is timestamped in UTC and returned as a Polars DataFrame.
 
 - You need intraday OHLCV bars for a single security over a specific time window.
 - You want Bloomberg to enforce consistent interval lengths (e.g., 5-, 15-, 60-minute bars).
-- You prefer the `bdp`/`bdh` style API over BQL for quick exploratory work.
 
 ## Example
 
