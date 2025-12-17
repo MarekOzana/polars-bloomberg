@@ -1,171 +1,934 @@
-<!DOCTYPE html>
-<html lang="en" data-bs-theme="light">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Polars DataFrame interface for Bloomberg API">
+      
+      
+      
+      
+        <link rel="prev" href="../bsrch/">
+      
+      
+        <link rel="next" href="../../examples/equity/">
+      
+      
         
-        
-        
-        <link rel="shortcut icon" href="../../img/favicon.ico">
+      
+      
+      <link rel="icon" href="../../images/polars-bloomberg-fav-32x32.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
         <title>BQL - Polars-Bloomberg</title>
-        <link href="../../css/bootstrap.min.css" rel="stylesheet">
-        <link href="../../css/fontawesome.min.css" rel="stylesheet">
-        <link href="../../css/brands.min.css" rel="stylesheet">
-        <link href="../../css/solid.min.css" rel="stylesheet">
-        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
-        <link href="../../css/base.css" rel="stylesheet">
-        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
-        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
-        <link href="../../assets/_mkdocstrings.css" rel="stylesheet">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-        <script>hljs.highlightAll();</script> 
-    </head>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
 
-    <body>
-        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
-            <div class="container">
-                <a class="navbar-brand" href="../..">Polars-Bloomberg</a>
-                <!-- Expander button -->
-                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <!-- Expanded navigation -->
-                <div id="navbar-collapse" class="navbar-collapse collapse">
-                        <!-- Main navigation -->
-                        <ul class="nav navbar-nav">
-                            <li class="nav-item">
-                                <a href="../.." class="nav-link">Home</a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Usage & Tutorials</a>
-                                <ul class="dropdown-menu">
-                                    
-<li>
-    <a href="../bdp/" class="dropdown-item">BDP</a>
-</li>
-                                    
-<li>
-    <a href="../bdh/" class="dropdown-item">BDH</a>
-</li>
-                                    
-<li>
-    <a href="../bdib/" class="dropdown-item">BDIB</a>
-</li>
-                                    
-<li>
-    <a href="../bsrch/" class="dropdown-item">BSRCH</a>
-</li>
-                                    
-<li>
-    <a href="./" class="dropdown-item active" aria-current="page">BQL</a>
-</li>
-                                </ul>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Examples</a>
-                                <ul class="dropdown-menu">
-                                    
-<li>
-    <a href="../../examples/equity/" class="dropdown-item">Equity Examples</a>
-</li>
-                                    
-<li>
-    <a href="../../examples/credits/" class="dropdown-item">Credits</a>
-</li>
-                                    
-<li>
-    <a href="../../examples/macro/" class="dropdown-item">Macro Examples</a>
-</li>
-                                </ul>
-                            </li>
-                            <li class="nav-item">
-                                <a href="../../api/" class="nav-link">API Reference</a>
-                            </li>
-                        </ul>
-
-                    <ul class="nav navbar-nav ms-md-auto">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
-                                <i class="fa fa-search"></i> Search
-                            </a>
-                        </li>
-                            <li class="nav-item">
-                                <a rel="prev" href="../bsrch/" class="nav-link">
-                                    <i class="fa fa-arrow-left"></i> Previous
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a rel="next" href="../../examples/equity/" class="nav-link">
-                                    Next <i class="fa fa-arrow-right"></i>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="https://github.com/MarekOzana/polars-bloomberg/edit/master/docs/usage/bql.md" class="nav-link"><i class="fa-brands fa-github"></i> Edit on GitHub</a>
-                            </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div class="container">
-            <div class="row">
-                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
-    <div class="navbar-header">
-        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
-            <span class="fa fa-angle-down"></span>
-        </button>
-    </div>
 
     
-    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
-        <ul class="nav flex-column">
-            
-            <li class="nav-item" data-bs-level="1"><a href="#bql" class="nav-link">BQL</a>
-              <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#basic-example" class="nav-link">Basic Example</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#multiple-securities" class="nav-link">Multiple Securities</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#multiple-items-combine" class="nav-link">Multiple Items - combine()</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#screening" class="nav-link">Screening</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#aggregation" class="nav-link">Aggregation</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#axes" class="nav-link">Axes</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#segments" class="nav-link">Segments</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#time-series" class="nav-link">Time Series</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#technical-analysis" class="nav-link">Technical Analysis</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-              </ul>
-            </li>
-        </ul>
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CCascadia+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Cascadia Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#bql" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
-</div></div>
-                    <div class="col-md-9" role="main">
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Polars-Bloomberg" class="md-header__button md-logo" aria-label="Polars-Bloomberg" data-md-component="logo">
+      
+  <img src="../../images/polars-bloomberg-logo-512x512.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Polars-Bloomberg
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              BQL
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="cyan"  aria-label="Switch to Bloomberg mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to Bloomberg mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="amber" data-md-color-accent="gray"  aria-label="Switch to Polars mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to Polars mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/MarekOzana/polars-bloomberg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Polars-Bloomberg" class="md-nav__button md-logo" aria-label="Polars-Bloomberg" data-md-component="logo">
+      
+  <img src="../../images/polars-bloomberg-logo-512x512.png" alt="logo">
+
+    </a>
+    Polars-Bloomberg
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/MarekOzana/polars-bloomberg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage & Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage & Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bdh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BDH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bdib/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BDIB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bsrch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BSRCH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BQL
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BQL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#basic-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multiple-securities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple Securities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multiple-items-combine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple Items - combine()
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screening" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Screening
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aggregation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aggregation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#axes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Axes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#segments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Segments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#time-series" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time Series
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technical-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Technical Analysis
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/equity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/credits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Credits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/macro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Macro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#basic-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multiple-securities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple Securities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multiple-items-combine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple Items - combine()
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screening" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Screening
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aggregation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Aggregation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#axes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Axes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#segments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Segments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#time-series" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time Series
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technical-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Technical Analysis
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
 
 <h1 id="bql">BQL</h1>
 <p><em>Use Case</em>: Run more advanced queries to screen securities, calculate analytics (like moving averages), or pull fundamental data with complex conditions.</p>
@@ -175,368 +938,347 @@
 <li>Provides a <code>.combine()</code> method to merge DataFrames on common columns.</li>
 </ul>
 <h2 id="basic-example">Basic Example</h2>
-<pre><code class="language-python"># Fetch the last price of IBM stock
-with BQuery() as bq:
-    results = bq.bql(&quot;get(px_last) for(['IBM US Equity'])&quot;)
-    print(results[0])  # Access the first DataFrame
-</code></pre>
-<p>Output:</p>
-<pre><code class="language-python">┌───────────────┬─────────┬────────────┬──────────┐
-│ ID            ┆ px_last ┆ DATE       ┆ CURRENCY │
-│ ---           ┆ ---     ┆ ---        ┆ ---      │
-│ str           ┆ f64     ┆ date       ┆ str      │
-╞═══════════════╪═════════╪════════════╪══════════╡
-│ IBM US Equity ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
-└───────────────┴─────────┴────────────┴──────────┘
-</code></pre>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># Fetch the last price of IBM stock</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="s2">&quot;get(px_last) for([&#39;IBM US Equity&#39;])&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># Access the first DataFrame</span>
+</code></pre></div>
+Output:
+<div class="highlight"><pre><span></span><code><span class="err">┌───────────────┬─────────┬────────────┬──────────┐</span>
+<span class="err">│</span> <span class="n">ID</span>            <span class="err">┆</span> <span class="n">px_last</span> <span class="err">┆</span> <span class="n">DATE</span>       <span class="err">┆</span> <span class="n">CURRENCY</span> <span class="err">│</span>
+<span class="err">│</span> <span class="o">---</span>           <span class="err">┆</span> <span class="o">---</span>     <span class="err">┆</span> <span class="o">---</span>        <span class="err">┆</span> <span class="o">---</span>      <span class="err">│</span>
+<span class="err">│</span> <span class="nb">str</span>           <span class="err">┆</span> <span class="n">f64</span>     <span class="err">┆</span> <span class="n">date</span>       <span class="err">┆</span> <span class="nb">str</span>      <span class="err">│</span>
+<span class="err">╞═══════════════╪═════════╪════════════╪══════════╡</span>
+<span class="err">│</span> <span class="n">IBM</span> <span class="n">US</span> <span class="n">Equity</span> <span class="err">┆</span> <span class="mf">230.82</span>  <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">14</span> <span class="err">┆</span> <span class="n">USD</span>      <span class="err">│</span>
+<span class="err">└───────────────┴─────────┴────────────┴──────────┘</span>
+</code></pre></div></p>
 <h2 id="multiple-securities">Multiple Securities</h2>
-<pre><code class="language-python"># Fetch the last price for IBM and SEB
-with BQuery() as bq:
-    results = bq.bql(&quot;get(px_last) for(['IBM US Equity', 'SEBA SS Equity'])&quot;)
-    print(results[0])
-</code></pre>
-<p>Output:</p>
-<pre><code class="language-python">┌────────────────┬─────────┬────────────┬──────────┐
-│ ID             ┆ px_last ┆ DATE       ┆ CURRENCY │
-│ ---            ┆ ---     ┆ ---        ┆ ---      │
-│ str            ┆ f64     ┆ date       ┆ str      │
-╞════════════════╪═════════╪════════════╪══════════╡
-│ IBM US Equity  ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
-│ SEBA SS Equity ┆ 155.2   ┆ 2024-12-14 ┆ SEK      │
-└────────────────┴─────────┴────────────┴──────────┘
-</code></pre>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># Fetch the last price for IBM and SEB</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="s2">&quot;get(px_last) for([&#39;IBM US Equity&#39;, &#39;SEBA SS Equity&#39;])&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</code></pre></div>
+Output:
+<div class="highlight"><pre><span></span><code><span class="err">┌────────────────┬─────────┬────────────┬──────────┐</span>
+<span class="err">│</span> <span class="n">ID</span>             <span class="err">┆</span> <span class="n">px_last</span> <span class="err">┆</span> <span class="n">DATE</span>       <span class="err">┆</span> <span class="n">CURRENCY</span> <span class="err">│</span>
+<span class="err">│</span> <span class="o">---</span>            <span class="err">┆</span> <span class="o">---</span>     <span class="err">┆</span> <span class="o">---</span>        <span class="err">┆</span> <span class="o">---</span>      <span class="err">│</span>
+<span class="err">│</span> <span class="nb">str</span>            <span class="err">┆</span> <span class="n">f64</span>     <span class="err">┆</span> <span class="n">date</span>       <span class="err">┆</span> <span class="nb">str</span>      <span class="err">│</span>
+<span class="err">╞════════════════╪═════════╪════════════╪══════════╡</span>
+<span class="err">│</span> <span class="n">IBM</span> <span class="n">US</span> <span class="n">Equity</span>  <span class="err">┆</span> <span class="mf">230.82</span>  <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">14</span> <span class="err">┆</span> <span class="n">USD</span>      <span class="err">│</span>
+<span class="err">│</span> <span class="n">SEBA</span> <span class="n">SS</span> <span class="n">Equity</span> <span class="err">┆</span> <span class="mf">155.2</span>   <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">14</span> <span class="err">┆</span> <span class="n">SEK</span>      <span class="err">│</span>
+<span class="err">└────────────────┴─────────┴────────────┴──────────┘</span>
+</code></pre></div></p>
 <h2 id="multiple-items-combine">Multiple Items - combine()</h2>
-<p>When querying for multiple items, <code>bql()</code> returns <code>BqlResult</code> object which is actually just a list of polars dataframes with extra method <code>combine()</code></p>
-<pre><code class="language-python"># Fetch name and last price of IBM (two items)
-with BQuery() as bq:
-    results = bq.bql(&quot;get(name, px_last) for(['IBM US Equity'])&quot;)
-</code></pre>
-<p>Output:</p>
-<pre><code class="language-python">&gt;&gt;&gt; print(len(results))  # 2 DataFrames
-n=2
+<p>When querying for multiple items, <code>bql()</code> returns <code>BqlResult</code> object which is actually just a list of polars dataframes with extra method <code>combine()</code>
+<div class="highlight"><pre><span></span><code><span class="c1"># Fetch name and last price of IBM (two items)</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="s2">&quot;get(name, px_last) for([&#39;IBM US Equity&#39;])&quot;</span><span class="p">)</span>
+</code></pre></div>
+Output:
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">))</span>  <span class="c1"># 2 DataFrames</span>
+<span class="n">n</span><span class="o">=</span><span class="mi">2</span>
 
-&gt;&gt;&gt; print(results[0])    # First DataFrame: 'name'
-┌───────────────┬────────────────────────────────┐
-│ ID            ┆ name                           │
-│ ---           ┆ ---                            │
-│ str           ┆ str                            │
-╞═══════════════╪════════════════════════════════╡
-│ IBM US Equity ┆ International Business Machine │
-└───────────────┴────────────────────────────────┘
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>    <span class="c1"># First DataFrame: &#39;name&#39;</span>
+<span class="err">┌───────────────┬────────────────────────────────┐</span>
+<span class="err">│</span> <span class="n">ID</span>            <span class="err">┆</span> <span class="n">name</span>                           <span class="err">│</span>
+<span class="err">│</span> <span class="o">---</span>           <span class="err">┆</span> <span class="o">---</span>                            <span class="err">│</span>
+<span class="err">│</span> <span class="nb">str</span>           <span class="err">┆</span> <span class="nb">str</span>                            <span class="err">│</span>
+<span class="err">╞═══════════════╪════════════════════════════════╡</span>
+<span class="err">│</span> <span class="n">IBM</span> <span class="n">US</span> <span class="n">Equity</span> <span class="err">┆</span> <span class="n">International</span> <span class="n">Business</span> <span class="n">Machine</span> <span class="err">│</span>
+<span class="err">└───────────────┴────────────────────────────────┘</span>
 
-&gt;&gt;&gt; print(results[1])    # Second DataFrame: 'px_last'
-┌───────────────┬─────────┬────────────┬──────────┐
-│ ID            ┆ px_last ┆ DATE       ┆ CURRENCY │
-│ ---           ┆ ---     ┆ ---        ┆ ---      │
-│ str           ┆ f64     ┆ date       ┆ str      │
-╞═══════════════╪═════════╪════════════╪══════════╡
-│ IBM US Equity ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
-└───────────────┴─────────┴────────────┴──────────┘
-</code></pre>
-<p>We can use <code>combine()</code> method to join the results into single dataframe:</p>
-<pre><code class="language-python">&gt;&gt;&gt; combined_df = results.combine()
-&gt;&gt;&gt; print(combined_df)
-</code></pre>
-<p>Output:</p>
-<pre><code class="language-python">┌───────────────┬────────────────────────────────┬─────────┬────────────┬──────────┐
-│ ID            ┆ name                           ┆ px_last ┆ DATE       ┆ CURRENCY │
-│ ---           ┆ ---                            ┆ ---     ┆ ---        ┆ ---      │
-│ str           ┆ str                            ┆ f64     ┆ date       ┆ str      │
-╞═══════════════╪════════════════════════════════╪═════════╪════════════╪══════════╡
-│ IBM US Equity ┆ International Business Machine ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
-└───────────────┴────────────────────────────────┴─────────┴────────────┴──────────┘
-</code></pre>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>    <span class="c1"># Second DataFrame: &#39;px_last&#39;</span>
+<span class="err">┌───────────────┬─────────┬────────────┬──────────┐</span>
+<span class="err">│</span> <span class="n">ID</span>            <span class="err">┆</span> <span class="n">px_last</span> <span class="err">┆</span> <span class="n">DATE</span>       <span class="err">┆</span> <span class="n">CURRENCY</span> <span class="err">│</span>
+<span class="err">│</span> <span class="o">---</span>           <span class="err">┆</span> <span class="o">---</span>     <span class="err">┆</span> <span class="o">---</span>        <span class="err">┆</span> <span class="o">---</span>      <span class="err">│</span>
+<span class="err">│</span> <span class="nb">str</span>           <span class="err">┆</span> <span class="n">f64</span>     <span class="err">┆</span> <span class="n">date</span>       <span class="err">┆</span> <span class="nb">str</span>      <span class="err">│</span>
+<span class="err">╞═══════════════╪═════════╪════════════╪══════════╡</span>
+<span class="err">│</span> <span class="n">IBM</span> <span class="n">US</span> <span class="n">Equity</span> <span class="err">┆</span> <span class="mf">230.82</span>  <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">14</span> <span class="err">┆</span> <span class="n">USD</span>      <span class="err">│</span>
+<span class="err">└───────────────┴─────────┴────────────┴──────────┘</span>
+</code></pre></div></p>
+<p>We can use <code>combine()</code> method to join the results into single dataframe:
+<div class="highlight"><pre><span></span><code><span class="o">&gt;&gt;&gt;</span> <span class="n">combined_df</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="nb">print</span><span class="p">(</span><span class="n">combined_df</span><span class="p">)</span>
+</code></pre></div>
+Output:
+<div class="highlight"><pre><span></span><code><span class="err">┌───────────────┬────────────────────────────────┬─────────┬────────────┬──────────┐</span>
+<span class="err">│</span> <span class="n">ID</span>            <span class="err">┆</span> <span class="n">name</span>                           <span class="err">┆</span> <span class="n">px_last</span> <span class="err">┆</span> <span class="n">DATE</span>       <span class="err">┆</span> <span class="n">CURRENCY</span> <span class="err">│</span>
+<span class="err">│</span> <span class="o">---</span>           <span class="err">┆</span> <span class="o">---</span>                            <span class="err">┆</span> <span class="o">---</span>     <span class="err">┆</span> <span class="o">---</span>        <span class="err">┆</span> <span class="o">---</span>      <span class="err">│</span>
+<span class="err">│</span> <span class="nb">str</span>           <span class="err">┆</span> <span class="nb">str</span>                            <span class="err">┆</span> <span class="n">f64</span>     <span class="err">┆</span> <span class="n">date</span>       <span class="err">┆</span> <span class="nb">str</span>      <span class="err">│</span>
+<span class="err">╞═══════════════╪════════════════════════════════╪═════════╪════════════╪══════════╡</span>
+<span class="err">│</span> <span class="n">IBM</span> <span class="n">US</span> <span class="n">Equity</span> <span class="err">┆</span> <span class="n">International</span> <span class="n">Business</span> <span class="n">Machine</span> <span class="err">┆</span> <span class="mf">230.82</span>  <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">14</span> <span class="err">┆</span> <span class="n">USD</span>      <span class="err">│</span>
+<span class="err">└───────────────┴────────────────────────────────┴─────────┴────────────┴──────────┘</span>
+</code></pre></div></p>
 <h2 id="screening">Screening</h2>
 <p>Example of using saved SRCH search and filtering on ticker:
-Find list of SEB and Handelsbanken's AT1 bonds and print their names, duration and Z-Spread. The result of the query is list of 3 polars dataframes and can be conveniently combined using <code>combine()</code> method.</p>
-<pre><code class="language-python">query=&quot;&quot;&quot;
-    let(#dur=duration(duration_type=MODIFIED); 
-        #zsprd=spread(spread_type=Z);) 
-    get(name(), #dur, #zsprd) 
-    for(filter(screenresults(type=SRCH, screen_name='@COCO'), 
-            ticker in ['SEB', 'SHBASS']))
-&quot;&quot;&quot;
+Find list of SEB and Handelsbanken's AT1 bonds and print their names, duration and Z-Spread. The result of the query is list of 3 polars dataframes and can be conveniently combined using <code>combine()</code> method.
+<div class="highlight"><pre><span></span><code><span class="n">query</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    let(#dur=duration(duration_type=MODIFIED); </span>
+<span class="s2">        #zsprd=spread(spread_type=Z);) </span>
+<span class="s2">    get(name(), #dur, #zsprd) </span>
+<span class="s2">    for(filter(screenresults(type=SRCH, screen_name=&#39;@COCO&#39;), </span>
+<span class="s2">            ticker in [&#39;SEB&#39;, &#39;SHBASS&#39;]))</span>
+<span class="s2">&quot;&quot;&quot;</span>
 
-with BQuery() as bq:
-    results = bq.bql(query)
-    combined_df = results.combine()
-    print(combined_df)
-</code></pre>
-<p>Output:</p>
-<pre><code class="language-python">┌───────────────┬─────────────────┬──────┬────────────┬────────┐
-│ ID            ┆ name()          ┆ #dur ┆ DATE       ┆ #zsprd │
-│ ---           ┆ ---             ┆ ---  ┆ ---        ┆ ---    │
-│ str           ┆ str             ┆ f64  ┆ date       ┆ f64    │
-╞═══════════════╪═════════════════╪══════╪════════════╪════════╡
-│ BW924993 Corp ┆ SEB 6 ⅞ PERP    ┆ 2.23 ┆ 2024-12-16 ┆ 212.0  │
-│ YV402592 Corp ┆ SEB Float PERP  ┆ 0.21 ┆ 2024-12-16 ┆ 233.0  │
-│ ZQ349286 Corp ┆ SEB 5 ⅛ PERP    ┆ 0.39 ┆ 2024-12-16 ┆ 186.0  │
-│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP ┆ 1.95 ┆ 2024-12-16 ┆ 213.0  │
-│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP ┆ 4.94 ┆ 2024-12-16 ┆ 256.0  │
-│ YU819930 Corp ┆ SEB 6 ¾ PERP    ┆ 5.37 ┆ 2024-12-16 ┆ 309.0  │
-└───────────────┴─────────────────┴──────┴────────────┴────────┘
-</code></pre>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    <span class="n">combined_df</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">combined_df</span><span class="p">)</span>
+</code></pre></div>
+Output:
+<div class="highlight"><pre><span></span><code><span class="err">┌───────────────┬─────────────────┬──────┬────────────┬────────┐</span>
+<span class="err">│</span> <span class="n">ID</span>            <span class="err">┆</span> <span class="n">name</span><span class="p">()</span>          <span class="err">┆</span> <span class="c1">#dur ┆ DATE       ┆ #zsprd │</span>
+<span class="err">│</span> <span class="o">---</span>           <span class="err">┆</span> <span class="o">---</span>             <span class="err">┆</span> <span class="o">---</span>  <span class="err">┆</span> <span class="o">---</span>        <span class="err">┆</span> <span class="o">---</span>    <span class="err">│</span>
+<span class="err">│</span> <span class="nb">str</span>           <span class="err">┆</span> <span class="nb">str</span>             <span class="err">┆</span> <span class="n">f64</span>  <span class="err">┆</span> <span class="n">date</span>       <span class="err">┆</span> <span class="n">f64</span>    <span class="err">│</span>
+<span class="err">╞═══════════════╪═════════════════╪══════╪════════════╪════════╡</span>
+<span class="err">│</span> <span class="n">BW924993</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">SEB</span> <span class="mi">6</span> <span class="err">⅞</span> <span class="n">PERP</span>    <span class="err">┆</span> <span class="mf">2.23</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">16</span> <span class="err">┆</span> <span class="mf">212.0</span>  <span class="err">│</span>
+<span class="err">│</span> <span class="n">YV402592</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">SEB</span> <span class="n">Float</span> <span class="n">PERP</span>  <span class="err">┆</span> <span class="mf">0.21</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">16</span> <span class="err">┆</span> <span class="mf">233.0</span>  <span class="err">│</span>
+<span class="err">│</span> <span class="n">ZQ349286</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">SEB</span> <span class="mi">5</span> <span class="err">⅛</span> <span class="n">PERP</span>    <span class="err">┆</span> <span class="mf">0.39</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">16</span> <span class="err">┆</span> <span class="mf">186.0</span>  <span class="err">│</span>
+<span class="err">│</span> <span class="n">ZO703315</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">SHBASS</span> <span class="mi">4</span> <span class="err">⅜</span> <span class="n">PERP</span> <span class="err">┆</span> <span class="mf">1.95</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">16</span> <span class="err">┆</span> <span class="mf">213.0</span>  <span class="err">│</span>
+<span class="err">│</span> <span class="n">ZO703956</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">SHBASS</span> <span class="mi">4</span> <span class="err">¾</span> <span class="n">PERP</span> <span class="err">┆</span> <span class="mf">4.94</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">16</span> <span class="err">┆</span> <span class="mf">256.0</span>  <span class="err">│</span>
+<span class="err">│</span> <span class="n">YU819930</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">SEB</span> <span class="mi">6</span> <span class="err">¾</span> <span class="n">PERP</span>    <span class="err">┆</span> <span class="mf">5.37</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">16</span> <span class="err">┆</span> <span class="mf">309.0</span>  <span class="err">│</span>
+<span class="err">└───────────────┴─────────────────┴──────┴────────────┴────────┘</span>
+</code></pre></div></p>
 <h2 id="aggregation">Aggregation</h2>
 <p><strong>Average PE per Index Sector</strong></p>
 <p>This example shows aggregation (average) per group (sector) for members of an index.
-The resulting list has only one element since there is only one data-item in <code>get</code></p>
-<pre><code class="language-python">query = &quot;&quot;&quot;
-    let(#avg_pe=avg(group(pe_ratio(), gics_sector_name()));)
-    get(#avg_pe)
-    for(members('OMX Index'))
-&quot;&quot;&quot;
-with BQuery() as bq:
-    results = bq.bql(query)
-    print(results[0].head(5))
-</code></pre>
-<p>Output:</p>
-<pre><code class="language-python">┌──────────────┬───────────┬──────────────┬────────────┬──────────────┬──────────────┬─────────────┐
-│ ID           ┆ #avg_pe   ┆ REVISION_DAT ┆ AS_OF_DATE ┆ PERIOD_END_D ┆ ORIG_IDS     ┆ GICS_SECTOR │
-│ ---          ┆ ---       ┆ E            ┆ ---        ┆ ATE          ┆ ---          ┆ _NAME()     │
-│ str          ┆ f64       ┆ ---          ┆ date       ┆ ---          ┆ str          ┆ ---         │
-│              ┆           ┆ date         ┆            ┆ date         ┆              ┆ str         │
-╞══════════════╪═══════════╪══════════════╪════════════╪══════════════╪══════════════╪═════════════╡
-│ Communicatio ┆ 19.561754 ┆ 2024-10-24   ┆ 2024-12-14 ┆ 2024-09-30   ┆ null         ┆ Communicati │
-│ n Services   ┆           ┆              ┆            ┆              ┆              ┆ on Services │
-│ Consumer Dis ┆ 19.117295 ┆ 2024-10-24   ┆ 2024-12-14 ┆ 2024-09-30   ┆ null         ┆ Consumer    │
-│ cretionary   ┆           ┆              ┆            ┆              ┆              ┆ Discretiona │
-│              ┆           ┆              ┆            ┆              ┆              ┆ ry          │
-│ Consumer     ┆ 15.984743 ┆ 2024-10-24   ┆ 2024-12-14 ┆ 2024-09-30   ┆ ESSITYB SS   ┆ Consumer    │
-│ Staples      ┆           ┆              ┆            ┆              ┆ Equity       ┆ Staples     │
-│ Financials   ┆ 6.815895  ┆ 2024-10-24   ┆ 2024-12-14 ┆ 2024-09-30   ┆ null         ┆ Financials  │
-│ Health Care  ┆ 22.00628  ┆ 2024-11-12   ┆ 2024-12-14 ┆ 2024-09-30   ┆ null         ┆ Health Care │
-└──────────────┴───────────┴──────────────┴────────────┴──────────────┴──────────────┴─────────────┘
-</code></pre>
+The resulting list has only one element since there is only one data-item in <code>get</code>
+<div class="highlight"><pre><span></span><code><span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    let(#avg_pe=avg(group(pe_ratio(), gics_sector_name()));)</span>
+<span class="s2">    get(#avg_pe)</span>
+<span class="s2">    for(members(&#39;OMX Index&#39;))</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+</code></pre></div>
+Output:
+<div class="highlight"><pre><span></span><code><span class="err">┌──────────────┬───────────┬──────────────┬────────────┬──────────────┬──────────────┬─────────────┐</span>
+<span class="err">│</span> <span class="n">ID</span>           <span class="err">┆</span> <span class="c1">#avg_pe   ┆ REVISION_DAT ┆ AS_OF_DATE ┆ PERIOD_END_D ┆ ORIG_IDS     ┆ GICS_SECTOR │</span>
+<span class="err">│</span> <span class="o">---</span>          <span class="err">┆</span> <span class="o">---</span>       <span class="err">┆</span> <span class="n">E</span>            <span class="err">┆</span> <span class="o">---</span>        <span class="err">┆</span> <span class="n">ATE</span>          <span class="err">┆</span> <span class="o">---</span>          <span class="err">┆</span> <span class="n">_NAME</span><span class="p">()</span>     <span class="err">│</span>
+<span class="err">│</span> <span class="nb">str</span>          <span class="err">┆</span> <span class="n">f64</span>       <span class="err">┆</span> <span class="o">---</span>          <span class="err">┆</span> <span class="n">date</span>       <span class="err">┆</span> <span class="o">---</span>          <span class="err">┆</span> <span class="nb">str</span>          <span class="err">┆</span> <span class="o">---</span>         <span class="err">│</span>
+<span class="err">│</span>              <span class="err">┆</span>           <span class="err">┆</span> <span class="n">date</span>         <span class="err">┆</span>            <span class="err">┆</span> <span class="n">date</span>         <span class="err">┆</span>              <span class="err">┆</span> <span class="nb">str</span>         <span class="err">│</span>
+<span class="err">╞══════════════╪═══════════╪══════════════╪════════════╪══════════════╪══════════════╪═════════════╡</span>
+<span class="err">│</span> <span class="n">Communicatio</span> <span class="err">┆</span> <span class="mf">19.561754</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">24</span>   <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">14</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">30</span>   <span class="err">┆</span> <span class="n">null</span>         <span class="err">┆</span> <span class="n">Communicati</span> <span class="err">│</span>
+<span class="err">│</span> <span class="n">n</span> <span class="n">Services</span>   <span class="err">┆</span>           <span class="err">┆</span>              <span class="err">┆</span>            <span class="err">┆</span>              <span class="err">┆</span>              <span class="err">┆</span> <span class="n">on</span> <span class="n">Services</span> <span class="err">│</span>
+<span class="err">│</span> <span class="n">Consumer</span> <span class="n">Dis</span> <span class="err">┆</span> <span class="mf">19.117295</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">24</span>   <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">14</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">30</span>   <span class="err">┆</span> <span class="n">null</span>         <span class="err">┆</span> <span class="n">Consumer</span>    <span class="err">│</span>
+<span class="err">│</span> <span class="n">cretionary</span>   <span class="err">┆</span>           <span class="err">┆</span>              <span class="err">┆</span>            <span class="err">┆</span>              <span class="err">┆</span>              <span class="err">┆</span> <span class="n">Discretiona</span> <span class="err">│</span>
+<span class="err">│</span>              <span class="err">┆</span>           <span class="err">┆</span>              <span class="err">┆</span>            <span class="err">┆</span>              <span class="err">┆</span>              <span class="err">┆</span> <span class="n">ry</span>          <span class="err">│</span>
+<span class="err">│</span> <span class="n">Consumer</span>     <span class="err">┆</span> <span class="mf">15.984743</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">24</span>   <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">14</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">30</span>   <span class="err">┆</span> <span class="n">ESSITYB</span> <span class="n">SS</span>   <span class="err">┆</span> <span class="n">Consumer</span>    <span class="err">│</span>
+<span class="err">│</span> <span class="n">Staples</span>      <span class="err">┆</span>           <span class="err">┆</span>              <span class="err">┆</span>            <span class="err">┆</span>              <span class="err">┆</span> <span class="n">Equity</span>       <span class="err">┆</span> <span class="n">Staples</span>     <span class="err">│</span>
+<span class="err">│</span> <span class="n">Financials</span>   <span class="err">┆</span> <span class="mf">6.815895</span>  <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">10</span><span class="o">-</span><span class="mi">24</span>   <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">14</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">30</span>   <span class="err">┆</span> <span class="n">null</span>         <span class="err">┆</span> <span class="n">Financials</span>  <span class="err">│</span>
+<span class="err">│</span> <span class="n">Health</span> <span class="n">Care</span>  <span class="err">┆</span> <span class="mf">22.00628</span>  <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">12</span>   <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">14</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">30</span>   <span class="err">┆</span> <span class="n">null</span>         <span class="err">┆</span> <span class="n">Health</span> <span class="n">Care</span> <span class="err">│</span>
+<span class="err">└──────────────┴───────────┴──────────────┴────────────┴──────────────┴──────────────┴─────────────┘</span>
+</code></pre></div></p>
 <p><strong>HY Maturity Wall</strong></p>
-<p>And another example on the same topic. Calculate amount outstanding bonds in HY index per maturity year</p>
-<pre><code class="language-python">query = &quot;&quot;&quot;
-let(#mv=sum(group(amt_outstanding(currency=USD),
-                  by=[year(maturity()), industry_sector()]));)
-get(#mv)
-for(members('LF98TRUU Index'))
-&quot;&quot;&quot;
-with BQuery() as bq:
-    results = bq.bql(query)
-df = results.combine().rename(
-    {&quot;YEAR(MATURITY())&quot;: &quot;maturity&quot;, &quot;INDUSTRY_SECTOR()&quot;: &quot;sector&quot;, &quot;#mv&quot;: &quot;mv&quot;}
-)
+<p>And another example on the same topic. Calculate amount outstanding bonds in HY index per maturity year
+<div class="highlight"><pre><span></span><code><span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">let(#mv=sum(group(amt_outstanding(currency=USD),</span>
+<span class="s2">                  by=[year(maturity()), industry_sector()]));)</span>
+<span class="s2">get(#mv)</span>
+<span class="s2">for(members(&#39;LF98TRUU Index&#39;))</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+    <span class="p">{</span><span class="s2">&quot;YEAR(MATURITY())&quot;</span><span class="p">:</span> <span class="s2">&quot;maturity&quot;</span><span class="p">,</span> <span class="s2">&quot;INDUSTRY_SECTOR()&quot;</span><span class="p">:</span> <span class="s2">&quot;sector&quot;</span><span class="p">,</span> <span class="s2">&quot;#mv&quot;</span><span class="p">:</span> <span class="s2">&quot;mv&quot;</span><span class="p">}</span>
+<span class="p">)</span>
 
-print(df.pivot(index=&quot;maturity&quot;, on=&quot;sector&quot;, values=&quot;mv&quot;).head())
-</code></pre>
-<p>Output:</p>
-<pre><code class="language-python">shape: (5, 11)
-┌──────────┬───────────┬───────────┬───────────┬───┬───────────┬───────────┬───────────┬───────────┐
-│ maturity ┆ Basic     ┆ Consumer, ┆ Energy    ┆ … ┆ Financial ┆ Technolog ┆ Utilities ┆ Diversifi │
-│ ---      ┆ Materials ┆ Non-cycli ┆ ---       ┆   ┆ ---       ┆ y         ┆ ---       ┆ ed        │
-│ i64      ┆ ---       ┆ cal       ┆ f64       ┆   ┆ f64       ┆ ---       ┆ f64       ┆ ---       │
-│          ┆ f64       ┆ ---       ┆           ┆   ┆           ┆ f64       ┆           ┆ f64       │
-│          ┆           ┆ f64       ┆           ┆   ┆           ┆           ┆           ┆           │
-╞══════════╪═══════════╪═══════════╪═══════════╪═══╪═══════════╪═══════════╪═══════════╪═══════════╡
-│ 2025     ┆ 1.5e8     ┆ 5.34916e8 ┆ 5e8       ┆ … ┆ null      ┆ null      ┆ null      ┆ null      │
-│ 2026     ┆ 4.4013e9  ┆ 9.3293e9  ┆ 8.2931e9  ┆ … ┆ 1.3524e10 ┆ 4.0608e9  ┆ 2.5202e9  ┆ null      │
-│ 2027     ┆ 8.3921e9  ┆ 2.3409e10 ┆ 1.2427e10 ┆ … ┆ 1.9430e10 ┆ 4.3367e9  ┆ 3.6620e9  ┆ null      │
-│ 2028     ┆ 1.4701e10 ┆ 3.7457e10 ┆ 2.2442e10 ┆ … ┆ 2.3341e10 ┆ 9.9143e9  ┆ 7.6388e9  ┆ 5e8       │
-│ 2029     ┆ 1.6512e10 ┆ 5.7381e10 ┆ 3.9286e10 ┆ … ┆ 4.2337e10 ┆ 2.2660e10 ┆ 5.8558e9  ┆ null      │
-└──────────┴───────────┴───────────┴───────────┴───┴───────────┴───────────┴───────────┴───────────┘
-</code></pre>
+<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s2">&quot;maturity&quot;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;sector&quot;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">&quot;mv&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</code></pre></div>
+Output:
+<div class="highlight"><pre><span></span><code><span class="n">shape</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+<span class="err">┌──────────┬───────────┬───────────┬───────────┬───┬───────────┬───────────┬───────────┬───────────┐</span>
+<span class="err">│</span> <span class="n">maturity</span> <span class="err">┆</span> <span class="n">Basic</span>     <span class="err">┆</span> <span class="n">Consumer</span><span class="p">,</span> <span class="err">┆</span> <span class="n">Energy</span>    <span class="err">┆</span> <span class="err">…</span> <span class="err">┆</span> <span class="n">Financial</span> <span class="err">┆</span> <span class="n">Technolog</span> <span class="err">┆</span> <span class="n">Utilities</span> <span class="err">┆</span> <span class="n">Diversifi</span> <span class="err">│</span>
+<span class="err">│</span> <span class="o">---</span>      <span class="err">┆</span> <span class="n">Materials</span> <span class="err">┆</span> <span class="n">Non</span><span class="o">-</span><span class="n">cycli</span> <span class="err">┆</span> <span class="o">---</span>       <span class="err">┆</span>   <span class="err">┆</span> <span class="o">---</span>       <span class="err">┆</span> <span class="n">y</span>         <span class="err">┆</span> <span class="o">---</span>       <span class="err">┆</span> <span class="n">ed</span>        <span class="err">│</span>
+<span class="err">│</span> <span class="n">i64</span>      <span class="err">┆</span> <span class="o">---</span>       <span class="err">┆</span> <span class="n">cal</span>       <span class="err">┆</span> <span class="n">f64</span>       <span class="err">┆</span>   <span class="err">┆</span> <span class="n">f64</span>       <span class="err">┆</span> <span class="o">---</span>       <span class="err">┆</span> <span class="n">f64</span>       <span class="err">┆</span> <span class="o">---</span>       <span class="err">│</span>
+<span class="err">│</span>          <span class="err">┆</span> <span class="n">f64</span>       <span class="err">┆</span> <span class="o">---</span>       <span class="err">┆</span>           <span class="err">┆</span>   <span class="err">┆</span>           <span class="err">┆</span> <span class="n">f64</span>       <span class="err">┆</span>           <span class="err">┆</span> <span class="n">f64</span>       <span class="err">│</span>
+<span class="err">│</span>          <span class="err">┆</span>           <span class="err">┆</span> <span class="n">f64</span>       <span class="err">┆</span>           <span class="err">┆</span>   <span class="err">┆</span>           <span class="err">┆</span>           <span class="err">┆</span>           <span class="err">┆</span>           <span class="err">│</span>
+<span class="err">╞══════════╪═══════════╪═══════════╪═══════════╪═══╪═══════════╪═══════════╪═══════════╪═══════════╡</span>
+<span class="err">│</span> <span class="mi">2025</span>     <span class="err">┆</span> <span class="mf">1.5e8</span>     <span class="err">┆</span> <span class="mf">5.34916e8</span> <span class="err">┆</span> <span class="mf">5e8</span>       <span class="err">┆</span> <span class="err">…</span> <span class="err">┆</span> <span class="n">null</span>      <span class="err">┆</span> <span class="n">null</span>      <span class="err">┆</span> <span class="n">null</span>      <span class="err">┆</span> <span class="n">null</span>      <span class="err">│</span>
+<span class="err">│</span> <span class="mi">2026</span>     <span class="err">┆</span> <span class="mf">4.4013e9</span>  <span class="err">┆</span> <span class="mf">9.3293e9</span>  <span class="err">┆</span> <span class="mf">8.2931e9</span>  <span class="err">┆</span> <span class="err">…</span> <span class="err">┆</span> <span class="mf">1.3524e10</span> <span class="err">┆</span> <span class="mf">4.0608e9</span>  <span class="err">┆</span> <span class="mf">2.5202e9</span>  <span class="err">┆</span> <span class="n">null</span>      <span class="err">│</span>
+<span class="err">│</span> <span class="mi">2027</span>     <span class="err">┆</span> <span class="mf">8.3921e9</span>  <span class="err">┆</span> <span class="mf">2.3409e10</span> <span class="err">┆</span> <span class="mf">1.2427e10</span> <span class="err">┆</span> <span class="err">…</span> <span class="err">┆</span> <span class="mf">1.9430e10</span> <span class="err">┆</span> <span class="mf">4.3367e9</span>  <span class="err">┆</span> <span class="mf">3.6620e9</span>  <span class="err">┆</span> <span class="n">null</span>      <span class="err">│</span>
+<span class="err">│</span> <span class="mi">2028</span>     <span class="err">┆</span> <span class="mf">1.4701e10</span> <span class="err">┆</span> <span class="mf">3.7457e10</span> <span class="err">┆</span> <span class="mf">2.2442e10</span> <span class="err">┆</span> <span class="err">…</span> <span class="err">┆</span> <span class="mf">2.3341e10</span> <span class="err">┆</span> <span class="mf">9.9143e9</span>  <span class="err">┆</span> <span class="mf">7.6388e9</span>  <span class="err">┆</span> <span class="mf">5e8</span>       <span class="err">│</span>
+<span class="err">│</span> <span class="mi">2029</span>     <span class="err">┆</span> <span class="mf">1.6512e10</span> <span class="err">┆</span> <span class="mf">5.7381e10</span> <span class="err">┆</span> <span class="mf">3.9286e10</span> <span class="err">┆</span> <span class="err">…</span> <span class="err">┆</span> <span class="mf">4.2337e10</span> <span class="err">┆</span> <span class="mf">2.2660e10</span> <span class="err">┆</span> <span class="mf">5.8558e9</span>  <span class="err">┆</span> <span class="n">null</span>      <span class="err">│</span>
+<span class="err">└──────────┴───────────┴───────────┴───────────┴───┴───────────┴───────────┴───────────┴───────────┘</span>
+</code></pre></div></p>
 <h2 id="axes">Axes</h2>
-<p>Get current axes of all Swedish USD AT1 bonds</p>
-<pre><code class="language-python"># Get current axes for Swedish AT1 bonds in USD
-query=&quot;&quot;&quot;
-    let(#ax=axes();)
-    get(security_des, #ax)
-    for(filter(bondsuniv(ACTIVE),
-        crncy()=='USD' and
-        basel_iii_designation() == 'Additional Tier 1' and
-        country_iso() == 'SE'))
-&quot;&quot;&quot;
+<p>Get current axes of all Swedish USD AT1 bonds
+<div class="highlight"><pre><span></span><code><span class="c1"># Get current axes for Swedish AT1 bonds in USD</span>
+<span class="n">query</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    let(#ax=axes();)</span>
+<span class="s2">    get(security_des, #ax)</span>
+<span class="s2">    for(filter(bondsuniv(ACTIVE),</span>
+<span class="s2">        crncy()==&#39;USD&#39; and</span>
+<span class="s2">        basel_iii_designation() == &#39;Additional Tier 1&#39; and</span>
+<span class="s2">        country_iso() == &#39;SE&#39;))</span>
+<span class="s2">&quot;&quot;&quot;</span>
 
-with BQuery() as bq:
-    results = bq.bql(query)
-    print(results.combine())
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">combine</span><span class="p">())</span>
 
-┌───────────────┬─────────────────┬─────┬───────────┬───────────┬────────────────┬────────────────┐
-│ ID            ┆ security_des    ┆ #ax ┆ ASK_DEPTH ┆ BID_DEPTH ┆ ASK_TOTAL_SIZE ┆ BID_TOTAL_SIZE │
-│ ---           ┆ ---             ┆ --- ┆ ---       ┆ ---       ┆ ---            ┆ ---            │
-│ str           ┆ str             ┆ str ┆ i64       ┆ i64       ┆ f64            ┆ f64            │
-╞═══════════════╪═════════════════╪═════╪═══════════╪═══════════╪════════════════╪════════════════╡
-│ YU819930 Corp ┆ SEB 6 ¾ PERP    ┆ Y   ┆ 2         ┆ null      ┆ 5.6e6          ┆ null           │
-│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP ┆ Y   ┆ 1         ┆ 2         ┆ 5e6            ┆ 6e6            │
-│ BR069680 Corp ┆ SWEDA 4 PERP    ┆ Y   ┆ null      ┆ 1         ┆ null           ┆ 3e6            │
-│ ZL122341 Corp ┆ SWEDA 7 ⅝ PERP  ┆ Y   ┆ null      ┆ 6         ┆ null           ┆ 2.04e7         │
-│ ZQ349286 Corp ┆ SEB 5 ⅛ PERP    ┆ Y   ┆ 2         ┆ 4         ┆ 5.5e6          ┆ 3e7            │
-│ ZF859199 Corp ┆ SWEDA 7 ¾ PERP  ┆ Y   ┆ 1         ┆ 1         ┆ 2e6            ┆ 2e6            │
-│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP ┆ Y   ┆ 1         ┆ 3         ┆ 1.2e6          ┆ 1.1e7          │
-│ BW924993 Corp ┆ SEB 6 ⅞ PERP    ┆ Y   ┆ 1         ┆ 3         ┆ 5e6            ┆ 1.1e7          │
-└───────────────┴─────────────────┴─────┴───────────┴───────────┴────────────────┴────────────────┘
-</code></pre>
+<span class="err">┌───────────────┬─────────────────┬─────┬───────────┬───────────┬────────────────┬────────────────┐</span>
+<span class="err">│</span> <span class="n">ID</span>            <span class="err">┆</span> <span class="n">security_des</span>    <span class="err">┆</span> <span class="c1">#ax ┆ ASK_DEPTH ┆ BID_DEPTH ┆ ASK_TOTAL_SIZE ┆ BID_TOTAL_SIZE │</span>
+<span class="err">│</span> <span class="o">---</span>           <span class="err">┆</span> <span class="o">---</span>             <span class="err">┆</span> <span class="o">---</span> <span class="err">┆</span> <span class="o">---</span>       <span class="err">┆</span> <span class="o">---</span>       <span class="err">┆</span> <span class="o">---</span>            <span class="err">┆</span> <span class="o">---</span>            <span class="err">│</span>
+<span class="err">│</span> <span class="nb">str</span>           <span class="err">┆</span> <span class="nb">str</span>             <span class="err">┆</span> <span class="nb">str</span> <span class="err">┆</span> <span class="n">i64</span>       <span class="err">┆</span> <span class="n">i64</span>       <span class="err">┆</span> <span class="n">f64</span>            <span class="err">┆</span> <span class="n">f64</span>            <span class="err">│</span>
+<span class="err">╞═══════════════╪═════════════════╪═════╪═══════════╪═══════════╪════════════════╪════════════════╡</span>
+<span class="err">│</span> <span class="n">YU819930</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">SEB</span> <span class="mi">6</span> <span class="err">¾</span> <span class="n">PERP</span>    <span class="err">┆</span> <span class="n">Y</span>   <span class="err">┆</span> <span class="mi">2</span>         <span class="err">┆</span> <span class="n">null</span>      <span class="err">┆</span> <span class="mf">5.6e6</span>          <span class="err">┆</span> <span class="n">null</span>           <span class="err">│</span>
+<span class="err">│</span> <span class="n">ZO703315</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">SHBASS</span> <span class="mi">4</span> <span class="err">⅜</span> <span class="n">PERP</span> <span class="err">┆</span> <span class="n">Y</span>   <span class="err">┆</span> <span class="mi">1</span>         <span class="err">┆</span> <span class="mi">2</span>         <span class="err">┆</span> <span class="mf">5e6</span>            <span class="err">┆</span> <span class="mf">6e6</span>            <span class="err">│</span>
+<span class="err">│</span> <span class="n">BR069680</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">SWEDA</span> <span class="mi">4</span> <span class="n">PERP</span>    <span class="err">┆</span> <span class="n">Y</span>   <span class="err">┆</span> <span class="n">null</span>      <span class="err">┆</span> <span class="mi">1</span>         <span class="err">┆</span> <span class="n">null</span>           <span class="err">┆</span> <span class="mf">3e6</span>            <span class="err">│</span>
+<span class="err">│</span> <span class="n">ZL122341</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">SWEDA</span> <span class="mi">7</span> <span class="err">⅝</span> <span class="n">PERP</span>  <span class="err">┆</span> <span class="n">Y</span>   <span class="err">┆</span> <span class="n">null</span>      <span class="err">┆</span> <span class="mi">6</span>         <span class="err">┆</span> <span class="n">null</span>           <span class="err">┆</span> <span class="mf">2.04e7</span>         <span class="err">│</span>
+<span class="err">│</span> <span class="n">ZQ349286</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">SEB</span> <span class="mi">5</span> <span class="err">⅛</span> <span class="n">PERP</span>    <span class="err">┆</span> <span class="n">Y</span>   <span class="err">┆</span> <span class="mi">2</span>         <span class="err">┆</span> <span class="mi">4</span>         <span class="err">┆</span> <span class="mf">5.5e6</span>          <span class="err">┆</span> <span class="mf">3e7</span>            <span class="err">│</span>
+<span class="err">│</span> <span class="n">ZF859199</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">SWEDA</span> <span class="mi">7</span> <span class="err">¾</span> <span class="n">PERP</span>  <span class="err">┆</span> <span class="n">Y</span>   <span class="err">┆</span> <span class="mi">1</span>         <span class="err">┆</span> <span class="mi">1</span>         <span class="err">┆</span> <span class="mf">2e6</span>            <span class="err">┆</span> <span class="mf">2e6</span>            <span class="err">│</span>
+<span class="err">│</span> <span class="n">ZO703956</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">SHBASS</span> <span class="mi">4</span> <span class="err">¾</span> <span class="n">PERP</span> <span class="err">┆</span> <span class="n">Y</span>   <span class="err">┆</span> <span class="mi">1</span>         <span class="err">┆</span> <span class="mi">3</span>         <span class="err">┆</span> <span class="mf">1.2e6</span>          <span class="err">┆</span> <span class="mf">1.1e7</span>          <span class="err">│</span>
+<span class="err">│</span> <span class="n">BW924993</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">SEB</span> <span class="mi">6</span> <span class="err">⅞</span> <span class="n">PERP</span>    <span class="err">┆</span> <span class="n">Y</span>   <span class="err">┆</span> <span class="mi">1</span>         <span class="err">┆</span> <span class="mi">3</span>         <span class="err">┆</span> <span class="mf">5e6</span>            <span class="err">┆</span> <span class="mf">1.1e7</span>          <span class="err">│</span>
+<span class="err">└───────────────┴─────────────────┴─────┴───────────┴───────────┴────────────────┴────────────────┘</span>
+</code></pre></div></p>
 <h2 id="segments">Segments</h2>
 <p>The following example shows handling of two data-items with different length. The first dataframe 
 describes the segments (and has length 5 in this case), while the second dataframe contains time series.
-One can join the dataframes on common columns and pivot the segments into columns as shown below:</p>
-<pre><code class="language-python"># revenue per segment
-query = &quot;&quot;&quot;
-    let(#segment=segment_name();
-        #revenue=sales_Rev_turn(fpt=q, fpr=range(2023Q3, 2024Q3));
-        )
-    get(#segment, #revenue)
-    for(segments('GTN US Equity',type=reported,hierarchy=PRODUCT, level=1))
-&quot;&quot;&quot;
-with BQuery() as bq:
-    results = bq.bql(query)
-    df = results.combine().pivot(
-        index=&quot;PERIOD_END_DATE&quot;, on=&quot;#segment&quot;, values=&quot;#revenue&quot;
-    )
-    print(df)
-</code></pre>
-<p>Output:</p>
-<pre><code class="language-python">┌─────────────────┬──────────────┬──────────────────────┬────────┬────────────┐
-│ PERIOD_END_DATE ┆ Broadcasting ┆ Production Companies ┆ Other  ┆ Adjustment │
-│ ---             ┆ ---          ┆ ---                  ┆ ---    ┆ ---        │
-│ date            ┆ f64          ┆ f64                  ┆ f64    ┆ f64        │
-╞═════════════════╪══════════════╪══════════════════════╪════════╪════════════╡
-│ 2023-09-30      ┆ 7.83e8       ┆ 2e7                  ┆ 1.6e7  ┆ null       │
-│ 2023-12-31      ┆ 8.13e8       ┆ 3.2e7                ┆ 1.9e7  ┆ null       │
-│ 2024-03-31      ┆ 7.8e8        ┆ 2.4e7                ┆ 1.9e7  ┆ null       │
-│ 2024-06-30      ┆ 8.08e8       ┆ 1.8e7                ┆ 0.0    ┆ null       │
-│ 2024-09-30      ┆ 9.24e8       ┆ 2.6e7                ┆ 1.7e7  ┆ null       │
-└─────────────────┴──────────────┴──────────────────────┴────────┴────────────┘
-</code></pre>
+One can join the dataframes on common columns and pivot the segments into columns as shown below:
+<div class="highlight"><pre><span></span><code><span class="c1"># revenue per segment</span>
+<span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    let(#segment=segment_name();</span>
+<span class="s2">        #revenue=sales_Rev_turn(fpt=q, fpr=range(2023Q3, 2024Q3));</span>
+<span class="s2">        )</span>
+<span class="s2">    get(#segment, #revenue)</span>
+<span class="s2">    for(segments(&#39;GTN US Equity&#39;,type=reported,hierarchy=PRODUCT, level=1))</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span>
+        <span class="n">index</span><span class="o">=</span><span class="s2">&quot;PERIOD_END_DATE&quot;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;#segment&quot;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">&quot;#revenue&quot;</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+</code></pre></div>
+Output:
+<div class="highlight"><pre><span></span><code><span class="err">┌─────────────────┬──────────────┬──────────────────────┬────────┬────────────┐</span>
+<span class="err">│</span> <span class="n">PERIOD_END_DATE</span> <span class="err">┆</span> <span class="n">Broadcasting</span> <span class="err">┆</span> <span class="n">Production</span> <span class="n">Companies</span> <span class="err">┆</span> <span class="n">Other</span>  <span class="err">┆</span> <span class="n">Adjustment</span> <span class="err">│</span>
+<span class="err">│</span> <span class="o">---</span>             <span class="err">┆</span> <span class="o">---</span>          <span class="err">┆</span> <span class="o">---</span>                  <span class="err">┆</span> <span class="o">---</span>    <span class="err">┆</span> <span class="o">---</span>        <span class="err">│</span>
+<span class="err">│</span> <span class="n">date</span>            <span class="err">┆</span> <span class="n">f64</span>          <span class="err">┆</span> <span class="n">f64</span>                  <span class="err">┆</span> <span class="n">f64</span>    <span class="err">┆</span> <span class="n">f64</span>        <span class="err">│</span>
+<span class="err">╞═════════════════╪══════════════╪══════════════════════╪════════╪════════════╡</span>
+<span class="err">│</span> <span class="mi">2023</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">30</span>      <span class="err">┆</span> <span class="mf">7.83e8</span>       <span class="err">┆</span> <span class="mf">2e7</span>                  <span class="err">┆</span> <span class="mf">1.6e7</span>  <span class="err">┆</span> <span class="n">null</span>       <span class="err">│</span>
+<span class="err">│</span> <span class="mi">2023</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">31</span>      <span class="err">┆</span> <span class="mf">8.13e8</span>       <span class="err">┆</span> <span class="mf">3.2e7</span>                <span class="err">┆</span> <span class="mf">1.9e7</span>  <span class="err">┆</span> <span class="n">null</span>       <span class="err">│</span>
+<span class="err">│</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">03</span><span class="o">-</span><span class="mi">31</span>      <span class="err">┆</span> <span class="mf">7.8e8</span>        <span class="err">┆</span> <span class="mf">2.4e7</span>                <span class="err">┆</span> <span class="mf">1.9e7</span>  <span class="err">┆</span> <span class="n">null</span>       <span class="err">│</span>
+<span class="err">│</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">06</span><span class="o">-</span><span class="mi">30</span>      <span class="err">┆</span> <span class="mf">8.08e8</span>       <span class="err">┆</span> <span class="mf">1.8e7</span>                <span class="err">┆</span> <span class="mf">0.0</span>    <span class="err">┆</span> <span class="n">null</span>       <span class="err">│</span>
+<span class="err">│</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">09</span><span class="o">-</span><span class="mi">30</span>      <span class="err">┆</span> <span class="mf">9.24e8</span>       <span class="err">┆</span> <span class="mf">2.6e7</span>                <span class="err">┆</span> <span class="mf">1.7e7</span>  <span class="err">┆</span> <span class="n">null</span>       <span class="err">│</span>
+<span class="err">└─────────────────┴──────────────┴──────────────────────┴────────┴────────────┘</span>
+</code></pre></div></p>
 <h2 id="time-series">Time Series</h2>
 <p>This is example of a single-item query returning total return for all GTN bonds in a long dataframe.
-We can easily pivot it into wide format, as in the example below</p>
-<pre><code class="language-python"># Total Return of GTN Bonds
-query = &quot;&quot;&quot;
-let(#rng = range(-1M, 0D);
-    #rets = return_series(calc_interval=#rng,per=W);)
-get(#rets)
-for(filter(bonds('GTN US Equity'), series() == '144A'))
-&quot;&quot;&quot;
+We can easily pivot it into wide format, as in the example below
+<div class="highlight"><pre><span></span><code><span class="c1"># Total Return of GTN Bonds</span>
+<span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">let(#rng = range(-1M, 0D);</span>
+<span class="s2">    #rets = return_series(calc_interval=#rng,per=W);)</span>
+<span class="s2">get(#rets)</span>
+<span class="s2">for(filter(bonds(&#39;GTN US Equity&#39;), series() == &#39;144A&#39;))</span>
+<span class="s2">&quot;&quot;&quot;</span>
 
-with BQuery() as bq:
-    results = bq.bql(query)
-    df = results[0].pivot(on=&quot;ID&quot;, index=&quot;DATE&quot;, values=&quot;#rets&quot;)
-    print(df)
-</code></pre>
-<p>Output:</p>
-<pre><code class="language-python">shape: (6, 6)
-┌────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐
-│ DATE       ┆ YX231113 Corp ┆ BS116983 Corp ┆ AV438089 Corp ┆ ZO860846 Corp ┆ LW375188 Corp │
-│ ---        ┆ ---           ┆ ---           ┆ ---           ┆ ---           ┆ ---           │
-│ date       ┆ f64           ┆ f64           ┆ f64           ┆ f64           ┆ f64           │
-╞════════════╪═══════════════╪═══════════════╪═══════════════╪═══════════════╪═══════════════╡
-│ 2024-11-17 ┆ null          ┆ null          ┆ null          ┆ null          ┆ null          │
-│ 2024-11-24 ┆ 0.001653      ┆ 0.051179      ┆ 0.020363      ┆ 0.001371      ┆ -0.002939     │
-│ 2024-12-01 ┆ 0.002837      ┆ 0.010405      ┆ -0.001466     ┆ 0.007275      ┆ 0.000581      │
-│ 2024-12-08 ┆ -0.000041     ┆ 0.016145      ┆ 0.000766      ┆ 0.024984      ┆ 0.000936      │
-│ 2024-12-15 ┆ 0.001495      ┆ -0.047        ┆ -0.000233     ┆ -0.043509     ┆ 0.002241      │
-│ 2024-12-17 ┆ 0.00008       ┆ -0.000004     ┆ -0.0035       ┆ -0.007937     ┆ 0.000064      │
-└────────────┴───────────────┴───────────────┴───────────────┴───────────────┴───────────────┘
-</code></pre>
-<h2 id="technical-analysis">Technical Analysis</h2>
-<pre><code class="language-python">with BQuery() as bq:
-    results = bq.bql(
-        &quot;&quot;&quot;
-        let(#ema20=emavg(period=20);
-            #ema200=emavg(period=200);
-            #rsi=rsi(close=px_last());)
-        get(name(), #ema20, #ema200, #rsi)
-        for(filter(members('OMX Index'),
-                    and(#ema20 &gt; #ema200, #rsi &gt; 53)))
-        with(fill=PREV)
-        &quot;&quot;&quot;
-    )
-    print(results.combine())
-</code></pre>
-<p>Output:</p>
-<pre><code class="language-python">┌─────────────────┬──────────────────┬────────────┬────────────┬──────────┬────────────┬───────────┐
-│ ID              ┆ name()           ┆ #ema20     ┆ DATE       ┆ CURRENCY ┆ #ema200    ┆ #rsi      │
-│ ---             ┆ ---              ┆ ---        ┆ ---        ┆ ---      ┆ ---        ┆ ---       │
-│ str             ┆ str              ┆ f64        ┆ date       ┆ str      ┆ f64        ┆ f64       │
-╞═════════════════╪══════════════════╪════════════╪════════════╪══════════╪════════════╪═══════════╡
-│ ERICB SS Equity ┆ Telefonaktiebola ┆ 90.152604  ┆ 2024-12-16 ┆ SEK      ┆ 75.072151  ┆ 56.010028 │
-│                 ┆ get LM Ericsso   ┆            ┆            ┆          ┆            ┆           │
-│ ABB SS Equity   ┆ ABB Ltd          ┆ 630.622469 ┆ 2024-12-16 ┆ SEK      ┆ 566.571183 ┆ 53.763102 │
-│ SEBA SS Equity  ┆ Skandinaviska    ┆ 153.80595  ┆ 2024-12-16 ┆ SEK      ┆ 150.742394 ┆ 56.460733 │
-│                 ┆ Enskilda Banken  ┆            ┆            ┆          ┆            ┆           │
-│ ASSAB SS Equity ┆ Assa Abloy AB    ┆ 339.017591 ┆ 2024-12-16 ┆ SEK      ┆ 317.057573 ┆ 53.351619 │
-└─────────────────┴──────────────────┴────────────┴────────────┴──────────┴────────────┴───────────┘
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">&quot;ID&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s2">&quot;DATE&quot;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">&quot;#rets&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
 </code></pre></div>
-            </div>
-        </div>
+Output:
+<div class="highlight"><pre><span></span><code><span class="n">shape</span><span class="p">:</span> <span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="err">┌────────────┬───────────────┬───────────────┬───────────────┬───────────────┬───────────────┐</span>
+<span class="err">│</span> <span class="n">DATE</span>       <span class="err">┆</span> <span class="n">YX231113</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">BS116983</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">AV438089</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">ZO860846</span> <span class="n">Corp</span> <span class="err">┆</span> <span class="n">LW375188</span> <span class="n">Corp</span> <span class="err">│</span>
+<span class="err">│</span> <span class="o">---</span>        <span class="err">┆</span> <span class="o">---</span>           <span class="err">┆</span> <span class="o">---</span>           <span class="err">┆</span> <span class="o">---</span>           <span class="err">┆</span> <span class="o">---</span>           <span class="err">┆</span> <span class="o">---</span>           <span class="err">│</span>
+<span class="err">│</span> <span class="n">date</span>       <span class="err">┆</span> <span class="n">f64</span>           <span class="err">┆</span> <span class="n">f64</span>           <span class="err">┆</span> <span class="n">f64</span>           <span class="err">┆</span> <span class="n">f64</span>           <span class="err">┆</span> <span class="n">f64</span>           <span class="err">│</span>
+<span class="err">╞════════════╪═══════════════╪═══════════════╪═══════════════╪═══════════════╪═══════════════╡</span>
+<span class="err">│</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">17</span> <span class="err">┆</span> <span class="n">null</span>          <span class="err">┆</span> <span class="n">null</span>          <span class="err">┆</span> <span class="n">null</span>          <span class="err">┆</span> <span class="n">null</span>          <span class="err">┆</span> <span class="n">null</span>          <span class="err">│</span>
+<span class="err">│</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">24</span> <span class="err">┆</span> <span class="mf">0.001653</span>      <span class="err">┆</span> <span class="mf">0.051179</span>      <span class="err">┆</span> <span class="mf">0.020363</span>      <span class="err">┆</span> <span class="mf">0.001371</span>      <span class="err">┆</span> <span class="o">-</span><span class="mf">0.002939</span>     <span class="err">│</span>
+<span class="err">│</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">01</span> <span class="err">┆</span> <span class="mf">0.002837</span>      <span class="err">┆</span> <span class="mf">0.010405</span>      <span class="err">┆</span> <span class="o">-</span><span class="mf">0.001466</span>     <span class="err">┆</span> <span class="mf">0.007275</span>      <span class="err">┆</span> <span class="mf">0.000581</span>      <span class="err">│</span>
+<span class="err">│</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">08</span> <span class="err">┆</span> <span class="o">-</span><span class="mf">0.000041</span>     <span class="err">┆</span> <span class="mf">0.016145</span>      <span class="err">┆</span> <span class="mf">0.000766</span>      <span class="err">┆</span> <span class="mf">0.024984</span>      <span class="err">┆</span> <span class="mf">0.000936</span>      <span class="err">│</span>
+<span class="err">│</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">15</span> <span class="err">┆</span> <span class="mf">0.001495</span>      <span class="err">┆</span> <span class="o">-</span><span class="mf">0.047</span>        <span class="err">┆</span> <span class="o">-</span><span class="mf">0.000233</span>     <span class="err">┆</span> <span class="o">-</span><span class="mf">0.043509</span>     <span class="err">┆</span> <span class="mf">0.002241</span>      <span class="err">│</span>
+<span class="err">│</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">17</span> <span class="err">┆</span> <span class="mf">0.00008</span>       <span class="err">┆</span> <span class="o">-</span><span class="mf">0.000004</span>     <span class="err">┆</span> <span class="o">-</span><span class="mf">0.0035</span>       <span class="err">┆</span> <span class="o">-</span><span class="mf">0.007937</span>     <span class="err">┆</span> <span class="mf">0.000064</span>      <span class="err">│</span>
+<span class="err">└────────────┴───────────────┴───────────────┴───────────────┴───────────────┴───────────────┘</span>
+</code></pre></div></p>
+<h2 id="technical-analysis">Technical Analysis</h2>
+<p><div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        let(#ema20=emavg(period=20);</span>
+<span class="sd">            #ema200=emavg(period=200);</span>
+<span class="sd">            #rsi=rsi(close=px_last());)</span>
+<span class="sd">        get(name(), #ema20, #ema200, #rsi)</span>
+<span class="sd">        for(filter(members(&#39;OMX Index&#39;),</span>
+<span class="sd">                    and(#ema20 &gt; #ema200, #rsi &gt; 53)))</span>
+<span class="sd">        with(fill=PREV)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">combine</span><span class="p">())</span>
+</code></pre></div>
+Output:
+<div class="highlight"><pre><span></span><code><span class="err">┌─────────────────┬──────────────────┬────────────┬────────────┬──────────┬────────────┬───────────┐</span>
+<span class="err">│</span> <span class="n">ID</span>              <span class="err">┆</span> <span class="n">name</span><span class="p">()</span>           <span class="err">┆</span> <span class="c1">#ema20     ┆ DATE       ┆ CURRENCY ┆ #ema200    ┆ #rsi      │</span>
+<span class="err">│</span> <span class="o">---</span>             <span class="err">┆</span> <span class="o">---</span>              <span class="err">┆</span> <span class="o">---</span>        <span class="err">┆</span> <span class="o">---</span>        <span class="err">┆</span> <span class="o">---</span>      <span class="err">┆</span> <span class="o">---</span>        <span class="err">┆</span> <span class="o">---</span>       <span class="err">│</span>
+<span class="err">│</span> <span class="nb">str</span>             <span class="err">┆</span> <span class="nb">str</span>              <span class="err">┆</span> <span class="n">f64</span>        <span class="err">┆</span> <span class="n">date</span>       <span class="err">┆</span> <span class="nb">str</span>      <span class="err">┆</span> <span class="n">f64</span>        <span class="err">┆</span> <span class="n">f64</span>       <span class="err">│</span>
+<span class="err">╞═════════════════╪══════════════════╪════════════╪════════════╪══════════╪════════════╪═══════════╡</span>
+<span class="err">│</span> <span class="n">ERICB</span> <span class="n">SS</span> <span class="n">Equity</span> <span class="err">┆</span> <span class="n">Telefonaktiebola</span> <span class="err">┆</span> <span class="mf">90.152604</span>  <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">16</span> <span class="err">┆</span> <span class="n">SEK</span>      <span class="err">┆</span> <span class="mf">75.072151</span>  <span class="err">┆</span> <span class="mf">56.010028</span> <span class="err">│</span>
+<span class="err">│</span>                 <span class="err">┆</span> <span class="n">get</span> <span class="n">LM</span> <span class="n">Ericsso</span>   <span class="err">┆</span>            <span class="err">┆</span>            <span class="err">┆</span>          <span class="err">┆</span>            <span class="err">┆</span>           <span class="err">│</span>
+<span class="err">│</span> <span class="n">ABB</span> <span class="n">SS</span> <span class="n">Equity</span>   <span class="err">┆</span> <span class="n">ABB</span> <span class="n">Ltd</span>          <span class="err">┆</span> <span class="mf">630.622469</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">16</span> <span class="err">┆</span> <span class="n">SEK</span>      <span class="err">┆</span> <span class="mf">566.571183</span> <span class="err">┆</span> <span class="mf">53.763102</span> <span class="err">│</span>
+<span class="err">│</span> <span class="n">SEBA</span> <span class="n">SS</span> <span class="n">Equity</span>  <span class="err">┆</span> <span class="n">Skandinaviska</span>    <span class="err">┆</span> <span class="mf">153.80595</span>  <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">16</span> <span class="err">┆</span> <span class="n">SEK</span>      <span class="err">┆</span> <span class="mf">150.742394</span> <span class="err">┆</span> <span class="mf">56.460733</span> <span class="err">│</span>
+<span class="err">│</span>                 <span class="err">┆</span> <span class="n">Enskilda</span> <span class="n">Banken</span>  <span class="err">┆</span>            <span class="err">┆</span>            <span class="err">┆</span>          <span class="err">┆</span>            <span class="err">┆</span>           <span class="err">│</span>
+<span class="err">│</span> <span class="n">ASSAB</span> <span class="n">SS</span> <span class="n">Equity</span> <span class="err">┆</span> <span class="n">Assa</span> <span class="n">Abloy</span> <span class="n">AB</span>    <span class="err">┆</span> <span class="mf">339.017591</span> <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">16</span> <span class="err">┆</span> <span class="n">SEK</span>      <span class="err">┆</span> <span class="mf">317.057573</span> <span class="err">┆</span> <span class="mf">53.351619</span> <span class="err">│</span>
+<span class="err">└─────────────────┴──────────────────┴────────────┴────────────┴──────────┴────────────┴───────────┘</span>
+</code></pre></div></p>
 
-        <footer class="col-md-12">
-            <hr>
-            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
-        </footer>
-        <script src="../../js/bootstrap.bundle.min.js"></script>
-        <script>
-            var base_url = "../..",
-                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
-        </script>
-        <script src="../../js/base.js"></script>
-        <script src="../../search/main.js"></script>
 
-        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="searchModalLabel">Search</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
             </div>
-            <div class="modal-body">
-                <p>From here you can search these documents. Enter your search terms below.</p>
-                <form>
-                    <div class="form-group">
-                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
-                    </div>
-                </form>
-                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
-            </div>
-            <div class="modal-footer">
-            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
-    </div>
-</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th style="width: 20%;">Keys</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="help shortcut"><kbd>?</kbd></td>
-                    <td>Open this help</td>
-                  </tr>
-                  <tr>
-                    <td class="next shortcut"><kbd>n</kbd></td>
-                    <td>Next page</td>
-                  </tr>
-                  <tr>
-                    <td class="prev shortcut"><kbd>p</kbd></td>
-                    <td>Previous page</td>
-                  </tr>
-                  <tr>
-                    <td class="search shortcut"><kbd>s</kbd></td>
-                    <td>Search</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="modal-footer">
-            </div>
-        </div>
-    </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
 </div>
-
-    </body>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
 </html>
