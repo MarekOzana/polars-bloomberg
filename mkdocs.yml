@@ -38,4 +38,6 @@ nav:
     - Credits: examples/credits.ipynb
     - Macro: examples/macro.ipynb
     - SPX Valuation Scenarios: examples/macro/spx-valuation-scenarios.ipynb
+    - SPX Earning REvisions: examples/macro/spx-earning-revisions-breadth.ipynb
+
   - API Reference: api.md
