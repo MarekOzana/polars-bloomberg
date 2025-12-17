@@ -9,6 +9,22 @@ theme:
   font:
     text: "Roboto"
     code: "Cascadia Mono" # "Cascadia Mono"
+  palette:
+    # Light (Polars-ish: blue/white)
+    - scheme: default
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: Switch to Bloomberg mode
+
+    # Dark (Bloomberg-ish: dark + orange)
+    - scheme: slate
+      primary: amber
+      accent: gray
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to Polars mode
 
 markdown_extensions:
   - attr_list
@@ -44,7 +60,7 @@ nav:
     - BSRCH: usage/bsrch.md
     - BQL: usage/bql.md
   - Examples:
-    - Equity: examples/equity.ipynb
+    - Equity: examples/equity/index.md
     - Credits: examples/credits.ipynb
     - Macro: examples/macro/index.md
   - API Reference: api.md
