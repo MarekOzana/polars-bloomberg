@@ -4,6 +4,8 @@ repo_url: https://github.com/MarekOzana/polars-bloomberg
 
 theme:
   name: material
+  logo: images/polars-bloomberg-logo-512x512.png
+  favicon: images/polars-bloomberg-fav-32x32.png
   font:
     text: "Roboto"
     code: "Cascadia Mono" # "Cascadia Mono"
@@ -22,6 +24,7 @@ plugins:
         remove_input_tags:
           - hide_code
 
+
 nav:
   - Home: index.md
   - Usage & Tutorials:
@@ -34,4 +37,5 @@ nav:
     - Equity: examples/equity.ipynb
     - Credits: examples/credits.ipynb
     - Macro: examples/macro.ipynb
+    - SPX Valuation Scenarios: examples/macro/spx-valuation-scenarios.ipynb
   - API Reference: api.md
