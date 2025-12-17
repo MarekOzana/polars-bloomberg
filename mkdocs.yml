@@ -10,6 +10,16 @@ theme:
     text: "Roboto"
     code: "Cascadia Mono" # "Cascadia Mono"
 
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
 
 plugins:
   - search
@@ -36,8 +46,5 @@ nav:
   - Examples:
     - Equity: examples/equity.ipynb
     - Credits: examples/credits.ipynb
-    - Macro: examples/macro.ipynb
-    - SPX Valuation Scenarios: examples/macro/spx-valuation-scenarios.ipynb
-    - SPX Earning REvisions: examples/macro/spx-earning-revisions-breadth.ipynb
-
+    - Macro: examples/macro/index.md
   - API Reference: api.md
