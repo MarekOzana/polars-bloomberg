@@ -1587,6 +1587,7 @@ docs = [
     { name = "great-tables" },
     { name = "mkdocs" },
     { name = "mkdocs-jupyter" },
+    { name = "mkdocs-material" },
     { name = "mkdocstrings", extra = ["python"] },
 ]
 
@@ -1598,6 +1599,7 @@ requires-dist = [
     { name = "jupyter", marker = "extra == 'dev'" },
     { name = "mkdocs", marker = "extra == 'docs'", specifier = ">=1.5.0" },
     { name = "mkdocs-jupyter", marker = "extra == 'docs'" },
+    { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.7.0" },
     { name = "mkdocstrings", extras = ["python"], marker = "extra == 'docs'", specifier = ">=0.22.0" },
     { name = "nox", marker = "extra == 'dev'" },
     { name = "polars", specifier = ">=1.7.1" },
