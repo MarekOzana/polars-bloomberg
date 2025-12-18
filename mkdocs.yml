@@ -61,6 +61,6 @@ nav:
     - BQL: usage/bql.md
   - Examples:
     - Equity: examples/equity/index.md
-    - Credits: examples/credits.ipynb
+    - Credits: examples/credit/index.md
     - Macro: examples/macro/index.md
   - API Reference: api.md
