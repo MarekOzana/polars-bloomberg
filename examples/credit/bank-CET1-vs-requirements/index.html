@@ -21,7 +21,7 @@
     
     
       
-        <title>S&P 500 Annual Returns Histogram - Polars-Bloomberg</title>
+        <title>CET1 vs Requirements and AT1 Trigger levels - Polars-Bloomberg</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#sp-500-annual-returns-histogram" class="md-skip">
+        <a href="#cet1-vs-requirements-and-at1-trigger-levels" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              S&amp;P 500 Annual Returns Histogram
+              CET1 vs Requirements and AT1 Trigger levels
             
           </span>
         </div>
@@ -522,7 +522,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../../equity/" class="md-nav__link">
         
   
   
@@ -550,7 +550,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../credit/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -1107,44 +1107,56 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </style>
 <!-- End of mermaid configuration --><div class="jupyter-wrapper">
 <div class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f37a04b6">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=5b90079a">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="sp-500-annual-returns-histogram">S&amp;P 500 Annual Returns Histogram<a class="anchor-link" href="#sp-500-annual-returns-histogram">¶</a></h1><p>© 2025 Marek Ozana</p>
-<p>Histogram of S&amp;P 500 annual returns since 100 years back.</p>
+<h1 id="cet1-vs-requirements-and-at1-trigger-levels">CET1 vs Requirements and AT1 Trigger levels<a class="anchor-link" href="#cet1-vs-requirements-and-at1-trigger-levels">¶</a></h1><p>© 2025 Marek Ozana</p>
+<p>This notebook is a small end-to-end example of using <strong>polars-bloomberg</strong> to pull regulatory capital metrics from <strong>BQL</strong> and chart them for a universe of European banks.</p>
+<p>We compare three CET1-related levels:</p>
+<ul>
+<li><strong>CET1 (reported)</strong>: the bank’s current Common Equity Tier 1 ratio (what it <em>has</em>).</li>
+<li><strong>CET1 requirement (“review” / SREP)</strong>: the supervisory CET1 requirement level (what it <em>must meet</em> under review-driven requirements).</li>
+<li><strong>AT1 trigger</strong>: the contractual CET1 trigger level associated with Additional Tier 1 (CoCo) instruments (the “oh no” line where conversion/write-down mechanics may be activated).</li>
+</ul>
+<p>Interpretation:</p>
+<ul>
+<li>The vertical gap <strong>CET1 − requirement</strong> is “headroom” against supervisory requirements.</li>
+<li>The gap <strong>CET1 − AT1 trigger</strong> is distance to the contractual AT1 trigger (not a regulatory buffer).</li>
+<li>Field definitions vary by jurisdiction and data source. Treat these as <em>indicative</em> and sanity-check against bank disclosures when precision matters.</li>
+</ul>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide_code">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide_code" id="cell-id=7ddb2500">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide_code" id="cell-id=d6e350ab">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[8]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[1]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <style>
-  #altair-viz-7dda17c674ba45619b932b1b37629879.vega-embed {
+  #altair-viz-669550eba8f44ca4abf4d37f1612ebdd.vega-embed {
     width: 100%;
     display: flex;
   }
 
-  #altair-viz-7dda17c674ba45619b932b1b37629879.vega-embed details,
-  #altair-viz-7dda17c674ba45619b932b1b37629879.vega-embed details summary {
+  #altair-viz-669550eba8f44ca4abf4d37f1612ebdd.vega-embed details,
+  #altair-viz-669550eba8f44ca4abf4d37f1612ebdd.vega-embed details summary {
     position: relative;
   }
 </style>
-<div id="altair-viz-7dda17c674ba45619b932b1b37629879"></div>
+<div id="altair-viz-669550eba8f44ca4abf4d37f1612ebdd"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-7dda17c674ba45619b932b1b37629879") {
-      outputDiv = document.getElementById("altair-viz-7dda17c674ba45619b932b1b37629879");
+    if (outputDiv.id !== "altair-viz-669550eba8f44ca4abf4d37f1612ebdd") {
+      outputDiv = document.getElementById("altair-viz-669550eba8f44ca4abf4d37f1612ebdd");
     }
 
     const paths = {
@@ -1192,7 +1204,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}, "axisX": {"labelAngle": 0}}, "layer": [{"mark": {"type": "bar"}, "encoding": {"color": {"field": "DATE", "legend": null, "scale": {"scheme": "viridis"}, "timeUnit": "year", "type": "ordinal"}, "x": {"field": "#bins", "sort": ["< -50", "-50 to -40", "-40 to -30", "-30 to -20", "-20 to -10", "-10 to 0", "0 to 10", "10 to 20", "20 to 30", "30 to 40", "40 to 50", "> 50"], "title": "Annual Returns (%)", "type": "ordinal"}, "y": {"aggregate": "count", "stack": "zero", "title": "Count", "type": "quantitative"}}, "title": "S&P 500 Annual Price Returns"}, {"mark": {"type": "text", "dy": 9}, "encoding": {"text": {"field": "DATE", "timeUnit": "year", "type": "ordinal"}, "x": {"field": "#bins", "sort": ["< -50", "-50 to -40", "-40 to -30", "-30 to -20", "-20 to -10", "-10 to 0", "0 to 10", "10 to 20", "20 to 30", "30 to 40", "40 to 50", "> 50"], "title": "Annual Returns (%)", "type": "ordinal"}, "y": {"aggregate": "count", "stack": "zero", "title": "Count", "type": "quantitative"}}, "title": "S&P 500 Annual Price Returns"}], "data": {"name": "data-47d40b1ffb8919f0a095ac094b282e83"}, "datasets": {"data-47d40b1ffb8919f0a095ac094b282e83": [{"ID": "SPX Index", "#rets": 37.88221970554927, "DATE": "1928-12-31T00:00:00", "#bins": "30 to 40"}, {"ID": "SPX Index", "#rets": -11.90965092402465, "DATE": "1929-12-31T00:00:00", "#bins": "-20 to -10"}, {"ID": "SPX Index", "#rets": -28.484848484848484, "DATE": "1930-12-31T00:00:00", "#bins": "-30 to -20"}, {"ID": "SPX Index", "#rets": -47.0664928292047, "DATE": "1931-12-31T00:00:00", "#bins": "-50 to -40"}, {"ID": "SPX Index", "#rets": -15.147783251231523, "DATE": "1932-12-30T00:00:00", "#bins": "-20 to -10"}, {"ID": "SPX Index", "#rets": 46.58925979680697, "DATE": "1933-12-29T00:00:00", "#bins": "40 to 50"}, {"ID": "SPX Index", "#rets": -5.940594059405938, "DATE": "1934-12-31T00:00:00", "#bins": "-10 to 0"}, {"ID": "SPX Index", "#rets": 41.368421052631575, "DATE": "1935-12-31T00:00:00", "#bins": "40 to 50"}, {"ID": "SPX Index", "#rets": 27.922561429635145, "DATE": "1936-12-31T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": -38.59138533178113, "DATE": "1937-12-31T00:00:00", "#bins": "-40 to -30"}, {"ID": "SPX Index", "#rets": 25.213270142180093, "DATE": "1938-12-30T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": -5.450416351249058, "DATE": "1939-12-29T00:00:00", "#bins": "-10 to 0"}, {"ID": "SPX Index", "#rets": -15.292233787029625, "DATE": "1940-12-31T00:00:00", "#bins": "-20 to -10"}, {"ID": "SPX Index", "#rets": -17.863894139886582, "DATE": "1941-12-31T00:00:00", "#bins": "-20 to -10"}, {"ID": "SPX Index", "#rets": 12.428078250863063, "DATE": "1942-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 19.44728761514842, "DATE": "1943-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 13.796058269065975, "DATE": "1944-12-29T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 30.722891566265066, "DATE": "1945-12-31T00:00:00", "#bins": "30 to 40"}, {"ID": "SPX Index", "#rets": -11.866359447004601, "DATE": "1946-12-31T00:00:00", "#bins": "-20 to -10"}, {"ID": "SPX Index", "#rets": 0.0, "DATE": "1947-12-31T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": -0.6535947712418394, "DATE": "1948-12-31T00:00:00", "#bins": "-10 to 0"}, {"ID": "SPX Index", "#rets": 10.263157894736857, "DATE": "1949-12-30T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 21.778042959427196, "DATE": "1950-12-29T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": 16.462518373346395, "DATE": "1951-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 11.77955405973917, "DATE": "1952-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": -6.624012043658267, "DATE": "1953-12-31T00:00:00", "#bins": "-10 to 0"}, {"ID": "SPX Index", "#rets": 45.02216848045143, "DATE": "1954-12-31T00:00:00", "#bins": "40 to 50"}, {"ID": "SPX Index", "#rets": 26.403557531962203, "DATE": "1955-12-30T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": 2.6165347405453057, "DATE": "1956-12-31T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": -14.313263338332973, "DATE": "1957-12-31T00:00:00", "#bins": "-20 to -10"}, {"ID": "SPX Index", "#rets": 38.059514878719675, "DATE": "1958-12-31T00:00:00", "#bins": "30 to 40"}, {"ID": "SPX Index", "#rets": 8.476725230936424, "DATE": "1959-12-31T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": -2.97211554516614, "DATE": "1960-12-30T00:00:00", "#bins": "-10 to 0"}, {"ID": "SPX Index", "#rets": 23.128549303045943, "DATE": "1961-12-29T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": -11.809923130677841, "DATE": "1962-12-31T00:00:00", "#bins": "-20 to -10"}, {"ID": "SPX Index", "#rets": 18.890649762282084, "DATE": "1963-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 12.969874700079984, "DATE": "1964-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 9.061946902654876, "DATE": "1965-12-31T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": -13.090987774532087, "DATE": "1966-12-30T00:00:00", "#bins": "-20 to -10"}, {"ID": "SPX Index", "#rets": 20.09212000497946, "DATE": "1967-12-29T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": 7.660412563491241, "DATE": "1968-12-31T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": -11.361448103215865, "DATE": "1969-12-31T00:00:00", "#bins": "-20 to -10"}, {"ID": "SPX Index", "#rets": 0.0977623289159281, "DATE": "1970-12-31T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": 10.786760716223545, "DATE": "1971-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 15.633264766382595, "DATE": "1972-12-29T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": -17.36552308343922, "DATE": "1973-12-31T00:00:00", "#bins": "-20 to -10"}, {"ID": "SPX Index", "#rets": -29.71809328549461, "DATE": "1974-12-31T00:00:00", "#bins": "-30 to -20"}, {"ID": "SPX Index", "#rets": 31.549008168028, "DATE": "1975-12-31T00:00:00", "#bins": "30 to 40"}, {"ID": "SPX Index", "#rets": 19.148464353032484, "DATE": "1976-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": -11.501954215522055, "DATE": "1977-12-30T00:00:00", "#bins": "-20 to -10"}, {"ID": "SPX Index", "#rets": 1.062039957939017, "DATE": "1978-12-29T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": 12.3088128186453, "DATE": "1979-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 25.773577913655725, "DATE": "1980-12-31T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": -9.73040659988214, "DATE": "1981-12-31T00:00:00", "#bins": "-10 to 0"}, {"ID": "SPX Index", "#rets": 14.761321909424716, "DATE": "1982-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 17.271046643913554, "DATE": "1983-12-30T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 1.4005941914751727, "DATE": "1984-12-31T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": 26.333413059076772, "DATE": "1985-12-31T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": 14.62040893600908, "DATE": "1986-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 2.027501342032467, "DATE": "1987-12-31T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": 12.40084183260483, "DATE": "1988-12-30T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 27.250468097364234, "DATE": "1989-12-29T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": -6.559139784946224, "DATE": "1990-12-31T00:00:00", "#bins": "-10 to 0"}, {"ID": "SPX Index", "#rets": 26.306704621161632, "DATE": "1991-12-31T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": 4.464264307463618, "DATE": "1992-12-31T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": 7.055151362144548, "DATE": "1993-12-31T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": -1.5392860971165199, "DATE": "1994-12-30T00:00:00", "#bins": "-10 to 0"}, {"ID": "SPX Index", "#rets": 34.110653863740275, "DATE": "1995-12-29T00:00:00", "#bins": "30 to 40"}, {"ID": "SPX Index", "#rets": 20.263666325718845, "DATE": "1996-12-31T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": 31.008181008181, "DATE": "1997-12-31T00:00:00", "#bins": "30 to 40"}, {"ID": "SPX Index", "#rets": 26.668590212586178, "DATE": "1998-12-31T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": 19.526044759727633, "DATE": "1999-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": -10.139186659860474, "DATE": "2000-12-29T00:00:00", "#bins": "-20 to -10"}, {"ID": "SPX Index", "#rets": -13.042687914684766, "DATE": "2001-12-31T00:00:00", "#bins": "-20 to -10"}, {"ID": "SPX Index", "#rets": -23.365967528395224, "DATE": "2002-12-31T00:00:00", "#bins": "-30 to -20"}, {"ID": "SPX Index", "#rets": 26.380395990088886, "DATE": "2003-12-31T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": 8.99345276638607, "DATE": "2004-12-31T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": 3.001023169846185, "DATE": "2005-12-30T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": 13.619431382130752, "DATE": "2006-12-29T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 3.529577663399841, "DATE": "2007-12-31T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": -38.48579367457571, "DATE": "2008-12-31T00:00:00", "#bins": "-40 to -30"}, {"ID": "SPX Index", "#rets": 23.454193191253793, "DATE": "2009-12-31T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": 12.782710070845681, "DATE": "2010-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": -0.0023854203110747186, "DATE": "2011-12-30T00:00:00", "#bins": "-10 to 0"}, {"ID": "SPX Index", "#rets": 13.404791628565308, "DATE": "2012-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 29.60124527587487, "DATE": "2013-12-31T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": 11.39063818736611, "DATE": "2014-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": -0.7266015833697623, "DATE": "2015-12-31T00:00:00", "#bins": "-10 to 0"}, {"ID": "SPX Index", "#rets": 9.535015704961978, "DATE": "2016-12-30T00:00:00", "#bins": "0 to 10"}, {"ID": "SPX Index", "#rets": 19.419964892376832, "DATE": "2017-12-29T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": -6.237259734965093, "DATE": "2018-12-31T00:00:00", "#bins": "-10 to 0"}, {"ID": "SPX Index", "#rets": 28.878074077028952, "DATE": "2019-12-31T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": 16.258921994069542, "DATE": "2020-12-31T00:00:00", "#bins": "10 to 20"}, {"ID": "SPX Index", "#rets": 26.8927362908572, "DATE": "2021-12-31T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": -19.442824232404153, "DATE": "2022-12-30T00:00:00", "#bins": "-20 to -10"}, {"ID": "SPX Index", "#rets": 24.230498762859746, "DATE": "2023-12-29T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": 23.309006819949563, "DATE": "2024-12-31T00:00:00", "#bins": "20 to 30"}, {"ID": "SPX Index", "#rets": 14.815110777114505, "DATE": "2025-12-17T00:00:00", "#bins": "10 to 20"}]}, "height": 400, "width": 600, "$schema": "https://vega.github.io/schema/vega-lite/v6.1.0.json"}, {"actions": false, "mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}}, "data": {"name": "data-bcacb82ee8c3171ce6cb3b63ca02d3e7"}, "mark": {"type": "bar"}, "datasets": {"data-bcacb82ee8c3171ce6cb3b63ca02d3e7": [{"ticker": "NWG", "CET1": 0.142, "Requirement": 0.11199999999999999, "Trigger": 0.07}, {"ticker": "DNBNO", "CET1": 0.179, "Requirement": 0.166, "Trigger": 0.051250000000000004}, {"ticker": "BCPPL", "CET1": 0.16, "Requirement": 0.09570000000000001, "Trigger": 0.051250000000000004}, {"ticker": "NWIDE", "CET1": 0.184, "Requirement": 0.12300000000000001, "Trigger": 0.07}, {"ticker": "RABOBK", "CET1": 0.19899999999999998, "Requirement": 0.198, "Trigger": 0.051250000000000004}, {"ticker": "BACR", "CET1": 0.141, "Requirement": 0.122, "Trigger": 0.07}, {"ticker": "DB", "CET1": 0.145, "Requirement": 0.11199999999999999, "Trigger": 0.051250000000000004}, {"ticker": "CCBGBB", "CET1": 0.15989719, "Requirement": 0.10837, "Trigger": 0.051250000000000004}, {"ticker": "BAMIIM", "CET1": 0.1352, "Requirement": 0.0953, "Trigger": 0.051250000000000004}, {"ticker": "BKIR", "CET1": 0.153, "Requirement": 0.11380000000000001, "Trigger": 0.07}, {"ticker": "ERSTBK", "CET1": 0.17500000000000002, "Requirement": 0.1164, "Trigger": 0.051250000000000004}, {"ticker": "RBIAV", "CET1": 0.177, "Requirement": 0.12050000000000001, "Trigger": 0.051250000000000004}, {"ticker": "NDAFH", "CET1": 0.159, "Requirement": 0.136, "Trigger": 0.051250000000000004}, {"ticker": "LLOYDS", "CET1": 0.138, "Requirement": 0.13, "Trigger": 0.07}, {"ticker": "ABNANV", "CET1": 0.142, "Requirement": 0.10250000000000001, "Trigger": 0.051250000000000004}, {"ticker": "SWEDA", "CET1": 0.197, "Requirement": 0.14800000000000002, "Trigger": 0.051250000000000004}, {"ticker": "UCGIM", "CET1": 0.1476, "Requirement": 0.10490000000000001, "Trigger": 0.051250000000000004}, {"ticker": "HSBC", "CET1": 0.145, "Requirement": 0.11199999999999999, "Trigger": 0.07}, {"ticker": "SANTAN", "CET1": 0.131, "Requirement": 0.09699999999999999, "Trigger": 0.051250000000000004}, {"ticker": "DANBNK", "CET1": 0.187, "Requirement": 0.14800000000000002, "Trigger": 0.07}, {"ticker": "STANLN", "CET1": 0.142, "Requirement": 0.102, "Trigger": 0.07}, {"ticker": "BNP", "CET1": 0.125, "Requirement": 0.1051, "Trigger": 0.051250000000000004}, {"ticker": "ISPIM", "CET1": 0.139, "Requirement": 0.09880000000000001, "Trigger": 0.051250000000000004}, {"ticker": "SEB", "CET1": 0.182, "Requirement": 0.147, "Trigger": 0.051250000000000004}, {"ticker": "BKTSM", "CET1": 0.1294, "Requirement": 0.0795, "Trigger": 0.051250000000000004}, {"ticker": "ACAFP", "CET1": 0.1165, "Requirement": 0.08199999999999999, "Trigger": 0.051250000000000004}, {"ticker": "AIB", "CET1": 0.1674, "Requirement": 0.113, "Trigger": 0.07}, {"ticker": "BBVASM", "CET1": 0.1342, "Requirement": 0.0913, "Trigger": 0.051250000000000004}, {"ticker": "INTNED", "CET1": 0.134, "Requirement": 0.10830000000000001, "Trigger": 0.07}, {"ticker": "SABSM", "CET1": 0.1374, "Requirement": 0.0894, "Trigger": 0.051250000000000004}, {"ticker": "UBS", "CET1": 0.14800000000000002, "Requirement": 0.106, "Trigger": 0.07}, {"ticker": "FRLBP", "CET1": 0.17800000000000002, "Requirement": 0.094, "Trigger": 0.051250000000000004}, {"ticker": "KBCBB", "CET1": 0.1493, "Requirement": 0.1085, "Trigger": 0.051250000000000004}, {"ticker": "BPEIM", "CET1": 0.1512, "Requirement": 0.0893, "Trigger": 0.051250000000000004}, {"ticker": "SHBASS", "CET1": 0.182, "Requirement": 0.147, "Trigger": 0.051250000000000004}, {"ticker": "CMZB", "CET1": 0.147, "Requirement": 0.1036, "Trigger": 0.051250000000000004}, {"ticker": "SOCGEN", "CET1": 0.13699999999999998, "Requirement": 0.1026, "Trigger": 0.051250000000000004}, {"ticker": "CABKSM", "CET1": 0.125, "Requirement": 0.0867, "Trigger": 0.051250000000000004}]}, "encoding": {"color": {"field": "key", "title": null, "type": "nominal"}, "opacity": {"field": "key", "type": "nominal"}, "tooltip": [{"field": "ticker", "type": "nominal"}, {"field": "value", "format": ".2%", "type": "quantitative"}, {"field": "key", "type": "nominal"}], "x": {"field": "ticker", "sort": {"field": "value", "op": "max", "order": "descending"}, "title": null, "type": "nominal"}, "y": {"axis": {"format": "%"}, "field": "value", "stack": false, "title": "CET1", "type": "quantitative"}}, "transform": [{"fold": ["CET1", "Requirement", "Trigger"]}], "$schema": "https://vega.github.io/schema/vega-lite/v6.1.0.json"}, {"actions": false, "mode": "vega-lite"});
 </script>
 </div>
 </div>
@@ -1200,12 +1212,12 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=66608ed3">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=181efdec">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="CodeMirror cm-s-jupyter">
 <div class="zeroclipboard-container">
 <clipboard-copy ,="" aria-label="Copy to Clipboard" for="cell-1">
@@ -1218,69 +1230,60 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Get historical S&amp;P 500 annual price returns</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
-
-<span class="n">bin_names</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">"&lt; -50"</span><span class="p">,</span>
-    <span class="s2">"-50 to -40"</span><span class="p">,</span>
-    <span class="s2">"-40 to -30"</span><span class="p">,</span>
-    <span class="s2">"-30 to -20"</span><span class="p">,</span>
-    <span class="s2">"-20 to -10"</span><span class="p">,</span>
-    <span class="s2">"-10 to 0"</span><span class="p">,</span>
-    <span class="s2">"0 to 10"</span><span class="p">,</span>
-    <span class="s2">"10 to 20"</span><span class="p">,</span>
-    <span class="s2">"20 to 30"</span><span class="p">,</span>
-    <span class="s2">"30 to 40"</span><span class="p">,</span>
-    <span class="s2">"40 to 50"</span><span class="p">,</span>
-    <span class="s2">"&gt; 50"</span><span class="p">,</span>
-<span class="p">]</span>
-<span class="n">bins</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">50</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
-
-<span class="n">query</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"""</span>
+<span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">let(</span>
-<span class="s2">    #rets = dropna(pct_diff(px_last(dates=range(-100Y, 0Y), per=Y)));</span>
-<span class="s2">    #bins = bins(#rets, </span><span class="si">{</span><span class="n">bins</span><span class="si">}</span><span class="s2">, bin_names=</span><span class="si">{</span><span class="n">bin_names</span><span class="si">}</span><span class="s2">);</span>
+<span class="s2">    #cet1 = value(bs_tier1_com_equity_ratio, fundamentalTicker, mapby=LINEAGE);</span>
+<span class="s2">    #trigger = CAPITAL_TYPE_COCO_TRIGGER_LEVEL();</span>
+<span class="s2">    #req = value(bs_ce_tier_1_review(), fundamentalTicker, mapby=LINEAGE);</span>
 <span class="s2">)</span>
-<span class="s2">get(#rets, #bins)</span>
-<span class="s2">for(['SPX Index'])</span>
+<span class="s2">get(ticker, #cet1, #trigger, #req)</span>
+<span class="s2">for(</span>
+<span class="s2">    filter(</span>
+<span class="s2">        members('I31095 Index'),</span>
+<span class="s2">        value(bs_tot_asset(currency='EUR') &gt; 105B, fundamentalTicker, mapby=LINEAGE)</span>
+<span class="s2">    )</span>
+<span class="s2">)</span>
 <span class="s2">"""</span>
 <span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+
+<span class="c1"># Combine on 'ID' column</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"_</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">"ID"</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">"inner"</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="n">suffix</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop_nulls</span><span class="p">()</span>
 <span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-1"># Get historical S&amp;P 500 annual price returns
+<div class="clipboard-copy-txt" id="cell-1">from polars_bloomberg import BQuery
 
-from polars_bloomberg import BQuery
-
-bin_names: list = [
-    "&lt; -50",
-    "-50 to -40",
-    "-40 to -30",
-    "-30 to -20",
-    "-20 to -10",
-    "-10 to 0",
-    "0 to 10",
-    "10 to 20",
-    "20 to 30",
-    "30 to 40",
-    "40 to 50",
-    "&gt; 50",
-]
-bins = list(range(-50, 60, 10))
-
-query = f"""
+query = """
 let(
-    #rets = dropna(pct_diff(px_last(dates=range(-100Y, 0Y), per=Y)));
-    #bins = bins(#rets, {bins}, bin_names={bin_names});
+    #cet1 = value(bs_tier1_com_equity_ratio, fundamentalTicker, mapby=LINEAGE);
+    #trigger = CAPITAL_TYPE_COCO_TRIGGER_LEVEL();
+    #req = value(bs_ce_tier_1_review(), fundamentalTicker, mapby=LINEAGE);
 )
-get(#rets, #bins)
-for(['SPX Index'])
+get(ticker, #cet1, #trigger, #req)
+for(
+    filter(
+        members('I31095 Index'),
+        value(bs_tot_asset(currency='EUR') &gt; 105B, fundamentalTicker, mapby=LINEAGE)
+    )
+)
 """
 with BQuery() as bq:
-    df = bq.bql(query).combine()
-df.head(3)</div>
+    res = bq.bql(query)
+
+# Combine on 'ID' column
+df = res[0]
+for idx, d in enumerate(res[1:], start=1):
+    suffix = f"_{idx}"
+    df = df.join(d, on="ID", how="inner", suffix=suffix)
+df = df.drop_nulls()
+df.head(3)
+</div>
 </div>
 </div>
 </div>
@@ -1290,7 +1293,7 @@ df.head(3)</div>
 </div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
-<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[9]:</div>
+<div class="jp-OutputPrompt jp-OutputArea-prompt">Out[2]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <div><style>
 .dataframe > thead > tr,
@@ -1299,14 +1302,14 @@ df.head(3)</div>
   white-space: pre-wrap;
 }
 </style>
-<small>shape: (3, 4)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>#rets</th><th>DATE</th><th>#bins</th></tr><tr><td>str</td><td>f64</td><td>date</td><td>str</td></tr></thead><tbody><tr><td>"SPX Index"</td><td>37.88222</td><td>1928-12-31</td><td>"30 to 40"</td></tr><tr><td>"SPX Index"</td><td>-11.909651</td><td>1929-12-31</td><td>"-20 to -10"</td></tr><tr><td>"SPX Index"</td><td>-28.484848</td><td>1930-12-31</td><td>"-30 to -20"</td></tr></tbody></table></div>
+<small>shape: (3, 14)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>ticker</th><th>#cet1</th><th>REVISION_DATE</th><th>AS_OF_DATE</th><th>PERIOD_END_DATE</th><th>SOURCE_ID</th><th>#trigger</th><th>MULTIPLIER</th><th>#req</th><th>REVISION_DATE_3</th><th>AS_OF_DATE_3</th><th>PERIOD_END_DATE_3</th><th>SOURCE_ID_3</th></tr><tr><td>str</td><td>str</td><td>f64</td><td>date</td><td>date</td><td>date</td><td>str</td><td>f64</td><td>f64</td><td>f64</td><td>date</td><td>date</td><td>date</td><td>str</td></tr></thead><tbody><tr><td>"ZM918892 Corp"</td><td>"INTNED"</td><td>13.4</td><td>2025-10-30</td><td>2025-12-18</td><td>2025-09-30</td><td>"INGA NA Equity"</td><td>7.0</td><td>1.0</td><td>10.83</td><td>2025-10-30</td><td>2025-12-18</td><td>2025-09-30</td><td>"INGA NA Equity"</td></tr><tr><td>"YV921889 Corp"</td><td>"NDAFH"</td><td>15.9</td><td>2025-10-16</td><td>2025-12-18</td><td>2025-09-30</td><td>"NDA FH Equity"</td><td>5.125</td><td>1.0</td><td>13.6</td><td>2025-10-16</td><td>2025-12-18</td><td>2025-09-30</td><td>"NDA FH Equity"</td></tr><tr><td>"ZM198062 Corp"</td><td>"ACAFP"</td><td>11.65</td><td>2025-10-30</td><td>2025-12-18</td><td>2025-09-30</td><td>"ACA FP Equity"</td><td>5.125</td><td>1.0</td><td>8.2</td><td>2025-10-30</td><td>2025-12-18</td><td>2025-09-30</td><td>"ACA FP Equity"</td></tr></tbody></table></div>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_hide_code">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_hide_code" id="cell-id=81a5e04b">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_hide_code" id="cell-id=de60b8f9">
 </div>
 </div>
 </div> <!-- jp-Notebook -->
