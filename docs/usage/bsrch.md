@@ -1,3 +1,8 @@
+---
+title: BSRCH - Bloomberg Search
+description: Run Bloomberg BSRCH (SRCH/BI) searches in Polars-Bloomberg with overrides and limits, alongside Bloomberg BQL screeners for discovery.
+---
+
 # BSRCH
 
 Use case: Excel-style searches (SRCH/BI domains). Good for running saved SRCH screens or Bloomberg BI templates.

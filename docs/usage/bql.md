@@ -1,3 +1,8 @@
+---
+title: BQL - Bloomberg Query Language
+description: Execute Bloomberg BQL queries in Polars-Bloomberg to screen securities, calculate analytics, and combine BQL statements into Polars DataFrames.
+---
+
 # BQL
 
 *Use Case*: Run more advanced queries to screen securities, calculate analytics (like moving averages), or pull fundamental data with complex conditions.

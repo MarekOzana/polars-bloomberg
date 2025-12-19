@@ -1,3 +1,8 @@
+---
+title: Polars-Bloomberg
+description: Polars-Bloomberg brings Bloomberg blpapi data into fast Polars DataFrames, covering BDP, BDH, BDIB, BSRCH, and Bloomberg BQL workflows with examples.
+---
+
 ![Polars Bloomberg Logo](https://raw.githubusercontent.com/MarekOzana/polars-bloomberg/main/assets/polars-bloomberg-logo.jpg)
 
 # Polars + Bloomberg Open API

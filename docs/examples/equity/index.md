@@ -1,3 +1,8 @@
+---
+title: Equity Examples
+description: Equity notebooks for polars-bloomberg showing Bloomberg BQL-driven analysis like S&P 500 returns and EPS estimate trends.
+---
+
 # Equity Examples
 
 © 2025 Marek Ozana

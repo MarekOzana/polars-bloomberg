@@ -1,3 +1,8 @@
+---
+title: Macro Examples
+description: Macro notebooks for polars-bloomberg that pull BQL data to explore SPX valuation scenarios and earnings revisions breadth.
+---
+
 # Macro Examples
 
 © 2025 Jim Domeij & Marek Ozana

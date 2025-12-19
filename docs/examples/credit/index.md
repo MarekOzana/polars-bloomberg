@@ -1,3 +1,8 @@
+---
+title: Credit Examples
+description: Credit bond notebooks using polars-bloomberg with Bloomberg BQL inputs for CET1, AT1 valuation, and spread analytics.
+---
+
 # Credit Examples
 
 © 2025 Marek Ozana

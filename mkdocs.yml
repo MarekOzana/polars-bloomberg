@@ -1,6 +1,9 @@
 site_name: Polars-Bloomberg
-site_description: Polars DataFrame interface for Bloomberg API
+site_description: Fast Polars DataFrame interface for Bloomberg blpapi, covering BDP, BDH, BDIB, BSRCH, and Bloomberg BQL workflows with practical examples.
+site_url: https://marekozana.github.io/polars-bloomberg/
 repo_url: https://github.com/MarekOzana/polars-bloomberg
+repo_name: MarekOzana/polars-bloomberg
+edit_uri: edit/main/docs/
 
 theme:
   name: material
@@ -27,6 +30,9 @@ theme:
         name: Switch to Polars mode
 
 markdown_extensions:
+  - meta
+  - toc:
+      permalink: true
   - attr_list
   - md_in_html
   - admonition

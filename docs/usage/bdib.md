@@ -1,3 +1,8 @@
+---
+title: BDIB - Bloomberg Intraday Bar
+description: Fetch Bloomberg BDIB intraday OHLCV bars into Polars for 1-1440 minute analytics, a fast companion to Bloomberg BQL and BDP workflows.
+---
+
 # BDIB – Bloomberg Data Intraday Bar
 
 `bdib()` fetches pre-aggregated intraday bars directly from Bloomberg, so you can

@@ -1,3 +1,8 @@
+---
+title: BDP - Bloomberg Data Point
+description: Bloomberg BDP single-value data point requests in Polars-Bloomberg, including overrides and complementary Bloomberg BQL screening workflows for Polars DataFrames.
+---
+
 # BDP
 
 Use Case: Fetch single-value data points (like last price, currency, or descriptive fields).

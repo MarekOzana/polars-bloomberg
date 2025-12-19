@@ -1,3 +1,8 @@
+---
+title: BDH - Bloomberg Historical Data
+description: Pull Bloomberg BDH historical time series into Polars DataFrames with date ranges and overrides, using patterns that pair well with Bloomberg BQL analytics.
+---
+
 # BDH
 
 Use Case: Retrieve historical data over a date range, such as daily closing prices or volumes.
