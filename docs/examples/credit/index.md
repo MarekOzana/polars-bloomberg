@@ -22,4 +22,12 @@ These examples show how to use `polars-bloomberg` for credit bond analysis
 
     [:material-open-in-new: Open](bank-capital-history.ipynb)
 
+-   [![Equity Cushion vs Spread Analysis](equity-cushion-vs-spread-hero.png){ loading=lazy }](equity-cushion-vs-spread.ipynb)
+
+    **Equity Cushion vs Credit Spread Analysis**
+
+    Analyze the relationship between company equity cushion and its bonds credit spreads
+
+    [:material-open-in-new: Open](equity-cushion-vs-spread.ipynb)
+
 </div>
