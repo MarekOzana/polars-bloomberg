@@ -30,4 +30,12 @@ These examples show how to use `polars-bloomberg` for credit bond analysis
 
     [:material-open-in-new: Open](equity-cushion-vs-spread.ipynb)
 
+-   [![AT1 Bond Valuation](at1-valuation-hero.png){ loading=lazy }](at1-valuation.ipynb)
+
+    **AT1 Bond Valuation**
+
+    Explore pricing mechanics and risk sensitivities for Additional Tier 1 (AT1) bonds.
+
+    [:material-open-in-new: Open](at1-valuation.ipynb)
+
 </div>
