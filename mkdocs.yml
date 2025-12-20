@@ -45,6 +45,7 @@ markdown_extensions:
 
 plugins:
   - search
+  - tags
   - mkdocstrings:
       handlers:
         python:

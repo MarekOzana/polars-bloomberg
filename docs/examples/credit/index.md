@@ -1,6 +1,11 @@
 ---
 title: Credit Examples
 description: Credit bond notebooks using polars-bloomberg with Bloomberg BQL inputs for CET1, AT1 valuation, and spread analytics.
+tags:
+    - Credit
+    - AT1
+    - CoCo
+    - BQL
 ---
 
 # Credit Examples
@@ -42,5 +47,13 @@ These examples show how to use `polars-bloomberg` for credit bond analysis
     Explore pricing mechanics and risk sensitivities for Additional Tier 1 (AT1) bonds.
 
     [:material-open-in-new: Open](at1-valuation.ipynb)
+
+-   [![AT1 vs Credits OAS per Rating](at1-vs-credits-oas-hero.png){ loading=lazy }](at1-vs-credits-oas.ipynb)
+
+    **AT1 vs Credits Historical OAS per Rating**
+
+    Compare AT1 (CoCo) vs senior credit OAS by rating to highlight the persistent CoCo premium.
+
+    [:material-open-in-new: Open](at1-vs-credits-oas.ipynb)
 
 </div>
