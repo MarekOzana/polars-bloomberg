@@ -1338,6 +1338,21 @@ class TestBsrch:
         assert df.shape == (2, 1)
         assert df["Ticker"].to_list() == ["IBM US Equity", "MSFT US Equity"]
 
+    def test_coerce_bsrch_numeric_columns_direct(self):
+        """Test _coerce_bsrch_numeric_columns directly."""
+        bq = BQuery()
+        rows = [
+            {"A": 1, "B": " "},
+            {"A": 2, "B": 2},
+            {"A": "", "B": 3},
+        ]
+        bq._coerce_bsrch_numeric_columns(rows)
+        assert rows == [
+            {"A": 1, "B": None},
+            {"A": 2, "B": 2},
+            {"A": None, "B": 3},
+        ]
+
 
 @pytest.mark.no_bbg
 class TestBqlResult:

@@ -972,10 +972,6 @@ class BQuery:
                 for idx, cleaned_val in enumerate(cleaned):
                     rows[idx][col] = cleaned_val
 
-            if numeric_candidate:
-                for idx, cleaned_val in enumerate(cleaned):
-                    rows[idx][col] = cleaned_val
-
     def _parse_bql_responses(self, responses: list[Any]):
         """Parse BQL responses into a list of SITable objects."""
         tables: list[SITable] = []
