@@ -236,6 +236,173 @@ def test_issue_14_bql_with_infinity(bq):
     assert df["#colM"].to_list() == [float("-inf")]
 
 
+def test_incorrect_bql_syntax(bq, caplog):
+    """Test BQL with incorrect syntax logs error and returns empty result."""
+    incorrect_query = "get(px_last for(['AAPL US Equity'])"
+
+    with caplog.at_level(logging.ERROR):
+        res = bq.bql(incorrect_query)
+
+    assert len(res) == 0
+    assert "BQL error: Error: Unable to parse request at 'get(px_lastfor'" in caplog.text
+
+@pytest.mark.no_bbg
+def test_extract_results_with_bql_syntax_error(caplog):
+    """Test _extract_results() logs BQL syntax errors using stored response."""
+    bq = BQuery()
+
+    # Load the actual response from the stored JSON file
+    with open("tests/data/response_bql_raised_exception.json") as f:
+        responses = json.load(f)
+
+    # The last element contains the BQL error response
+    with caplog.at_level(logging.ERROR):
+        result = bq._extract_results([responses[-1]])
+
+    assert result == []
+    assert "BQL error:" in caplog.text
+    assert "Unable to parse request" in caplog.text
+
+
+@pytest.mark.no_bbg
+class TestExtractResultsBqlErrors:
+    """Edge case tests for BQL error handling in _extract_results()."""
+
+    def test_multiple_exceptions_concatenated(self, caplog):
+        """Multiple responseExceptions should be concatenated with '; '."""
+        bq = BQuery()
+        response = {
+            "results": None,
+            "responseExceptions": [
+                {"message": "First error"},
+                {"message": "Second error"},
+                {"message": "Third error"},
+            ],
+        }
+        with caplog.at_level(logging.ERROR):
+            result = bq._extract_results([response])
+
+        assert result == []
+        assert "BQL error: First error; Second error; Third error" in caplog.text
+
+    def test_exception_with_missing_message_uses_internal_message(self, caplog):
+        """Fall back to internalMessage when message is missing."""
+        bq = BQuery()
+        response = {
+            "results": None,
+            "responseExceptions": [
+                {"internalMessage": "Internal error details"},
+            ],
+        }
+        with caplog.at_level(logging.ERROR):
+            result = bq._extract_results([response])
+
+        assert result == []
+        assert "BQL error: Internal error details" in caplog.text
+
+    def test_exception_with_empty_message_uses_internal_message(self, caplog):
+        """Fall back to internalMessage when message is empty string."""
+        bq = BQuery()
+        response = {
+            "results": None,
+            "responseExceptions": [
+                {"message": "", "internalMessage": "Fallback message"},
+            ],
+        }
+        with caplog.at_level(logging.ERROR):
+            result = bq._extract_results([response])
+
+        assert result == []
+        assert "BQL error: Fallback message" in caplog.text
+
+    def test_exception_with_no_message_fields_uses_unknown(self, caplog):
+        """Use 'Unknown error' when neither message nor internalMessage exists."""
+        bq = BQuery()
+        response = {
+            "results": None,
+            "responseExceptions": [
+                {"type": "PARTIAL", "messageCategory": "BQL_SYNTAX_ERROR"},
+            ],
+        }
+        with caplog.at_level(logging.ERROR):
+            result = bq._extract_results([response])
+
+        assert result == []
+        assert "BQL error: Unknown error" in caplog.text
+
+    def test_empty_exceptions_array_does_not_log(self, caplog):
+        """Empty responseExceptions array should not log an error."""
+        bq = BQuery()
+        response = {
+            "results": {"data": "some_data"},
+            "responseExceptions": [],
+        }
+        with caplog.at_level(logging.ERROR):
+            result = bq._extract_results([response])
+
+        assert result == [{"data": "some_data"}]
+        assert "BQL error" not in caplog.text
+
+    def test_non_dict_exception_items_are_skipped(self, caplog):
+        """Non-dict items in responseExceptions should be skipped."""
+        bq = BQuery()
+        response = {
+            "results": None,
+            "responseExceptions": [
+                "invalid string item",
+                None,
+                {"message": "Valid error"},
+                123,
+            ],
+        }
+        with caplog.at_level(logging.ERROR):
+            result = bq._extract_results([response])
+
+        assert result == []
+        assert "BQL error: Valid error" in caplog.text
+
+    def test_non_dict_response_is_skipped(self):
+        """Non-dict responses (strings that don't parse to dict) are skipped."""
+        bq = BQuery()
+        responses = [
+            "not a json string",
+            {"results": {"data": "valid_data"}},
+        ]
+        # The invalid string is logged and skipped, valid response is processed
+        result = bq._extract_results(responses)
+        assert result == [{"data": "valid_data"}]
+
+    def test_valid_results_extracted_when_no_exceptions(self):
+        """Normal case: results are extracted when no exceptions present."""
+        bq = BQuery()
+        responses = [
+            {"server": "localhost:8194"},  # metadata, no results
+            {"results": {"field1": "value1"}},
+            {"results": {"field2": "value2"}},
+        ]
+        result = bq._extract_results(responses)
+        assert result == [{"field1": "value1"}, {"field2": "value2"}]
+
+    def test_json_string_response_is_parsed(self):
+        """JSON string responses should be parsed correctly."""
+        bq = BQuery()
+        json_response = '{"results": {"parsed": true}, "responseExceptions": null}'
+        result = bq._extract_results([json_response])
+        assert result == [{"parsed": True}]
+
+    def test_json_string_with_exception_logs_error(self, caplog):
+        """JSON string with responseExceptions should log error."""
+        bq = BQuery()
+        json_response = (
+            '{"results": null, "responseExceptions": [{"message": "Parse error"}]}'
+        )
+        with caplog.at_level(logging.ERROR):
+            result = bq._extract_results([json_response])
+
+        assert result == []
+        assert "BQL error: Parse error" in caplog.text
+
+
 @pytest.mark.no_bbg
 def test_bdh_leading_nulls():
     """Test on dataset with leading nulls in a field."""

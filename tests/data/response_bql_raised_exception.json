@@ -1,0 +1,25 @@
+[
+  {
+    "server": "localhost:8194",
+    "serverId": "bbcomm-5CG3290LGQ-3511155",
+    "encryptionStatus": "Clear",
+    "compressionStatus": "Uncompressed"
+  },
+  {
+    "initialEndpoints": [
+      {
+        "address": "localhost:8194"
+      }
+    ]
+  },
+  {
+    "serviceName": "//blp/refdata"
+  },
+  {
+    "serviceName": "//blp/bqlsvc"
+  },
+  {
+    "serviceName": "//blp/exrsvc"
+  },
+  "{\"results\":null,\"ordering\":null,\"responseExceptions\":[{\"message\":\"Error: Unable to parse request at 'get(px_lastfor'.\",\"type\":\"PARTIAL\",\"internalMessage\":\"Error: Unable to parse request at 'get(px_lastfor'.\",\"messageCategory\":\"BQL_SYNTAX_ERROR\",\"messageSubcategory\":\"NA_SUBCATEGORY\",\"level\":0,\"nodeName\":null,\"uniqueException\":false,\"messageKey\":\"PARSER_UNABLE\"}],\"responseTiming\":null,\"dotString\":null,\"versionInfo\":{\"version\":\"1.258\",\"responseSchemaVersion\":\"1.0\"},\"clientContext\":{\"appName\":\"EXCEL\",\"clientRequestId\":\"6de21a78-a0ab-49fb-af6e-cd67afedf1ff\",\"timestamp\":null,\"extraMarkers\":[]},\"screenCounts\":null,\"payloadId\":null}"
+]

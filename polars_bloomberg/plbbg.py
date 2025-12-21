@@ -525,10 +525,10 @@ class BQuery:
             BqlResult: An object containing:
                 - List of Polars DataFrames (one for each item in BQL get statement)
                 - Helper methods like combine() to merge DataFrames on common columns
+                Returns empty result if BQL syntax is invalid (error is logged).
 
         Raises:
             ConnectionError: If there is an issue with the Bloomberg session.
-            ValueError: If the BQL query syntax is invalid.
 
         Example:
             Simple query to fetch last price:
@@ -1011,7 +1011,11 @@ class BQuery:
         return table
 
     def _extract_results(self, responses: list[Any]) -> list[dict]:
-        """Extract the 'results' section from each response, handling JSON strings."""
+        """Extract the 'results' section from each response, handling JSON strings.
+
+        Logs an error if responseExceptions are present (e.g., BQL syntax errors).
+
+        """
         extracted = []
         for response in responses:
             resp_dict = response
@@ -1021,6 +1025,23 @@ class BQuery:
                 except json.JSONDecodeError as e:
                     logger.error("Failed to decode JSON: %s. Error: %s", response, e)
                     continue
+
+            # Skip non-dict responses (e.g., connection metadata)
+            if not isinstance(resp_dict, dict):
+                continue
+
+            # Check for BQL errors in responseExceptions
+            exceptions = resp_dict.get("responseExceptions")
+            if exceptions:
+                error_messages = [
+                    exc.get("message") or exc.get("internalMessage") or "Unknown error"
+                    for exc in exceptions
+                    if isinstance(exc, dict)
+                ]
+                if error_messages:
+                    logger.error("BQL error: %s", "; ".join(error_messages))
+                    continue
+
             results = resp_dict.get("results")
             if results:
                 extracted.append(results)
