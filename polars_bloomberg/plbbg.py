@@ -35,7 +35,7 @@ import logging
 import os
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 import blpapi
@@ -1092,7 +1092,7 @@ class BQuery:
             return value
         if value.tzinfo is None:
             return value.strftime("%Y-%m-%dT%H:%M:%S")
-        return value.astimezone(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+        return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def _save_debug_case(self, in_results: dict, tables: list[SITable]):
         """Save input and output to a JSON file for debugging and test generation."""

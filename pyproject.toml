@@ -26,7 +26,16 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "jupyter", "altair", "nox", "pyyaml", "vl-convert-python"]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "jupyter",
+    "altair",
+    "nox",
+    "pyyaml",
+    "vl-convert-python",
+    "ruff>=0.14.10",
+]
 docs = [
     "mkdocs>=1.5.0",
     "mkdocstrings[python]>=0.22.0",
@@ -46,6 +55,7 @@ exclude = ["tests*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = ["no_bbg: mark tests that do not require a Bloomberg connection"]
+addopts = ["--cov=polars_bloomberg", "--cov-report=term-missing"]
 
 [tool.ruff]
 line-length = 89
@@ -72,6 +82,10 @@ lint.select = [
   "G", # General best practices
 ]
 lint.ignore = ["D211", "D213", "D203", "T201"] # No blank lines before class (Removed)
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["D", "PLR2004"]
+"tests/conftest.py" = ["I001"]
 
 [tool.ruff.lint.pylint]
 max-args = 6
