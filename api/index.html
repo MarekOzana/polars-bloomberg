@@ -1971,7 +1971,24 @@
 <span class="normal">1102</span>
 <span class="normal">1103</span>
 <span class="normal">1104</span>
-<span class="normal">1105</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">BQuery</span><span class="p">:</span>
+<span class="normal">1105</span>
+<span class="normal">1106</span>
+<span class="normal">1107</span>
+<span class="normal">1108</span>
+<span class="normal">1109</span>
+<span class="normal">1110</span>
+<span class="normal">1111</span>
+<span class="normal">1112</span>
+<span class="normal">1113</span>
+<span class="normal">1114</span>
+<span class="normal">1115</span>
+<span class="normal">1116</span>
+<span class="normal">1117</span>
+<span class="normal">1118</span>
+<span class="normal">1119</span>
+<span class="normal">1120</span>
+<span class="normal">1121</span>
+<span class="normal">1122</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">BQuery</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Provides methods to query Bloomberg API and return data as Polars DataFrames.</span>
 
 <span class="sd">    Example:</span>
@@ -2297,10 +2314,10 @@
 <span class="sd">            BqlResult: An object containing:</span>
 <span class="sd">                - List of Polars DataFrames (one for each item in BQL get statement)</span>
 <span class="sd">                - Helper methods like combine() to merge DataFrames on common columns</span>
+<span class="sd">                Returns empty result if BQL syntax is invalid (error is logged).</span>
 
 <span class="sd">        Raises:</span>
 <span class="sd">            ConnectionError: If there is an issue with the Bloomberg session.</span>
-<span class="sd">            ValueError: If the BQL query syntax is invalid.</span>
 
 <span class="sd">        Example:</span>
 <span class="sd">            Simple query to fetch last price:</span>
@@ -2744,10 +2761,6 @@
                 <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">cleaned_val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cleaned</span><span class="p">):</span>
                     <span class="n">rows</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">cleaned_val</span>
 
-            <span class="k">if</span> <span class="n">numeric_candidate</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">cleaned_val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cleaned</span><span class="p">):</span>
-                    <span class="n">rows</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">cleaned_val</span>
-
     <span class="k">def</span><span class="w"> </span><span class="nf">_parse_bql_responses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">responses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse BQL responses into a list of SITable objects.&quot;&quot;&quot;</span>
         <span class="n">tables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SITable</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -2787,7 +2800,11 @@
         <span class="k">return</span> <span class="n">table</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_extract_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">responses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract the &#39;results&#39; section from each response, handling JSON strings.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract the &#39;results&#39; section from each response, handling JSON strings.</span>
+
+<span class="sd">        Logs an error if responseExceptions are present (e.g., BQL syntax errors).</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">extracted</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">response</span> <span class="ow">in</span> <span class="n">responses</span><span class="p">:</span>
             <span class="n">resp_dict</span> <span class="o">=</span> <span class="n">response</span>
@@ -2797,6 +2814,23 @@
                 <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to decode JSON: </span><span class="si">%s</span><span class="s2">. Error: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
                     <span class="k">continue</span>
+
+            <span class="c1"># Skip non-dict responses (e.g., connection metadata)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resp_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Check for BQL errors in responseExceptions</span>
+            <span class="n">exceptions</span> <span class="o">=</span> <span class="n">resp_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;responseExceptions&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">exceptions</span><span class="p">:</span>
+                <span class="n">error_messages</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">exc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">exc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;internalMessage&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;Unknown error&quot;</span>
+                    <span class="k">for</span> <span class="n">exc</span> <span class="ow">in</span> <span class="n">exceptions</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">exc</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+                <span class="p">]</span>
+                <span class="k">if</span> <span class="n">error_messages</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;BQL error: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">error_messages</span><span class="p">))</span>
+                    <span class="k">continue</span>
+
             <span class="n">results</span> <span class="o">=</span> <span class="n">resp_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;results&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">results</span><span class="p">:</span>
                 <span class="n">extracted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
@@ -2847,7 +2881,7 @@
             <span class="k">return</span> <span class="n">value</span>
         <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">tzinfo</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">T%H:%M:%S&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">astimezone</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">UTC</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">T%H:%M:%SZ&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">astimezone</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">T%H:%M:%SZ&quot;</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_save_debug_case</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_results</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">tables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SITable</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Save input and output to a JSON file for debugging and test generation.&quot;&quot;&quot;</span>
@@ -4211,7 +4245,8 @@ get(), let(), for(), filter(), etc.</p>
               <div class="doc-md-description">
                 <p>An object containing:
 - List of Polars DataFrames (one for each item in BQL get statement)
-- Helper methods like combine() to merge DataFrames on common columns</p>
+- Helper methods like combine() to merge DataFrames on common columns
+Returns empty result if BQL syntax is invalid (error is logged).</p>
               </div>
             </td>
           </tr>
@@ -4235,16 +4270,6 @@ get(), let(), for(), filter(), etc.</p>
             <td>
               <div class="doc-md-description">
                 <p>If there is an issue with the Bloomberg session.</p>
-              </div>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td>
-                  <code><span title="ValueError">ValueError</span></code>
-            </td>
-            <td>
-              <div class="doc-md-description">
-                <p>If the BQL query syntax is invalid.</p>
               </div>
             </td>
           </tr>
@@ -4410,10 +4435,10 @@ Iterate over individual DataFrames:
 <span class="sd">        BqlResult: An object containing:</span>
 <span class="sd">            - List of Polars DataFrames (one for each item in BQL get statement)</span>
 <span class="sd">            - Helper methods like combine() to merge DataFrames on common columns</span>
+<span class="sd">            Returns empty result if BQL syntax is invalid (error is logged).</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">        ConnectionError: If there is an issue with the Bloomberg session.</span>
-<span class="sd">        ValueError: If the BQL query syntax is invalid.</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        Simple query to fetch last price:</span>
