@@ -18,7 +18,7 @@ These examples show how to use `polars-bloomberg` for macro analysis, inspired b
     [:material-open-in-new: Open](cb-policy-rates.ipynb)
 
 -   [![Regional PE Valuation](pe-valuations-hero.png){ loading=lazy }](pe-valuations.ipynb)
-    **Regional PE Valuation**
+    **Regional P/E Valuation**
 
     Compare regional forward P/E levels versus 10-year history.
     [:material-open-in-new: Open](pe-valuations.ipynb)
@@ -34,5 +34,11 @@ These examples show how to use `polars-bloomberg` for macro analysis, inspired b
 
     Monitor how earnings revisions are distributed across sectors.
     [:material-open-in-new: Open](spx-earning-revisions-breadth.ipynb)
+
+-   [![Historical FED Policy Rates vs Expectations](fed-history-hero.png){ loading=lazy }](fed-history.ipynb)
+    **Historical FED Policy Rates vs Expectations**
+
+    Track how Fed funds rate forecasts shifted year by year versus realized policy.
+    [:material-open-in-new: Open](fed-history.ipynb)
 
 </div>
