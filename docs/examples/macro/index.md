@@ -11,6 +11,12 @@ These examples show how to use `polars-bloomberg` for macro analysis, inspired b
 
 <div class="grid cards" markdown>
 
+-   [![Central Bank Policy Rates](cb-policy-rates-hero.png){ loading=lazy }](cb-policy-rates.ipynb)
+    **Central Bank Policy Rates**
+
+    Compare realized policy rates with Bloomberg median forecasts across major central banks.
+    [:material-open-in-new: Open](cb-policy-rates.ipynb)
+
 -   [![Regional PE Valuation](pe-valuations-hero.png){ loading=lazy }](pe-valuations.ipynb)
     **Regional PE Valuation**
 
