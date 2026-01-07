@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://marekozana.github.io/polars-bloomberg/examples/macro/spx-earning-revisions-breadth/">
+        <link rel="canonical" href="https://marekozana.github.io/polars-bloomberg/examples/macro/cb-policy-rates/">
       
       
       
@@ -23,7 +23,7 @@
     
     
       
-        <title>S&P 500 Earning Revisions Breadth - Polars-Bloomberg</title>
+        <title>Central Bank Policy Rates - History vs. Forecast - Polars-Bloomberg</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#sp-500-earning-revisions-breadth" class="md-skip">
+        <a href="#central-bank-policy-rates-history-vs-forecast" class="md-skip">
           Skip to content
         </a>
       
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              S&amp;P 500 Earning Revisions Breadth
+              Central Bank Policy Rates - History vs. Forecast
             
           </span>
         </div>
@@ -1109,19 +1109,19 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </style>
 <!-- End of mermaid configuration --><div class="jupyter-wrapper">
 <div class="jp-Notebook" data-jp-theme-light="true" data-jp-theme-name="JupyterLab Light">
-<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=936c37ae">
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=f21e4d38">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="sp-500-earning-revisions-breadth">S&amp;P 500 Earning Revisions Breadth<a class="anchor-link" href="#sp-500-earning-revisions-breadth">¶</a></h1><p>© 2025 Jim Domeij &amp; Marek Ozana</p>
-<p>This calculates, for each GICS sector within the S&amp;P 500, the number of companies with upward or downward EPS revisions over the past month. It can be used to track the breadth of change in analysts’ EPS estimates by sector.</p>
+<h1 id="central-bank-policy-rates-history-vs-forecast">Central Bank Policy Rates - History vs. Forecast<a class="anchor-link" href="#central-bank-policy-rates-history-vs-forecast">¶</a></h1><p>© 2026 Jim Domeij</p>
+<p>The chart shows quarterly policy rates from 2019 onward for the US (Fed), Eurozone (ECB), UK (BoE), and Japan (BoJ), extended with Bloomberg’s median economist forecasts through 2027. Solid line segments represent realized (actual) policy settings, while dashed segments show the current consensus expected path as of the data pull date. Comparing levels and slopes highlights where markets expect tightening, easing, or prolonged stability—and how the projected policy divergence/convergence evolves across regions.</p>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide_code">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide_code" id="cell-id=f5a3c964">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell celltag_hide_code" id="cell-id=308d67f0">
 <div class="jp-Cell-outputWrapper">
 <div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
@@ -1130,23 +1130,23 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[1]:</div>
 <div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html" tabindex="0">
 <style>
-  #altair-viz-65b4b37809b145de989521d59aada363.vega-embed {
+  #altair-viz-b14894c4abf944f1b3b358b78978a97c.vega-embed {
     width: 100%;
     display: flex;
   }
 
-  #altair-viz-65b4b37809b145de989521d59aada363.vega-embed details,
-  #altair-viz-65b4b37809b145de989521d59aada363.vega-embed details summary {
+  #altair-viz-b14894c4abf944f1b3b358b78978a97c.vega-embed details,
+  #altair-viz-b14894c4abf944f1b3b358b78978a97c.vega-embed details summary {
     position: relative;
   }
 </style>
-<div id="altair-viz-65b4b37809b145de989521d59aada363"></div>
+<div id="altair-viz-b14894c4abf944f1b3b358b78978a97c"></div>
 <script type="text/javascript">
   var VEGA_DEBUG = (typeof VEGA_DEBUG == "undefined") ? {} : VEGA_DEBUG;
   (function(spec, embedOpt){
     let outputDiv = document.currentScript.previousElementSibling;
-    if (outputDiv.id !== "altair-viz-65b4b37809b145de989521d59aada363") {
-      outputDiv = document.getElementById("altair-viz-65b4b37809b145de989521d59aada363");
+    if (outputDiv.id !== "altair-viz-b14894c4abf944f1b3b358b78978a97c") {
+      outputDiv = document.getElementById("altair-viz-b14894c4abf944f1b3b358b78978a97c");
     }
 
     const paths = {
@@ -1194,7 +1194,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
         .catch(showError)
         .then(() => displayChart(vegaEmbed));
     }
-  })({"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}}, "layer": [{"mark": {"type": "bar"}, "encoding": {"color": {"field": "key", "legend": {"orient": "bottom"}, "sort": ["up", "down"], "title": null, "type": "nominal"}, "x": {"field": "value", "title": "# of revisions last month", "type": "quantitative"}, "y": {"field": "ID", "title": null, "type": "nominal"}}, "title": "S&P 500 Earnings Revisions Breadth", "transform": [{"fold": ["up", "down"]}]}, {"mark": {"type": "tick", "color": "black", "size": 18, "thickness": 2}, "encoding": {"x": {"field": "net", "type": "quantitative"}, "y": {"field": "ID", "title": null, "type": "nominal"}}, "title": "S&P 500 Earnings Revisions Breadth"}], "data": {"name": "data-8ae7e34d99dcb3f681384a080d675097"}, "datasets": {"data-8ae7e34d99dcb3f681384a080d675097": [{"ID": "Communication Services", "up": 18.0, "down": -3.0, "net": 15.0}, {"ID": "Consumer Discretionary", "up": 41.0, "down": -8.0, "net": 33.0}, {"ID": "Consumer Staples", "up": 29.0, "down": -7.0, "net": 22.0}, {"ID": "Energy", "up": 12.0, "down": -10.0, "net": 2.0}, {"ID": "Financials", "up": 65.0, "down": -9.0, "net": 56.0}, {"ID": "Health Care", "up": 51.0, "down": -9.0, "net": 42.0}, {"ID": "Industrials", "up": 71.0, "down": -8.0, "net": 63.0}, {"ID": "Information Technology", "up": 56.0, "down": -13.0, "net": 43.0}, {"ID": "Materials", "up": 22.0, "down": -4.0, "net": 18.0}, {"ID": "Real Estate", "up": 18.0, "down": -13.0, "net": 5.0}, {"ID": "Utilities", "up": 20.0, "down": -11.0, "net": 9.0}]}, "height": 400, "width": 600, "$schema": "https://vega.github.io/schema/vega-lite/v6.1.0.json"}, {"actions": false, "mode": "vega-lite"});
+  })({"config": {"view": {"continuousWidth": 300, "continuousHeight": 300}}, "data": {"name": "data-acafbb71a8f6a334bb213feedd7bb6e6"}, "mark": {"type": "line"}, "datasets": {"data-acafbb71a8f6a334bb213feedd7bb6e6": [{"ID": "Fed (USA)", "#policy_rate": 2.5, "PERIOD_REFERENCE_DATE": "2019-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.025}, {"ID": "Fed (USA)", "#policy_rate": 2.5, "PERIOD_REFERENCE_DATE": "2019-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.025}, {"ID": "Fed (USA)", "#policy_rate": 2.0, "PERIOD_REFERENCE_DATE": "2019-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.02}, {"ID": "Fed (USA)", "#policy_rate": 1.75, "PERIOD_REFERENCE_DATE": "2019-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0175}, {"ID": "Fed (USA)", "#policy_rate": 0.25, "PERIOD_REFERENCE_DATE": "2020-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0025}, {"ID": "Fed (USA)", "#policy_rate": 0.25, "PERIOD_REFERENCE_DATE": "2020-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0025}, {"ID": "Fed (USA)", "#policy_rate": 0.25, "PERIOD_REFERENCE_DATE": "2020-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0025}, {"ID": "Fed (USA)", "#policy_rate": 0.25, "PERIOD_REFERENCE_DATE": "2020-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0025}, {"ID": "Fed (USA)", "#policy_rate": 0.25, "PERIOD_REFERENCE_DATE": "2021-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0025}, {"ID": "Fed (USA)", "#policy_rate": 0.25, "PERIOD_REFERENCE_DATE": "2021-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0025}, {"ID": "Fed (USA)", "#policy_rate": 0.25, "PERIOD_REFERENCE_DATE": "2021-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0025}, {"ID": "Fed (USA)", "#policy_rate": 0.25, "PERIOD_REFERENCE_DATE": "2021-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0025}, {"ID": "Fed (USA)", "#policy_rate": 0.5, "PERIOD_REFERENCE_DATE": "2022-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.005}, {"ID": "Fed (USA)", "#policy_rate": 1.75, "PERIOD_REFERENCE_DATE": "2022-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0175}, {"ID": "Fed (USA)", "#policy_rate": 3.25, "PERIOD_REFERENCE_DATE": "2022-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0325}, {"ID": "Fed (USA)", "#policy_rate": 4.5, "PERIOD_REFERENCE_DATE": "2022-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.045}, {"ID": "Fed (USA)", "#policy_rate": 5.0, "PERIOD_REFERENCE_DATE": "2023-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.05}, {"ID": "Fed (USA)", "#policy_rate": 5.25, "PERIOD_REFERENCE_DATE": "2023-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0525}, {"ID": "Fed (USA)", "#policy_rate": 5.5, "PERIOD_REFERENCE_DATE": "2023-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.055}, {"ID": "Fed (USA)", "#policy_rate": 5.5, "PERIOD_REFERENCE_DATE": "2023-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.055}, {"ID": "Fed (USA)", "#policy_rate": 5.5, "PERIOD_REFERENCE_DATE": "2024-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.055}, {"ID": "Fed (USA)", "#policy_rate": 5.5, "PERIOD_REFERENCE_DATE": "2024-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.055}, {"ID": "Fed (USA)", "#policy_rate": 5.0, "PERIOD_REFERENCE_DATE": "2024-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.05}, {"ID": "Fed (USA)", "#policy_rate": 4.5, "PERIOD_REFERENCE_DATE": "2024-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.045}, {"ID": "Fed (USA)", "#policy_rate": 4.5, "PERIOD_REFERENCE_DATE": "2025-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.045}, {"ID": "Fed (USA)", "#policy_rate": 4.5, "PERIOD_REFERENCE_DATE": "2025-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.045}, {"ID": "Fed (USA)", "#policy_rate": 4.25, "PERIOD_REFERENCE_DATE": "2025-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0425}, {"ID": "Fed (USA)", "#policy_rate": 3.75, "PERIOD_REFERENCE_DATE": "2025-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0375}, {"ID": "Fed (USA)", "#policy_rate": 3.58, "PERIOD_REFERENCE_DATE": "2026-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0358}, {"ID": "Fed (USA)", "#policy_rate": 3.39, "PERIOD_REFERENCE_DATE": "2026-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0339}, {"ID": "Fed (USA)", "#policy_rate": 3.26, "PERIOD_REFERENCE_DATE": "2026-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0326}, {"ID": "Fed (USA)", "#policy_rate": 3.21, "PERIOD_REFERENCE_DATE": "2026-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.032100000000000004}, {"ID": "Fed (USA)", "#policy_rate": 3.19, "PERIOD_REFERENCE_DATE": "2027-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0319}, {"ID": "Fed (USA)", "#policy_rate": 3.2, "PERIOD_REFERENCE_DATE": "2027-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.032}, {"ID": "Fed (USA)", "#policy_rate": 3.21, "PERIOD_REFERENCE_DATE": "2027-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.032100000000000004}, {"ID": "Fed (USA)", "#policy_rate": 3.21, "PERIOD_REFERENCE_DATE": "2027-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.032100000000000004}, {"ID": "ECB (Eurozone)", "#policy_rate": 0.0, "PERIOD_REFERENCE_DATE": "2019-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0}, {"ID": "ECB (Eurozone)", "#policy_rate": 0.0, "PERIOD_REFERENCE_DATE": "2019-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0}, {"ID": "ECB (Eurozone)", "#policy_rate": 0.0, "PERIOD_REFERENCE_DATE": "2019-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0}, {"ID": "ECB (Eurozone)", "#policy_rate": 0.0, "PERIOD_REFERENCE_DATE": "2019-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0}, {"ID": "ECB (Eurozone)", "#policy_rate": 0.0, "PERIOD_REFERENCE_DATE": "2020-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0}, {"ID": "ECB (Eurozone)", "#policy_rate": 0.0, "PERIOD_REFERENCE_DATE": "2020-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0}, {"ID": "ECB (Eurozone)", "#policy_rate": 0.0, "PERIOD_REFERENCE_DATE": "2020-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0}, {"ID": "ECB (Eurozone)", "#policy_rate": 0.0, "PERIOD_REFERENCE_DATE": "2020-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0}, {"ID": "ECB (Eurozone)", "#policy_rate": 0.0, "PERIOD_REFERENCE_DATE": "2021-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0}, {"ID": "ECB (Eurozone)", "#policy_rate": 0.0, "PERIOD_REFERENCE_DATE": "2021-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0}, {"ID": "ECB (Eurozone)", "#policy_rate": 0.0, "PERIOD_REFERENCE_DATE": "2021-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0}, {"ID": "ECB (Eurozone)", "#policy_rate": 0.0, "PERIOD_REFERENCE_DATE": "2021-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0}, {"ID": "ECB (Eurozone)", "#policy_rate": 0.0, "PERIOD_REFERENCE_DATE": "2022-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0}, {"ID": "ECB (Eurozone)", "#policy_rate": 0.0, "PERIOD_REFERENCE_DATE": "2022-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0}, {"ID": "ECB (Eurozone)", "#policy_rate": 1.25, "PERIOD_REFERENCE_DATE": "2022-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0125}, {"ID": "ECB (Eurozone)", "#policy_rate": 2.5, "PERIOD_REFERENCE_DATE": "2022-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.025}, {"ID": "ECB (Eurozone)", "#policy_rate": 3.5, "PERIOD_REFERENCE_DATE": "2023-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.035}, {"ID": "ECB (Eurozone)", "#policy_rate": 4.0, "PERIOD_REFERENCE_DATE": "2023-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.04}, {"ID": "ECB (Eurozone)", "#policy_rate": 4.5, "PERIOD_REFERENCE_DATE": "2023-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.045}, {"ID": "ECB (Eurozone)", "#policy_rate": 4.5, "PERIOD_REFERENCE_DATE": "2023-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.045}, {"ID": "ECB (Eurozone)", "#policy_rate": 4.5, "PERIOD_REFERENCE_DATE": "2024-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.045}, {"ID": "ECB (Eurozone)", "#policy_rate": 4.25, "PERIOD_REFERENCE_DATE": "2024-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0425}, {"ID": "ECB (Eurozone)", "#policy_rate": 3.65, "PERIOD_REFERENCE_DATE": "2024-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0365}, {"ID": "ECB (Eurozone)", "#policy_rate": 3.15, "PERIOD_REFERENCE_DATE": "2024-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0315}, {"ID": "ECB (Eurozone)", "#policy_rate": 2.65, "PERIOD_REFERENCE_DATE": "2025-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0265}, {"ID": "ECB (Eurozone)", "#policy_rate": 2.15, "PERIOD_REFERENCE_DATE": "2025-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0215}, {"ID": "ECB (Eurozone)", "#policy_rate": 2.15, "PERIOD_REFERENCE_DATE": "2025-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0215}, {"ID": "ECB (Eurozone)", "#policy_rate": 2.15, "PERIOD_REFERENCE_DATE": "2025-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0215}, {"ID": "ECB (Eurozone)", "#policy_rate": 1.98, "PERIOD_REFERENCE_DATE": "2026-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0198}, {"ID": "ECB (Eurozone)", "#policy_rate": 1.97, "PERIOD_REFERENCE_DATE": "2026-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0197}, {"ID": "ECB (Eurozone)", "#policy_rate": 1.96, "PERIOD_REFERENCE_DATE": "2026-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0196}, {"ID": "ECB (Eurozone)", "#policy_rate": 1.98, "PERIOD_REFERENCE_DATE": "2026-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0198}, {"ID": "ECB (Eurozone)", "#policy_rate": 1.97, "PERIOD_REFERENCE_DATE": "2027-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0197}, {"ID": "ECB (Eurozone)", "#policy_rate": 1.99, "PERIOD_REFERENCE_DATE": "2027-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0199}, {"ID": "ECB (Eurozone)", "#policy_rate": 2.01, "PERIOD_REFERENCE_DATE": "2027-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0201}, {"ID": "ECB (Eurozone)", "#policy_rate": 2.05, "PERIOD_REFERENCE_DATE": "2027-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.020499999999999997}, {"ID": "BoE (UK)", "#policy_rate": 0.75, "PERIOD_REFERENCE_DATE": "2019-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0075}, {"ID": "BoE (UK)", "#policy_rate": 0.75, "PERIOD_REFERENCE_DATE": "2019-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0075}, {"ID": "BoE (UK)", "#policy_rate": 0.75, "PERIOD_REFERENCE_DATE": "2019-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0075}, {"ID": "BoE (UK)", "#policy_rate": 0.75, "PERIOD_REFERENCE_DATE": "2019-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0075}, {"ID": "BoE (UK)", "#policy_rate": 0.1, "PERIOD_REFERENCE_DATE": "2020-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.001}, {"ID": "BoE (UK)", "#policy_rate": 0.1, "PERIOD_REFERENCE_DATE": "2020-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.001}, {"ID": "BoE (UK)", "#policy_rate": 0.1, "PERIOD_REFERENCE_DATE": "2020-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.001}, {"ID": "BoE (UK)", "#policy_rate": 0.1, "PERIOD_REFERENCE_DATE": "2020-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.001}, {"ID": "BoE (UK)", "#policy_rate": 0.1, "PERIOD_REFERENCE_DATE": "2021-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.001}, {"ID": "BoE (UK)", "#policy_rate": 0.1, "PERIOD_REFERENCE_DATE": "2021-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.001}, {"ID": "BoE (UK)", "#policy_rate": 0.1, "PERIOD_REFERENCE_DATE": "2021-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.001}, {"ID": "BoE (UK)", "#policy_rate": 0.25, "PERIOD_REFERENCE_DATE": "2021-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0025}, {"ID": "BoE (UK)", "#policy_rate": 0.75, "PERIOD_REFERENCE_DATE": "2022-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0075}, {"ID": "BoE (UK)", "#policy_rate": 1.25, "PERIOD_REFERENCE_DATE": "2022-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0125}, {"ID": "BoE (UK)", "#policy_rate": 2.25, "PERIOD_REFERENCE_DATE": "2022-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0225}, {"ID": "BoE (UK)", "#policy_rate": 3.5, "PERIOD_REFERENCE_DATE": "2022-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.035}, {"ID": "BoE (UK)", "#policy_rate": 4.25, "PERIOD_REFERENCE_DATE": "2023-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0425}, {"ID": "BoE (UK)", "#policy_rate": 5.0, "PERIOD_REFERENCE_DATE": "2023-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.05}, {"ID": "BoE (UK)", "#policy_rate": 5.25, "PERIOD_REFERENCE_DATE": "2023-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0525}, {"ID": "BoE (UK)", "#policy_rate": 5.25, "PERIOD_REFERENCE_DATE": "2023-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0525}, {"ID": "BoE (UK)", "#policy_rate": 5.25, "PERIOD_REFERENCE_DATE": "2024-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0525}, {"ID": "BoE (UK)", "#policy_rate": 5.25, "PERIOD_REFERENCE_DATE": "2024-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0525}, {"ID": "BoE (UK)", "#policy_rate": 5.0, "PERIOD_REFERENCE_DATE": "2024-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.05}, {"ID": "BoE (UK)", "#policy_rate": 4.75, "PERIOD_REFERENCE_DATE": "2024-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0475}, {"ID": "BoE (UK)", "#policy_rate": 4.5, "PERIOD_REFERENCE_DATE": "2025-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.045}, {"ID": "BoE (UK)", "#policy_rate": 4.25, "PERIOD_REFERENCE_DATE": "2025-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0425}, {"ID": "BoE (UK)", "#policy_rate": 4.0, "PERIOD_REFERENCE_DATE": "2025-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.04}, {"ID": "BoE (UK)", "#policy_rate": 3.75, "PERIOD_REFERENCE_DATE": "2025-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0375}, {"ID": "BoE (UK)", "#policy_rate": 3.6, "PERIOD_REFERENCE_DATE": "2026-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.036000000000000004}, {"ID": "BoE (UK)", "#policy_rate": 3.39, "PERIOD_REFERENCE_DATE": "2026-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0339}, {"ID": "BoE (UK)", "#policy_rate": 3.3, "PERIOD_REFERENCE_DATE": "2026-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.033}, {"ID": "BoE (UK)", "#policy_rate": 3.2800000000000002, "PERIOD_REFERENCE_DATE": "2026-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0328}, {"ID": "BoE (UK)", "#policy_rate": 3.25, "PERIOD_REFERENCE_DATE": "2027-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0325}, {"ID": "BoE (UK)", "#policy_rate": 3.25, "PERIOD_REFERENCE_DATE": "2027-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0325}, {"ID": "BoE (UK)", "#policy_rate": 3.25, "PERIOD_REFERENCE_DATE": "2027-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0325}, {"ID": "BoE (UK)", "#policy_rate": 3.25, "PERIOD_REFERENCE_DATE": "2027-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0325}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2019-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2019-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2019-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2019-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2020-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2020-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2020-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2020-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2021-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2021-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2021-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2021-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2022-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2022-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2022-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2022-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2023-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2023-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2023-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": -0.1, "PERIOD_REFERENCE_DATE": "2023-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": -0.001}, {"ID": "BoJ (Japan)", "#policy_rate": 0.1, "PERIOD_REFERENCE_DATE": "2024-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.001}, {"ID": "BoJ (Japan)", "#policy_rate": 0.1, "PERIOD_REFERENCE_DATE": "2024-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.001}, {"ID": "BoJ (Japan)", "#policy_rate": 0.25, "PERIOD_REFERENCE_DATE": "2024-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0025}, {"ID": "BoJ (Japan)", "#policy_rate": 0.25, "PERIOD_REFERENCE_DATE": "2024-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0025}, {"ID": "BoJ (Japan)", "#policy_rate": 0.5, "PERIOD_REFERENCE_DATE": "2025-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.005}, {"ID": "BoJ (Japan)", "#policy_rate": 0.5, "PERIOD_REFERENCE_DATE": "2025-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.005}, {"ID": "BoJ (Japan)", "#policy_rate": 0.5, "PERIOD_REFERENCE_DATE": "2025-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.005}, {"ID": "BoJ (Japan)", "#policy_rate": 0.75, "PERIOD_REFERENCE_DATE": "2025-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "A", "pr": 0.0075}, {"ID": "BoJ (Japan)", "#policy_rate": 0.75, "PERIOD_REFERENCE_DATE": "2026-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0075}, {"ID": "BoJ (Japan)", "#policy_rate": 0.81, "PERIOD_REFERENCE_DATE": "2026-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.008100000000000001}, {"ID": "BoJ (Japan)", "#policy_rate": 0.91, "PERIOD_REFERENCE_DATE": "2026-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0091}, {"ID": "BoJ (Japan)", "#policy_rate": 0.97, "PERIOD_REFERENCE_DATE": "2026-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0097}, {"ID": "BoJ (Japan)", "#policy_rate": 1.04, "PERIOD_REFERENCE_DATE": "2027-03-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.010400000000000001}, {"ID": "BoJ (Japan)", "#policy_rate": 1.1, "PERIOD_REFERENCE_DATE": "2027-06-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.011000000000000001}, {"ID": "BoJ (Japan)", "#policy_rate": 1.16, "PERIOD_REFERENCE_DATE": "2027-09-30T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0116}, {"ID": "BoJ (Japan)", "#policy_rate": 1.23, "PERIOD_REFERENCE_DATE": "2027-12-31T00:00:00", "AS_OF_DATE": "2026-01-07T00:00:00", "ACT_EST_DATA": "E", "pr": 0.0123}]}, "encoding": {"color": {"field": "ID", "scale": {"domain": ["Fed (USA)", "ECB (Eurozone)", "BoJ (Japan)", "BoE (UK)"]}, "title": "Central Bank", "type": "nominal"}, "size": {"condition": {"test": "(datum.ID === 'Fed (USA)')", "value": 4}, "value": 2}, "strokeDash": {"field": "ACT_EST_DATA", "legend": null, "type": "nominal"}, "tooltip": [{"field": "ID", "type": "nominal"}, {"field": "PERIOD_REFERENCE_DATE", "type": "temporal"}, {"field": "#policy_rate", "type": "quantitative"}, {"field": "ACT_EST_DATA", "type": "nominal"}], "x": {"field": "PERIOD_REFERENCE_DATE", "title": null, "type": "temporal"}, "y": {"axis": {"format": "%"}, "field": "pr", "title": "Policy Rate (%)", "type": "quantitative"}}, "height": 400, "width": 600, "$schema": "https://vega.github.io/schema/vega-lite/v6.1.0.json"}, {"actions": false, "mode": "vega-lite"});
 </script>
 </div>
 </div>
@@ -1202,7 +1202,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=f4cfa520">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=ff72435b">
 <div class="jp-Cell-inputWrapper" tabindex="0">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -1220,45 +1220,61 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 </div>
 </clipboard-copy>
 </div>
-<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Get counts of comps with positive and negative earnings revisions over the past month</span>
+<div class="highlight-ipynb hl-python"><pre><span></span><span class="c1"># Get historical and forecast policy rates for FED and other central banks</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
 
 <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
-<span class="s2">    let(</span>
-<span class="s2">        #rev = net_chg(is_eps(fpt=BT, fpo=1, ae=e, dates=range(-1M, 0d)));</span>
-<span class="s2">        #sector = classification_name(gics, 1);</span>
-
-<span class="s2">        #up   = sum(group(if(#rev &gt; 0, 1, 0), #sector));</span>
-<span class="s2">        #down = sum(group(if(#rev &lt; 0, 1, 0), #sector));</span>
-<span class="s2">    )</span>
-<span class="s2">    get(#up, #down)</span>
-<span class="s2">    for(members("SPX Index"))</span>
-<span class="s2">    preferences(dropCols=["ORIG_IDS", "#sector"])</span>
-<span class="s2">    """</span>
+<span class="s2">let(#policy_rate = policy_rate(pr=range(2019Q1, 2027Q4), pt=Q, act_est_data=AE);)</span>
+<span class="s2">get(#policy_rate)</span>
+<span class="s2">for(['US', 'EZ', 'GB', 'JP'])</span>
+<span class="s2">preferences(</span>
+<span class="s2">    dropCols=[</span>
+<span class="s2">        'TICKER',</span>
+<span class="s2">        'REVISION_DATE',</span>
+<span class="s2">        'RATE_TYPE',</span>
+<span class="s2">        'REPORTED_DATE',</span>
+<span class="s2">        'CONCEPT',</span>
+<span class="s2">        'ECO_SOURCE',</span>
+<span class="s2">        'ACT_EST_SOURCE',</span>
+<span class="s2">        'PERIOD',</span>
+<span class="s2">        'PERIOD_END_DATE',</span>
+<span class="s2">        'SEASONALITY'</span>
+<span class="s2">    ]</span>
+<span class="s2">)</span>
+<span class="s2">"""</span>
 
 <span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
-<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 </pre></div>
-<div class="clipboard-copy-txt" id="cell-1"># Get counts of comps with positive and negative earnings revisions over the past month
+<div class="clipboard-copy-txt" id="cell-1"># Get historical and forecast policy rates for FED and other central banks
 from polars_bloomberg import BQuery
 
 query = """
-    let(
-        #rev = net_chg(is_eps(fpt=BT, fpo=1, ae=e, dates=range(-1M, 0d)));
-        #sector = classification_name(gics, 1);
-
-        #up   = sum(group(if(#rev &gt; 0, 1, 0), #sector));
-        #down = sum(group(if(#rev &lt; 0, 1, 0), #sector));
-    )
-    get(#up, #down)
-    for(members("SPX Index"))
-    preferences(dropCols=["ORIG_IDS", "#sector"])
-    """
+let(#policy_rate = policy_rate(pr=range(2019Q1, 2027Q4), pt=Q, act_est_data=AE);)
+get(#policy_rate)
+for(['US', 'EZ', 'GB', 'JP'])
+preferences(
+    dropCols=[
+        'TICKER',
+        'REVISION_DATE',
+        'RATE_TYPE',
+        'REPORTED_DATE',
+        'CONCEPT',
+        'ECO_SOURCE',
+        'ACT_EST_SOURCE',
+        'PERIOD',
+        'PERIOD_END_DATE',
+        'SEASONALITY'
+    ]
+)
+"""
 
 with BQuery() as bq:
-    df = bq.bql(query).combine()
-df.head()</div>
+    res = bq.bql(query)
+df = res.combine()
+df.head(3)</div>
 </div>
 </div>
 </div>
@@ -1277,14 +1293,14 @@ df.head()</div>
   white-space: pre-wrap;
 }
 </style>
-<small>shape: (5, 3)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>#up</th><th>#down</th></tr><tr><td>str</td><td>f64</td><td>f64</td></tr></thead><tbody><tr><td>"Communication Services"</td><td>18.0</td><td>3.0</td></tr><tr><td>"Consumer Discretionary"</td><td>41.0</td><td>8.0</td></tr><tr><td>"Consumer Staples"</td><td>29.0</td><td>7.0</td></tr><tr><td>"Energy"</td><td>12.0</td><td>10.0</td></tr><tr><td>"Financials"</td><td>65.0</td><td>9.0</td></tr></tbody></table></div>
+<small>shape: (3, 5)</small><table border="1" class="dataframe"><thead><tr><th>ID</th><th>#policy_rate</th><th>PERIOD_REFERENCE_DATE</th><th>AS_OF_DATE</th><th>ACT_EST_DATA</th></tr><tr><td>str</td><td>f64</td><td>date</td><td>date</td><td>str</td></tr></thead><tbody><tr><td>"US"</td><td>2.5</td><td>2019-03-31</td><td>2026-01-07</td><td>"A"</td></tr><tr><td>"US"</td><td>2.5</td><td>2019-06-30</td><td>2026-01-07</td><td>"A"</td></tr><tr><td>"US"</td><td>2.0</td><td>2019-09-30</td><td>2026-01-07</td><td>"A"</td></tr></tbody></table></div>
 </div>
 </div>
 </div>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_hide_code">
-<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_hide_code" id="cell-id=25f219b1">
+<div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs celltag_hide_code" id="cell-id=c5adb468">
 </div>
 </div>
 </div> <!-- jp-Notebook -->
