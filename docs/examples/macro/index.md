@@ -11,7 +11,7 @@ These examples show how to use `polars-bloomberg` for macro analysis, inspired b
 
 <div class="grid cards" markdown>
 
--   [![Central Bank Rate Changes](hikes-cuts-count-hero.json){ loading=lazy }](hikes-cuts-count.ipynb)
+-   [![Central Bank Rate Changes](hikes-cuts-count-hero.png){ loading=lazy }](hikes-cuts-count.ipynb)
     **Central Bank Rate Changes (G20)**
 
     Monitor the breadth of global monetary policy by tracking monthly hikes and cuts across G20 central banks.
