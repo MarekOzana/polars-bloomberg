@@ -11,6 +11,12 @@ These examples show how to use `polars-bloomberg` for macro analysis, inspired b
 
 <div class="grid cards" markdown>
 
+-   [![US Economic Data Surprises](us-eco-data-surprises-hero.png){ loading=lazy }](us-eco-data-surprises.ipynb)
+    **US Economic Data Surprises**
+
+    Monitor economic surprise indices to track whether actual data is beating or missing expectations.
+    [:material-open-in-new: Open](us-eco-data-surprises.ipynb)
+
 -   [![Central Bank Rate Changes](hikes-cuts-count-hero.png){ loading=lazy }](hikes-cuts-count.ipynb)
     **Central Bank Rate Changes (G20)**
 
