@@ -5,7 +5,7 @@ description: Equity notebooks for polars-bloomberg showing Bloomberg BQL-driven 
 
 # Equity Examples
 
-© 2025 Marek Ozana
+© 2026 Jim Domeij & Marek Ozana
 
 These examples show how to use `polars-bloomberg` for equity analysis
 
@@ -23,5 +23,12 @@ These examples show how to use `polars-bloomberg` for equity analysis
     See how analysts revise S&P 50 earning estimates with time.
 
     [:material-open-in-new: Open](spx-eps-estimates.ipynb)
+
+-   [![Mag7 Market Cap Comparison](mag7-market-cap-comparison-hero.png){ loading=lazy }](mag7-market-cap-comparison.ipynb)
+    **Mag7 Market Cap Comparison**
+    
+    Compare market capitalizations across the Magnificent Seven tech companies.
+
+    [:material-open-in-new: Open](mag7-market-cap-comparison.ipynb)
 
 </div>
