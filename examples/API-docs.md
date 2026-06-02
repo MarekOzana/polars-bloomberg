@@ -183,20 +183,31 @@ Output:
 
 ### Methods
 
-- `combine()`:
+- `combine(on=None, how="full", allow_common_columns=True)`:
 
-  **Description**: Combines all DataFrames in the `BqlResult` into a single DataFrame by joining on common columns.
+  **Description**: Combines all DataFrames in the `BqlResult` into a single DataFrame.
+  With no arguments, it preserves the legacy behavior of joining on common columns.
+  Use `on=...` to join only on explicit keys such as `"ID"` or `["ID", "DATE"]`.
+  When explicit keys are used, overlapping non-key columns are preserved with
+  suffixes unless `allow_common_columns=False`.
 
   **Syntax**:
 
   ```python
-  BqlResult.combine() -> pl.DataFrame
+  BqlResult.combine(
+      on: str | Sequence[str] | None = None,
+      *,
+      how: str = "full",
+      allow_common_columns: bool = True,
+  ) -> pl.DataFrame
   ```
 
   **Example Usage**:
 
   ```python
   df_combined = result.combine()
+  df_by_id = result.combine(on="ID")
+  df_by_id_date = result.combine(on=["ID", "DATE"])
   ```
 
 - `__getitem__(index)`:

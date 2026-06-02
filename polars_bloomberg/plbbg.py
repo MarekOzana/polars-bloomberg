@@ -120,18 +120,38 @@ class BqlResult:
     dataframes: list[pl.DataFrame]
     names: list[str]
 
-    def combine(self) -> pl.DataFrame:
-        """Combine all dataframes into one by joining on common columns.
+    def combine(
+        self,
+        on: str | Sequence[str] | None = None,
+        *,
+        how: str = "full",
+        allow_common_columns: bool = True,
+    ) -> pl.DataFrame:
+        """Combine all dataframes into one.
 
-        This method merges all the DataFrames in the `dataframes` attribute into a single
-        DataFrame by performing a full join on the common columns. If no common columns
-        are found, it raises a ValueError.
+        With no arguments, this method preserves the legacy behavior exactly: it
+        merges all DataFrames by performing a full join on all common columns. If no
+        common columns are found, it raises a ValueError.
+
+        When ``on`` is provided, only those columns are used as join keys. Other
+        overlapping columns are preserved with a suffix unless ``allow_common_columns``
+        is false.
+
+        Args:
+            on: Explicit column or columns to join on. If omitted, legacy common-column
+                joining is used.
+            how: Polars join strategy to use when ``on`` is provided.
+            allow_common_columns: Whether overlapping non-key columns are allowed when
+                ``on`` is provided. If true, right-hand overlapping columns are suffixed
+                with the corresponding BQL item name.
 
         Returns:
-            pl.DataFrame: Combined dataframe joined on common columns.
+            pl.DataFrame: Combined dataframe.
 
         Raises:
-            ValueError: If no common columns exist or no dataframes are present.
+            ValueError: If no dataframes are present, if no common columns exist in
+                legacy mode, if explicit join keys are missing, or if overlapping
+                non-key columns are disallowed.
 
         Example:
             Combine results of a BQL query:
@@ -178,6 +198,19 @@ class BqlResult:
         if not self.dataframes:
             raise ValueError("No DataFrames to combine.")
 
+        if on is not None:
+            return self._combine_on(
+                on, how=how, allow_common_columns=allow_common_columns
+            )
+
+        if how != "full":
+            raise ValueError("The 'how' parameter requires explicit join keys via 'on'.")
+        if not allow_common_columns:
+            raise ValueError(
+                "The 'allow_common_columns' parameter requires explicit join keys "
+                "via 'on'."
+            )
+
         result = self.dataframes[0]  # Initialize with the first DataFrame
         for df in self.dataframes[1:]:
             common_cols = set(result.columns) & set(df.columns)
@@ -185,6 +218,89 @@ class BqlResult:
                 raise ValueError("No common columns found to join on.")
             result = result.join(df, on=list(common_cols), how="full", coalesce=True)
         return result
+
+    def _combine_on(
+        self,
+        on: str | Sequence[str],
+        *,
+        how: str,
+        allow_common_columns: bool,
+    ) -> pl.DataFrame:
+        """Combine dataframes using explicit join keys."""
+        join_keys = [on] if isinstance(on, str) else list(on)
+        if not join_keys:
+            raise ValueError("At least one join column must be provided.")
+        if not all(isinstance(col, str) for col in join_keys):
+            raise ValueError("Join columns must be strings.")
+        if len(join_keys) != len(set(join_keys)):
+            raise ValueError("Join columns must be unique.")
+
+        allowed_join_strategies = {"full", "inner", "left", "right"}
+        if how not in allowed_join_strategies:
+            raise ValueError(
+                f"Unsupported join strategy {how!r}. Supported strategies are: "
+                f"{sorted(allowed_join_strategies)}."
+            )
+
+        for idx, df in enumerate(self.dataframes):
+            missing_cols = [col for col in join_keys if col not in df.columns]
+            if missing_cols:
+                name = self.names[idx] if idx < len(self.names) else str(idx)
+                raise ValueError(
+                    f"Join columns not found in DataFrame {idx} ({name}): "
+                    f"{missing_cols}"
+                )
+
+        result = self.dataframes[0]
+        join_key_set = set(join_keys)
+        for idx, df in enumerate(self.dataframes[1:], start=1):
+            overlapping_cols = [
+                col
+                for col in df.columns
+                if col in result.columns and col not in join_key_set
+            ]
+            if overlapping_cols and not allow_common_columns:
+                name = self.names[idx] if idx < len(self.names) else str(idx)
+                raise ValueError(
+                    f"Overlapping non-key columns found in DataFrame {idx} ({name}): "
+                    f"{overlapping_cols}"
+                )
+
+            right = self._rename_overlapping_columns(df, idx, result, overlapping_cols)
+            result = result.join(right, on=join_keys, how=how, coalesce=True)
+
+        return result
+
+    def _rename_overlapping_columns(
+        self,
+        df: pl.DataFrame,
+        idx: int,
+        result: pl.DataFrame,
+        overlapping_cols: Sequence[str],
+    ) -> pl.DataFrame:
+        """Rename right-hand non-key overlaps before explicit-key joins."""
+        if not overlapping_cols:
+            return df
+
+        label = (
+            self.names[idx] if idx < len(self.names) and self.names[idx] else str(idx)
+        )
+        existing_cols = set(result.columns) | set(df.columns)
+        rename_map: dict[str, str] = {}
+        for col in overlapping_cols:
+            candidate = f"{col}_{label}"
+            if candidate in existing_cols:
+                candidate = f"{col}_{idx}"
+
+            counter = 2
+            while candidate in existing_cols:
+                candidate = f"{col}_{idx}_{counter}"
+                counter += 1
+
+            rename_map[col] = candidate
+            existing_cols.add(candidate)
+
+        return df.rename(rename_map)
 
     def __getitem__(self, idx: int) -> pl.DataFrame:
         """Access individual DataFrames by index."""

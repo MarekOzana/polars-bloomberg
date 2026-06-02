@@ -375,7 +375,9 @@ shape: (16, 6)
 
 *Returns*: The `bql()` method returns a `BqlResult` object, which:
 - Acts like a list of Polars DataFrames (one for each item in BQL `get` statement).
-- Provides a `.combine()` method to merge DataFrames on common columns.
+- Provides a `.combine()` method to merge DataFrames. With no arguments it preserves
+  the legacy behavior of joining on common columns. Use `.combine(on=...)` to join
+  only on explicit keys such as `"ID"` or `["ID", "DATE"]`.
 
 ### 1. Basic Example: Single Item and Single Security
 ```python
@@ -459,6 +461,32 @@ Output:
 ╞═══════════════╪════════════════════════════════╪═════════╪════════════╪══════════╡
 │ IBM US Equity ┆ International Business Machine ┆ 230.82  ┆ 2024-12-14 ┆ USD      │
 └───────────────┴────────────────────────────────┴─────────┴────────────┴──────────┘
+```
+
+By default, `combine()` keeps the historical behavior and joins each result
+DataFrame on all common column names. This is convenient for simple BQL results, but
+it can be too broad when several item tables share metadata columns such as `DATE`,
+`CURRENCY`, `PERIOD`, `VALUE`, or `MULTIPLIER`.
+
+For safer joins, pass the intended key columns explicitly:
+
+```python
+# Join only by security ID. Other common columns are kept as data columns.
+combined_df = results.combine(on="ID")
+
+# Join by a compound key when both columns are true row identifiers.
+combined_df = results.combine(on=["ID", "DATE"])
+
+# Use Polars join names. "full" is the default for explicit joins.
+combined_df = results.combine(on="ID", how="inner")
+```
+
+If non-key columns overlap when using `on=...`, they are preserved with suffixes
+based on the BQL item name, for example `DATE_#ret_1d`. To fail instead of
+suffixing overlapping non-key columns, use:
+
+```python
+combined_df = results.combine(on="ID", allow_common_columns=False)
 ```
 
 ### 4. Advanced Example: Screening Securities
