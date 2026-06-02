@@ -937,7 +937,9 @@
 <p><em>Returns</em>: The <code>bql()</code> method returns a <code>BqlResult</code> object, which:</p>
 <ul>
 <li>Acts like a list of Polars DataFrames (one for each item in BQL <code>get</code> statement).</li>
-<li>Provides a <code>.combine()</code> method to merge DataFrames on common columns.</li>
+<li>Provides a <code>.combine()</code> method to merge DataFrames. With no arguments it preserves
+  the legacy behavior of joining on common columns. Use <code>.combine(on=...)</code> to join
+  only on explicit keys such as <code>"ID"</code> or <code>["ID", "DATE"]</code>.</li>
 </ul>
 <h2 id="basic-example">Basic Example<a class="headerlink" href="#basic-example" title="Permanent link">&para;</a></h2>
 <p><div class="highlight"><pre><span></span><code><span class="c1"># Fetch the last price of IBM stock</span>
@@ -1011,6 +1013,25 @@ Output:
 <span class="err">│</span> <span class="n">IBM</span> <span class="n">US</span> <span class="n">Equity</span> <span class="err">┆</span> <span class="n">International</span> <span class="n">Business</span> <span class="n">Machine</span> <span class="err">┆</span> <span class="mf">230.82</span>  <span class="err">┆</span> <span class="mi">2024</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="mi">14</span> <span class="err">┆</span> <span class="n">USD</span>      <span class="err">│</span>
 <span class="err">└───────────────┴────────────────────────────────┴─────────┴────────────┴──────────┘</span>
 </code></pre></div></p>
+<p>By default, <code>combine()</code> keeps the historical behavior and joins each result
+DataFrame on all common column names. This is convenient for simple BQL results, but
+it can be too broad when several item tables share metadata columns such as <code>DATE</code>,
+<code>CURRENCY</code>, <code>PERIOD</code>, <code>VALUE</code>, or <code>MULTIPLIER</code>.</p>
+<p>For safer joins, pass the intended key columns explicitly:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Join only by security ID. Other common columns are kept as data columns.</span>
+<span class="n">combined_df</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">&quot;ID&quot;</span><span class="p">)</span>
+
+<span class="c1"># Join by a compound key when both columns are true row identifiers.</span>
+<span class="n">combined_df</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ID&quot;</span><span class="p">,</span> <span class="s2">&quot;DATE&quot;</span><span class="p">])</span>
+
+<span class="c1"># Use Polars join names. &quot;full&quot; is the default for explicit joins.</span>
+<span class="n">combined_df</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">&quot;ID&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;inner&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>If non-key columns overlap when using <code>on=...</code>, they are preserved with suffixes
+based on the BQL item name, for example <code>DATE_#ret_1d</code>. To fail instead of
+suffixing overlapping non-key columns, use:</p>
+<div class="highlight"><pre><span></span><code><span class="n">combined_df</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">&quot;ID&quot;</span><span class="p">,</span> <span class="n">allow_common_columns</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
 <h2 id="screening">Screening<a class="headerlink" href="#screening" title="Permanent link">&para;</a></h2>
 <p>Example of using saved SRCH search and filtering on ticker:
 Find list of SEB and Handelsbanken's AT1 bonds and print their names, duration and Z-Spread. The result of the query is list of 3 polars dataframes and can be conveniently combined using <code>combine()</code> method.
