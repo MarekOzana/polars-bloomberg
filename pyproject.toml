@@ -81,7 +81,13 @@ lint.select = [
   "R", # Refactor suggestions
   "G", # General best practices
 ]
-lint.ignore = ["D211", "D213", "D203", "T201"] # No blank lines before class (Removed)
+lint.ignore = [
+    "D211",
+    "D213",
+    "D203",
+    "T201",
+    "PLR0917",
+]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["D", "PLR2004"]
