@@ -11,12 +11,12 @@ on:
 
 jobs:
   build:
-
+    name: Python ${{ matrix.python-version }} (latest dependencies)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13", "3.14"]
+        python-version: ["3.12", "3.13", "3.14", "3.15"]
 
     steps:
     - uses: actions/checkout@v5
@@ -28,12 +28,38 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install pytest pytest-cov pyyaml build ruff
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        python -m pip install --upgrade -r requirements.txt
         python -m build .
         python -m pip install dist/*.whl
+        python -m pip check
+    - name: Show installed versions
+      run: |
+        python -c "import polars, blpapi; print('polars:', polars.__version__); print('blpapi:', blpapi.version())"
     - name: Lint with ruff
       run: |
         ruff check .
     - name: Test with pytest
       run: |
         pytest -m "no_bbg" tests
+
+  minimum-dependencies:
+    name: Python 3.12 (minimum dependencies)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v9
+        with:
+          python-version: "3.12"
+      - name: Install minimum dependencies
+        run: |
+          uv venv
+          uv pip install --no-config \
+            --index https://blpapi.bloomberg.com/repository/releases/python/simple/ \
+            . pytest pytest-cov pyyaml \
+            "polars==1.7.1" "blpapi==3.24.2"
+          uv pip check
+      - name: Show installed versions
+        run: |
+          .venv/bin/python -c "import polars, blpapi; print('polars:', polars.__version__); print('blpapi:', blpapi.version())"
+      - name: Run offline tests
+        run: .venv/bin/python -m pytest tests/unit -m no_bbg
