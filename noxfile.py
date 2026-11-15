@@ -3,7 +3,7 @@
 import nox
 
 
-@nox.session(python=["3.12", "3.13", "3.14"])
+@nox.session(python=["3.12", "3.13", "3.14", "3.15"])
 def tests(session):
     """Run the tests with pytest across supported Python versions.
 
@@ -15,7 +15,7 @@ def tests(session):
 
     Usage:
     - To run all versions, use: `nox -s tests`
-    - To run a specific version, use: `nox -s tests-3.12` (or tests-3.13/tests-3.14)
+    - To run a specific version, use: `nox -s tests-3.15`
     """
     # Install dependencies from requirements.txt
     session.install("-r", "requirements.txt")

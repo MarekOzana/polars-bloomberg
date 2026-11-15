@@ -70,7 +70,7 @@ I hope you enjoy using it as much as I had fun building it!
 
 - **Bloomberg Access:** A valid Bloomberg terminal license.
 - **Bloomberg Python API:** The `blpapi` library must be installed. See the [Bloomberg API Library](https://www.bloomberg.com/professional/support/api-library/) for guidance.
-- **Python Version:** Python 3.12+ recommended.
+- **Python Version:** Python 3.12+ required. Supported versions: 3.12, 3.13, 3.14, and 3.15.
 
 ## Installation
 

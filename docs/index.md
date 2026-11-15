@@ -14,7 +14,7 @@ If you’re a quant financial analyst, data scientist, or quant developer workin
 
 - **Bloomberg Access:** A valid Bloomberg terminal license is required!
 - **Bloomberg Python API:** The `blpapi` library must be installed. See the [Bloomberg API Library](https://www.bloomberg.com/professional/support/api-library/).
-- **Python Version:** Python 3.12+ recommended.
+- **Python Version:** Python 3.12+ required. Supported versions: 3.12, 3.13, 3.14, and 3.15.
 
 ```bash
 pip install polars-bloomberg
