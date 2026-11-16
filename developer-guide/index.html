@@ -1,0 +1,2061 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How polars-bloomberg is built - the one pipeline every call follows, a map of plbbg.py, how to find a bug with a debug dump, the Bloomberg quirks the code handles, and recipes for fixing bugs and adding features with offline tests.">
+      
+      
+      
+        <link rel="canonical" href="https://marekozana.github.io/polars-bloomberg/developer-guide/">
+      
+      
+        <link rel="prev" href="../api/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../images/polars-bloomberg-fav-32x32.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Developer Guide - Polars-Bloomberg</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CCascadia+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Cascadia Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#developer-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Polars-Bloomberg" class="md-header__button md-logo" aria-label="Polars-Bloomberg" data-md-component="logo">
+      
+  <img src="../images/polars-bloomberg-logo-512x512.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Polars-Bloomberg
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Developer Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="cyan"  aria-label="Switch to Bloomberg mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to Bloomberg mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="amber" data-md-color-accent="gray"  aria-label="Switch to Polars mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to Polars mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/MarekOzana/polars-bloomberg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MarekOzana/polars-bloomberg
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Polars-Bloomberg" class="md-nav__button md-logo" aria-label="Polars-Bloomberg" data-md-component="logo">
+      
+  <img src="../images/polars-bloomberg-logo-512x512.png" alt="logo">
+
+    </a>
+    Polars-Bloomberg
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/MarekOzana/polars-bloomberg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MarekOzana/polars-bloomberg
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage & Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage & Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/bdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/bdh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BDH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/bdib/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BDIB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/bsrch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BSRCH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/bql/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BQL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/equity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/credit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Credits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/macro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Macro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#set-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set up
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-library-in-one-minute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The library in one minute
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#words-used-on-this-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Words used on this page
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-map-of-plbbgpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A map of plbbg.py
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#one-call-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One call, end to end
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#find-where-a-bug-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find where a bug is
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bloomberg-quirks-the-code-handles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bloomberg quirks the code handles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recipes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recipes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Recipes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run-the-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run the checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#capture-a-failing-case-and-turn-it-into-an-offline-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capture a failing case and turn it into an offline test
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fix-a-parsing-bug" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fix a parsing bug
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-an-option" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add an option
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-a-new-request-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add a new request type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#re-record-or-refresh-recordings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Re-record or refresh recordings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-open-a-pull-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before you open a pull request
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#set-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Set up
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-library-in-one-minute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The library in one minute
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#words-used-on-this-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Words used on this page
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-map-of-plbbgpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A map of plbbg.py
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#one-call-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One call, end to end
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#find-where-a-bug-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Find where a bug is
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bloomberg-quirks-the-code-handles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bloomberg quirks the code handles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recipes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recipes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Recipes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run-the-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run the checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#capture-a-failing-case-and-turn-it-into-an-offline-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capture a failing case and turn it into an offline test
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fix-a-parsing-bug" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fix a parsing bug
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-an-option" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add an option
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#add-a-new-request-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add a new request type
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#re-record-or-refresh-recordings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Re-record or refresh recordings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-open-a-pull-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before you open a pull request
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="developer-guide">Developer guide<a class="headerlink" href="#developer-guide" title="Permanent link">&para;</a></h1>
+<p>You have a bug report or a feature idea for polars-bloomberg. Three facts keep the
+work small:</p>
+<ul>
+<li><strong>The code is one file.</strong> Almost everything is in <code>polars_bloomberg/plbbg.py</code>,
+  and it reads from top to bottom.</li>
+<li><strong>Every call runs the same five steps.</strong> When you can read <code>bdp</code>, you can read
+  the other four methods.</li>
+<li><strong>You need no Bloomberg Terminal.</strong> The tests replay recorded Bloomberg answers,
+  and a user's failing call can be saved to a file and replayed on your machine.</li>
+</ul>
+<p>The first six sections, up to <a href="#find-where-a-bug-is">Find where a bug is</a>, are a
+tour: read them in order, in about eight minutes. The sections after them are for
+looking things up.</p>
+<table>
+<thead>
+<tr>
+<th>You want to</th>
+<th>Go to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>run the tests for the first time</td>
+<td><a href="#set-up">Set up</a></td>
+</tr>
+<tr>
+<td>find the code behind a wrong result</td>
+<td><a href="#find-where-a-bug-is">Find where a bug is</a></td>
+</tr>
+<tr>
+<td>reproduce a user's bug without a Terminal</td>
+<td><a href="#capture-a-failing-case-and-turn-it-into-an-offline-test">Capture a failing case</a></td>
+</tr>
+<tr>
+<td>know whether a strange behavior is Bloomberg's</td>
+<td><a href="#bloomberg-quirks-the-code-handles">Bloomberg quirks the code handles</a></td>
+</tr>
+<tr>
+<td>add an option or a new method</td>
+<td><a href="#add-an-option">Add an option</a>, <a href="#add-a-new-request-type">Add a new request type</a></td>
+</tr>
+<tr>
+<td>know what a pull request must satisfy</td>
+<td><a href="#before-you-open-a-pull-request">Before you open a pull request</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="set-up">Set up<a class="headerlink" href="#set-up" title="Permanent link">&para;</a></h2>
+<p>In your clone of the repository:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dev<span class="w"> </span>--extra<span class="w"> </span>docs
+uv<span class="w"> </span>run<span class="w"> </span>pytest
+</code></pre></div>
+<p>All tests pass in about a second. The live tests are reported as skipped: they run
+only with <code>pytest --bbg</code>, at a Bloomberg Terminal.</p>
+<p>The other commands on this page are written without <code>uv run</code>. Put it in front of
+each, or activate the environment once: <code>source .venv/bin/activate</code>, on Windows
+<code>.venv\Scripts\activate</code>.</p>
+<p><code>blpapi</code> is not on PyPI; <code>pyproject.toml</code> tells uv where Bloomberg publishes it.
+Without uv, run <code>pip install -r requirements.txt</code> and then
+<code>pip install -e ".[dev]"</code> in an environment of your own.</p>
+<h2 id="the-library-in-one-minute">The library in one minute<a class="headerlink" href="#the-library-in-one-minute" title="Permanent link">&para;</a></h2>
+<p>polars-bloomberg is five methods on <code>BQuery</code>: <code>bdp</code>, <code>bdh</code>, <code>bdib</code>, <code>bql</code> and
+<code>bsrch</code>. Each one sends one Bloomberg request and turns the answer into one Polars
+DataFrame (<code>bql</code> returns a <code>BqlResult</code>, which holds one DataFrame per item of the
+query).</p>
+<p>Every method runs the same five steps. This is <code>bdp</code> without its docstring:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">bdp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">securities</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">overrides</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Step 1: check the inputs.</span>
+    <span class="n">securities</span> <span class="o">=</span> <span class="n">_as_list</span><span class="p">(</span><span class="n">securities</span><span class="p">)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">_as_list</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span>
+    <span class="n">_check_no_field_is_named</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="s2">"security"</span><span class="p">)</span>
+
+    <span class="c1"># Step 2: build the request.</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_request</span><span class="p">(</span><span class="s2">"//blp/refdata"</span><span class="p">,</span> <span class="s2">"ReferenceDataRequest"</span><span class="p">)</span>
+    <span class="n">_append_values</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s2">"securities"</span><span class="p">,</span> <span class="n">securities</span><span class="p">)</span>
+    <span class="n">_append_values</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s2">"fields"</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
+    <span class="n">_set_overrides</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">overrides</span><span class="p">)</span>
+    <span class="n">_set_options</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+    <span class="c1"># Steps 3 to 5: send it, parse the answer, build the DataFrame.</span>
+    <span class="n">payloads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_send_request</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">_parse_bdp</span><span class="p">(</span><span class="n">payloads</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
+    <span class="n">schema</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"security"</span><span class="p">:</span> <span class="n">pl</span><span class="o">.</span><span class="n">String</span><span class="p">,</span> <span class="o">**</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">fields</span><span class="p">)}</span>
+    <span class="k">return</span> <span class="n">pl</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">schema</span><span class="p">,</span> <span class="n">infer_schema_length</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<p>A <em>payload</em> is one message of Bloomberg's answer as plain Python (<code>msg.toPy()</code>):
+dicts, lists, numbers, strings and dates. The schema names the columns and gives a
+dtype to <code>security</code> only; Polars infers the dtype of each field from all rows.</p>
+<p>Only step 3 talks to Bloomberg, and it does so through one object, the session:</p>
+<div class="highlight"><pre><span></span><code>bq.bdp(...)                                                         DataFrame
+    │                                                                   ▲
+    ▼                                                                   │
+1 check inputs ─► 2 build request ─► 3 send ─► 4 parse answer ─► 5 build DataFrame
+                                      │  ▲
+                              request ▼  │ payloads
+                                   the session
+                      live:   Bloomberg answers
+                      tests:  a fake session replays a recorded answer
+</code></pre></div>
+<p>This is why the offline tests need no Bloomberg. They call the public methods on a
+<code>BQuery</code> whose session is a <code>FakeSession</code> (in <code>tests/support.py</code>). All five steps
+run as they do for a user; only the answer comes from a file.</p>
+<p>The other four methods read the same way. They differ in these places:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Service</th>
+<th>Request</th>
+<th>Parser</th>
+<th>What is different</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bdp</code></td>
+<td><code>//blp/refdata</code></td>
+<td><code>ReferenceDataRequest</code></td>
+<td><code>_parse_bdp</code></td>
+<td>the model for the others</td>
+</tr>
+<tr>
+<td><code>bdh</code></td>
+<td><code>//blp/refdata</code></td>
+<td><code>HistoricalDataRequest</code></td>
+<td><code>_parse_bdh</code></td>
+<td>two dates in the request; one security per payload</td>
+</tr>
+<tr>
+<td><code>bdib</code></td>
+<td><code>//blp/refdata</code></td>
+<td><code>IntradayBarRequest</code></td>
+<td><code>_parse_bdib</code></td>
+<td>one security; times instead of dates, in UTC; fixed columns</td>
+</tr>
+<tr>
+<td><code>bql</code></td>
+<td><code>//blp/bqlsvc</code></td>
+<td><code>sendQuery</code></td>
+<td><code>_parse_bql</code></td>
+<td>the answer is JSON text; one DataFrame per item; errors are part of the answer</td>
+</tr>
+<tr>
+<td><code>bsrch</code></td>
+<td><code>//blp/exrsvc</code></td>
+<td><code>ExcelGetGridRequest</code></td>
+<td><code>_parse_bsrch</code></td>
+<td>overrides are sent as text; the answer is a grid without column types</td>
+</tr>
+</tbody>
+</table>
+<h2 id="words-used-on-this-page">Words used on this page<a class="headerlink" href="#words-used-on-this-page" title="Permanent link">&para;</a></h2>
+<p>The first seven rows are Bloomberg's words, which you will also meet in Bloomberg's
+documentation. The last four belong to this repository.</p>
+<table>
+<thead>
+<tr>
+<th>Word</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>security, field</td>
+<td>What a request asks about (<code>IBM US Equity</code>) and what it asks for (<code>PX_LAST</code>).</td>
+</tr>
+<tr>
+<td>override</td>
+<td>A value that replaces one that Bloomberg would otherwise use in a calculation, for example <code>REFERENCE_DATE</code>.</td>
+</tr>
+<tr>
+<td>option</td>
+<td>A setting of the request itself, for example <code>periodicitySelection</code>.</td>
+</tr>
+<tr>
+<td>session</td>
+<td>The connection to Bloomberg, a <code>blpapi.Session</code>. <code>BQuery.start()</code> opens it.</td>
+</tr>
+<tr>
+<td>service</td>
+<td>A group of request types, for example <code>//blp/refdata</code>. A session opens a service before it uses it.</td>
+</tr>
+<tr>
+<td>event, message</td>
+<td>Bloomberg answers in events, and an event holds messages. The last event of an answer has the type <code>RESPONSE</code>; the events before it have the type <code>PARTIAL_RESPONSE</code>.</td>
+</tr>
+<tr>
+<td>correlation ID</td>
+<td>The ticket that the session returns when a request is sent. Every message of the answer carries it.</td>
+</tr>
+<tr>
+<td>payload</td>
+<td>One message as plain Python.</td>
+</tr>
+<tr>
+<td>debug dump</td>
+<td>The JSON file that <code>BQuery(debug=True)</code> writes for each request: the request and the messages that came back.</td>
+</tr>
+<tr>
+<td>recording</td>
+<td>A debug dump stored in <code>tests/data/recordings/</code>, with the result of the call added as <code>"expected"</code>.</td>
+</tr>
+<tr>
+<td>scenario</td>
+<td>A named call in <code>tests/recordings.py</code>. Its answer is the recording of the same name.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="a-map-of-plbbgpy">A map of <code>plbbg.py</code><a class="headerlink" href="#a-map-of-plbbgpy" title="Permanent link">&para;</a></h2>
+<p>The module docstring is the table of contents. The file has eight numbered sections.
+The class comes first and shows the five steps of each method; the sections after it
+hold what the steps call. Each section starts with a banner comment, so a search for
+<code># 3.</code> takes you to section 3. The table names the main functions of each section.</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>What is in it</th>
+<th>Go here when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. <code>BloombergError</code>, <code>BQuery</code></td>
+<td><code>start</code>/<code>stop</code>; <code>_create_request</code> (opens a service on first use); <code>_send_request</code> (the event loop); the five public methods</td>
+<td>a call hangs, times out, raises, or returns another call's data; a request is built wrongly</td>
+</tr>
+<tr>
+<td>2. Inputs and requests</td>
+<td><code>_as_list</code>, <code>_check_no_field_is_named</code>, <code>_yyyymmdd</code>, <code>_append_values</code>, <code>_set_overrides</code>, <code>_override_pairs</code>, <code>_set_options</code></td>
+<td>an input is refused or sent in the wrong form</td>
+</tr>
+<tr>
+<td>3. bdp and bdh</td>
+<td><code>_parse_bdp</code>, <code>_parse_bdh</code>, <code>_security_errors</code>, <code>_warn_security_errors</code></td>
+<td>a value or row is missing; a warning about a security or field is wrong</td>
+</tr>
+<tr>
+<td>4. bdib</td>
+<td><code>_iso_datetime</code>, <code>_BAR_SCHEMA</code>, <code>_parse_bdib</code></td>
+<td>times are off; a bar column is missing</td>
+</tr>
+<tr>
+<td>5. bql</td>
+<td><code>_set_bql_client_context</code>, <code>_parse_bql</code>, <code>_load_bql_answers</code>, <code>_bql_item</code>, <code>_BQL_DTYPES</code>, <code>_bql_number</code>, <code>_bql_date</code>, <code>_bql_datetime</code>, <code>_bql_dataframe</code></td>
+<td>a BQL column has the wrong type or name; an error message is lost</td>
+</tr>
+<tr>
+<td>6. bsrch</td>
+<td><code>_set_bsrch_overrides</code>, <code>_parse_bsrch</code>, <code>_cell_value</code>, <code>_blank_strings_to_none</code></td>
+<td>a search column has the wrong type or title</td>
+</tr>
+<tr>
+<td>7. <code>BqlResult</code></td>
+<td>the frames of a BQL answer and <code>combine()</code></td>
+<td>joining BQL items gives unexpected rows or columns</td>
+</tr>
+<tr>
+<td>8. Debug dump</td>
+<td><code>_write_debug_dump</code>, <code>_json_default</code></td>
+<td>you change what <code>BQuery(debug=True)</code> writes</td>
+</tr>
+</tbody>
+</table>
+<h2 id="one-call-end-to-end">One call, end to end<a class="headerlink" href="#one-call-end-to-end" title="Permanent link">&para;</a></h2>
+<p>Take <code>bq.bdp(["IBM US Equity", "NOT A SECURITY Equity"], ["NAME"])</code>: one security
+that exists and one that does not. Bloomberg's answer to it is stored in
+<code>tests/data/recordings/bdp/invalid_security_mixed.json</code>.</p>
+<ol>
+<li><strong>Check the inputs.</strong> <code>_as_list</code> lets a caller pass one name as a string.
+   <code>_check_no_field_is_named</code> refuses a field called <code>security</code>, because it would
+   overwrite the key column of the result.</li>
+<li><strong>Build the request.</strong> <code>_create_request</code> opens <code>//blp/refdata</code> if this <code>BQuery</code>
+   has not used it yet and returns an empty <code>ReferenceDataRequest</code>. <code>_append_values</code>
+   fills <code>securities</code> and <code>fields</code>. <code>_set_overrides</code> checks the overrides (through
+   <code>_override_pairs</code>) and writes them; <code>_set_options</code> sets each option under
+   Bloomberg's own element name.</li>
+<li>
+<p><strong>Send it.</strong> <code>_send_request</code> sends the request and reads events until the
+   <code>RESPONSE</code> event that ends the answer. It keeps only messages that carry the
+   correlation ID of this request, raises <code>BloombergError</code> if Bloomberg refuses the
+   request, and returns the payloads. Here that is one payload (shortened):</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+    <span class="s2">"securityData"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">"security"</span><span class="p">:</span> <span class="s2">"IBM US Equity"</span><span class="p">,</span>
+            <span class="s2">"fieldData"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"NAME"</span><span class="p">:</span> <span class="s2">"INTL BUSINESS MACHINES CORP"</span><span class="p">},</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">"security"</span><span class="p">:</span> <span class="s2">"NOT A SECURITY Equity"</span><span class="p">,</span>
+            <span class="s2">"securityError"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"category"</span><span class="p">:</span> <span class="s2">"BAD_SEC"</span><span class="p">,</span>
+                <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Unknown/Invalid Security  [nid:&lt;server&gt;]"</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"fieldData"</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="p">},</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>If the <code>BQuery</code> was created with <code>debug=</code>, <code>_write_debug_dump</code> writes the
+request and the messages to a file at this point, also when the request failed.</p>
+</li>
+<li>
+<p><strong>Parse the answer.</strong> <code>_parse_bdp</code> makes one row per security. The unknown
+   security has no <code>NAME</code> in its <code>fieldData</code>, so its row holds <code>None</code>.
+   <code>_security_errors</code> turns the <code>securityError</code> into one line of text, and
+   <code>_warn_security_errors</code> logs all such lines of the call as one warning.</p>
+</li>
+<li><strong>Build the DataFrame.</strong> Two rows; <code>NAME</code> is null for the unknown security.</li>
+</ol>
+<p>The caller sees a warning in the log and gets the DataFrame:</p>
+<div class="highlight"><pre><span></span><code>Bloomberg reported 1 error(s):
+  NOT A SECURITY Equity: Unknown/Invalid Security  [nid:&lt;server&gt;] (BAD_SEC)
+
+shape: (2, 2)
+┌───────────────────────┬─────────────────────────────┐
+│ security              ┆ NAME                        │
+│ ---                   ┆ ---                         │
+│ str                   ┆ str                         │
+╞═══════════════════════╪═════════════════════════════╡
+│ IBM US Equity         ┆ INTL BUSINESS MACHINES CORP │
+│ NOT A SECURITY Equity ┆ null                        │
+└───────────────────────┴─────────────────────────────┘
+</code></pre></div>
+<p><code>[nid:&lt;server&gt;]</code> stands for the name of the Bloomberg server that answered. A
+recording never stores that name.</p>
+<h2 id="find-where-a-bug-is">Find where a bug is<a class="headerlink" href="#find-where-a-bug-is" title="Permanent link">&para;</a></h2>
+<p>A debug dump tells you which of the five steps went wrong. Run the failing call with
+<code>BQuery(debug=True)</code>. Every request then writes one JSON file to <code>debug_cases/</code>: the
+request that was sent, and every message that came back. This is the dump of
+<code>bq.bdp(["IBM US Equity"], ["NAME", "NOT_A_FIELD"])</code>, shortened:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w"> </span><span class="nt">"format"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">"recorded"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"date"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-11-16"</span><span class="p">,</span><span class="w"> </span><span class="nt">"blpapi"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3.26.10.1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"polars"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.1.0"</span><span class="p">},</span>
+<span class="w"> </span><span class="nt">"request"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"operation"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ReferenceDataRequest"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"body"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"securities"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"IBM US Equity"</span><span class="p">],</span><span class="w"> </span><span class="nt">"fields"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"NAME"</span><span class="p">,</span><span class="w"> </span><span class="s2">"NOT_A_FIELD"</span><span class="p">]}</span>
+<span class="w"> </span><span class="p">},</span>
+<span class="w"> </span><span class="nt">"events"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
+<span class="w">   </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RESPONSE"</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">"messages"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
+<span class="w">     </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ReferenceDataResponse"</span><span class="p">,</span>
+<span class="w">     </span><span class="nt">"payload"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"securityData"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
+<span class="w">       </span><span class="nt">"security"</span><span class="p">:</span><span class="w"> </span><span class="s2">"IBM US Equity"</span><span class="p">,</span>
+<span class="w">       </span><span class="nt">"fieldExceptions"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span>
+<span class="w">         </span><span class="nt">"fieldId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"NOT_A_FIELD"</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">"errorInfo"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"category"</span><span class="p">:</span><span class="w"> </span><span class="s2">"BAD_FLD"</span><span class="p">,</span><span class="w"> </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Field not valid"</span><span class="p">}</span>
+<span class="w">       </span><span class="p">}],</span>
+<span class="w">       </span><span class="nt">"fieldData"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"NAME"</span><span class="p">:</span><span class="w"> </span><span class="s2">"INTL BUSINESS MACHINES CORP"</span><span class="p">}</span>
+<span class="w">     </span><span class="p">}]}</span>
+<span class="w">   </span><span class="p">}]</span>
+<span class="w"> </span><span class="p">}]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Compare the dump with what the user expected, from the top:</p>
+<table>
+<thead>
+<tr>
+<th>What you find</th>
+<th>Where to look</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No file was written</td>
+<td>Nothing was sent. The call failed in step 1 or in <code>_create_request</code>: the session is not started, or the service did not open.</td>
+</tr>
+<tr>
+<td><code>request</code> is not what the user asked for</td>
+<td>Step 2: the body of the method, and section 2 of <code>plbbg.py</code>.</td>
+</tr>
+<tr>
+<td><code>request</code> is right, but <code>events</code> does not hold the data, or holds an error</td>
+<td>Bloomberg did not send the data. Look for the behavior in the <a href="#bloomberg-quirks-the-code-handles">quirks table</a>. If it is not there, the cause is usually the content of the request (a field, an override, an entitlement) and not the library.</td>
+</tr>
+<tr>
+<td><code>events</code> holds the data, but the DataFrame lacks it, or has it under the wrong name or dtype</td>
+<td>Steps 4 and 5: the parser of the method, in sections 3 to 6.</td>
+</tr>
+<tr>
+<td>The call hangs, times out, or returns the data of another call</td>
+<td>Step 3: <code>_send_request</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>The same file is the input of an offline test. See
+<a href="#capture-a-failing-case-and-turn-it-into-an-offline-test">Capture a failing case</a>.</p>
+<h2 id="bloomberg-quirks-the-code-handles">Bloomberg quirks the code handles<a class="headerlink" href="#bloomberg-quirks-the-code-handles" title="Permanent link">&para;</a></h2>
+<p>Read this table before you "fix" something: what looks like a bug of the library
+is often a behavior of Bloomberg that the code handles on purpose. Each quirk has a
+comment at the place that handles it. A name like <code>bdp/partial_responses</code> is the
+recording <code>tests/data/recordings/bdp/partial_responses.json</code>; open it to see the
+raw answer. Where no recording shows the quirk, the table names a test.</p>
+<table>
+<thead>
+<tr>
+<th>Quirk</th>
+<th>Handled in</th>
+<th>Shown by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Any call</strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>An answer arrives as several events</td>
+<td><code>_send_request</code></td>
+<td><code>bdp/partial_responses</code></td>
+</tr>
+<tr>
+<td>The reply to an old request that timed out arrives during the next request</td>
+<td><code>_send_request</code> (correlation ID check, and the cancel on any error)</td>
+<td><code>test_late_answer_to_timed_out_request_is_not_returned_to_next_request</code> in <code>tests/unit/test_send_request.py</code></td>
+</tr>
+<tr>
+<td>Bloomberg refuses a request in two ways: a <code>RequestFailure</code> message, or a <code>responseError</code> inside a normal response</td>
+<td><code>_send_request</code></td>
+<td><code>test_request_failure_raises_bloomberg_error_with_reason</code> in <code>tests/unit/test_send_request.py</code> (the first way); <code>bdp/no_securities</code> (the second)</td>
+</tr>
+<tr>
+<td>An override date must be sent as <code>YYYYMMDD</code>; Bloomberg ignores other forms without an error</td>
+<td><code>_override_pairs</code></td>
+<td><code>bdp/override_reference_date</code> (the accepted form)</td>
+</tr>
+<tr>
+<td><strong><code>bdp</code> and <code>bdh</code></strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>An unknown security or field does not fail the request; it is reported inside the answer</td>
+<td><code>_security_errors</code></td>
+<td><code>bdp/invalid_security_mixed</code>, <code>bdp/invalid_field_mixed</code>, <code>bdh/invalid_field_mixed</code></td>
+</tr>
+<tr>
+<td>An unknown security is a row of nulls in <code>bdp</code> but no rows in <code>bdh</code></td>
+<td><code>_parse_bdp</code>, <code>_parse_bdh</code></td>
+<td><code>bdp/invalid_security_mixed</code>, <code>bdh/invalid_security_mixed</code></td>
+</tr>
+<tr>
+<td><code>bdp</code> rows come back in Bloomberg's order, not in the order of the request</td>
+<td><code>_parse_bdp</code></td>
+<td><code>bdp/partial_responses</code></td>
+</tr>
+<tr>
+<td>Field names come back spelled as the request spelled them</td>
+<td><code>_parse_bdp</code></td>
+<td><code>bdp/lowercase_field</code></td>
+</tr>
+<tr>
+<td><strong><code>bdib</code></strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>An unknown security fails the whole request here, with a <code>responseError</code></td>
+<td><code>_send_request</code></td>
+<td><code>bdib/invalid_security</code></td>
+</tr>
+<tr>
+<td>Intraday times are UTC, in the request and in the answer</td>
+<td><code>_iso_datetime</code>, <code>_BAR_SCHEMA</code></td>
+<td><code>bdib/trade_bars_60min</code></td>
+</tr>
+<tr>
+<td>The intraday answer does not name the security</td>
+<td><code>_parse_bdib</code></td>
+<td><code>bdib/trade_bars_60min</code></td>
+</tr>
+<tr>
+<td><strong><code>bql</code></strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>The request says that it comes from Excel, as Bloomberg's own Excel add-in does</td>
+<td><code>_set_bql_client_context</code></td>
+<td><code>test_bql_request_sets_expression_and_client_context</code> in <code>tests/unit/test_requests.py</code></td>
+</tr>
+<tr>
+<td>A BQL answer is JSON text, and a long one is cut into fragments over several messages</td>
+<td><code>_load_bql_answers</code></td>
+<td><code>test_bql_answer_split_over_several_messages_is_joined</code> in <code>tests/unit/test_bql.py</code></td>
+</tr>
+<tr>
+<td>A failed BQL query is an answer too, with its reason inside</td>
+<td><code>_parse_bql</code></td>
+<td><code>bql/syntax_error</code>, <code>bql/invalid_item</code></td>
+</tr>
+<tr>
+<td>"No results" is sent as an exception of type <code>BENIGN</code></td>
+<td><code>_parse_bql</code></td>
+<td><code>bql/empty_universe</code></td>
+</tr>
+<tr>
+<td>BQL sends dates, NaN and infinity as text</td>
+<td><code>_bql_date</code>, <code>_bql_datetime</code>, <code>_bql_number</code></td>
+<td><code>bql/date_value</code>, <code>bql/nan_and_infinity</code></td>
+</tr>
+<tr>
+<td>A BQL item can be named like one of its own columns</td>
+<td><code>_bql_item</code></td>
+<td><code>bql/item_named_id</code></td>
+</tr>
+<tr>
+<td><strong><code>bsrch</code></strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>A search grid has no column types; an empty numeric cell is a blank string</td>
+<td><code>_cell_value</code>, <code>_blank_strings_to_none</code></td>
+<td><code>test_bsrch_blank_cells_in_numeric_column_become_null</code> in <code>tests/unit/test_bsrch.py</code></td>
+</tr>
+<tr>
+<td><code>ReachMax</code> is true also when a <code>LIMIT</code> override cut the search short</td>
+<td><code>_parse_bsrch</code></td>
+<td><code>bsrch/coco_limit_2</code></td>
+</tr>
+<tr>
+<td>A failed search is a grid with an <code>Error</code> text</td>
+<td><code>_parse_bsrch</code></td>
+<td><code>bsrch/invalid_domain</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="recipes">Recipes<a class="headerlink" href="#recipes" title="Permanent link">&para;</a></h2>
+<h3 id="run-the-checks">Run the checks<a class="headerlink" href="#run-the-checks" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>Command</th>
+<th>Run it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Offline tests</td>
+<td><code>pytest</code></td>
+<td>before every commit</td>
+</tr>
+<tr>
+<td>Lint and format</td>
+<td><code>ruff check .</code> and <code>ruff format --check .</code></td>
+<td>before every commit</td>
+</tr>
+<tr>
+<td>Recordings replay to the same results</td>
+<td><code>python tests/record.py --refresh-expected</code>, then <code>git diff --stat tests/data/recordings</code> must print nothing</td>
+<td>after a change to <code>plbbg.py</code></td>
+</tr>
+<tr>
+<td>Minimum dependencies</td>
+<td>see below</td>
+<td>before a pull request that changes <code>plbbg.py</code></td>
+</tr>
+<tr>
+<td>Docs build</td>
+<td><code>mkdocs build --strict</code></td>
+<td>after a change to <code>docs/</code> or to a public docstring</td>
+</tr>
+<tr>
+<td>Live tests</td>
+<td><code>pytest --bbg</code></td>
+<td>when you have a Bloomberg Terminal on this machine</td>
+</tr>
+</tbody>
+</table>
+<p>The recordings check repeats what <code>pytest</code> does, but more strictly: <code>pytest</code>
+compares numbers with a tolerance, and <code>git diff</code> shows every difference.</p>
+<p>The offline tests must also pass on the oldest supported versions (Python 3.12,
+polars 1.7.1, blpapi 3.24.2). Build that environment outside the repository and
+leave the project environment alone:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">MIN</span><span class="o">=</span>~/venvs/plbbg-min<span class="w">    </span><span class="c1"># any directory outside the repository</span>
+uv<span class="w"> </span>venv<span class="w"> </span><span class="nv">$MIN</span><span class="w"> </span>--python<span class="w"> </span><span class="m">3</span>.12
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--python<span class="w"> </span><span class="nv">$MIN</span><span class="w"> </span>--no-config<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--index<span class="w"> </span>https://blpapi.bloomberg.com/repository/releases/python/simple/<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--index<span class="w"> </span>https://pypi.org/simple<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-e<span class="w"> </span>.<span class="w"> </span>pytest<span class="w"> </span>pytest-cov<span class="w"> </span>pyyaml<span class="w"> </span><span class="s2">"polars==1.7.1"</span><span class="w"> </span><span class="s2">"blpapi==3.24.2"</span>
+<span class="nv">$MIN</span>/bin/python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit<span class="w"> </span>-m<span class="w"> </span>no_bbg
+</code></pre></div>
+<p>On Windows the interpreter of that environment is <code>Scripts\python.exe</code> instead of
+<code>bin/python</code>.</p>
+<p>How the tests are organised, and in which order to read the live tests as a tour of
+the library, is in
+<a href="https://github.com/MarekOzana/polars-bloomberg/blob/main/tests/README.md">tests/README.md</a>.</p>
+<h3 id="capture-a-failing-case-and-turn-it-into-an-offline-test">Capture a failing case and turn it into an offline test<a class="headerlink" href="#capture-a-failing-case-and-turn-it-into-an-offline-test" title="Permanent link">&para;</a></h3>
+<p>The call and the names in this recipe are examples; use those of your case.</p>
+<ol>
+<li>
+<p><strong>Get the raw answer.</strong> Run the failing call with <code>debug=True</code>, or ask the user
+   who reported it to do so:</p>
+<div class="highlight"><pre><span></span><code><span class="k">with</span> <span class="n">BQuery</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">bq</span><span class="o">.</span><span class="n">bdp</span><span class="p">([</span><span class="s2">"IBM US Equity"</span><span class="p">],</span> <span class="p">[</span><span class="s2">"NAME"</span><span class="p">,</span> <span class="s2">"NOT_A_FIELD"</span><span class="p">])</span>
+</code></pre></div>
+<p>Every request writes one JSON file to <code>debug_cases/</code> in the working directory,
+for example <code>ReferenceDataRequest_20261116_201008_297370.json</code>, also when the
+call raises. The file holds the request, every message Bloomberg sent back, and
+the library versions; <a href="#find-where-a-bug-is">Find where a bug is</a> shows one.
+<code>BQuery(debug="some/dir")</code> writes to that directory.</p>
+</li>
+<li>
+<p><strong>Make it small and public.</strong> The repository is public. Cut the answer down by
+   hand to what shows the problem: at most three securities and five rows where the
+   case allows it. Replace instruments and names that are the user's own by
+   well-known ones, in the request and in the answer alike. Keep the markers that
+   hold dates, such as <code>{"$date": "2024-01-02"}</code>: the replay turns them back into
+   dates. Never commit <code>debug_cases/</code> itself.</p>
+</li>
+<li>
+<p><strong>Store it as a recording.</strong> Copy the file to
+   <code>tests/data/recordings/&lt;method&gt;/&lt;short_name&gt;.json</code>, and add the call under the
+   same name to <code>SCENARIOS</code> in <code>tests/recordings.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="s2">"bdp/unknown_field_next_to_known"</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">bq</span><span class="p">:</span> <span class="n">bq</span><span class="o">.</span><span class="n">bdp</span><span class="p">(</span>
+    <span class="p">[</span><span class="s2">"IBM US Equity"</span><span class="p">],</span> <span class="p">[</span><span class="s2">"NAME"</span><span class="p">,</span> <span class="s2">"NOT_A_FIELD"</span><span class="p">]</span>
+<span class="p">),</span>
+</code></pre></div>
+<p>If nobody can record this answer again (the user's own instruments, a market
+state that is gone), also add the name to <code>CONVERTED</code> in the same file. Then
+<code>python tests/record.py</code> leaves the file alone.</p>
+<p>From now until step 5, <code>tests/unit/test_recordings.py</code> fails for the new
+scenario with <code>KeyError: 'expected'</code>. That is correct: the file does not say
+yet what the call should give.</p>
+</li>
+<li>
+<p><strong>Write the test that shows the bug</strong>, in <code>tests/unit/test_&lt;method&gt;.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_bdp_unknown_field_next_to_known_gives_a_null_column</span><span class="p">():</span>
+    <span class="n">bq</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">replay</span><span class="p">(</span><span class="s2">"bdp/unknown_field_next_to_known"</span><span class="p">)</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bdp</span><span class="p">([</span><span class="s2">"IBM US Equity"</span><span class="p">],</span> <span class="p">[</span><span class="s2">"NAME"</span><span class="p">,</span> <span class="s2">"NOT_A_FIELD"</span><span class="p">])</span>
+
+    <span class="k">assert</span> <span class="n">df</span><span class="p">[</span><span class="s2">"NOT_A_FIELD"</span><span class="p">]</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+</code></pre></div>
+<p><code>replay</code> (in <code>tests/support.py</code>) returns a <code>BQuery</code> whose fake session answers
+the next request with the recorded messages. Run the test and see it fail.</p>
+</li>
+<li>
+<p><strong>Fix the code</strong>, then store the result the call now gives:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>tests/record.py<span class="w"> </span>--refresh-expected<span class="w"> </span>bdp/unknown_field_next_to_known
+</code></pre></div>
+<p>This replays the answer, writes the result into the file as <code>"expected"</code>, and
+replaces server names in Bloomberg's error details. Read the file once more, then
+run <code>pytest</code>: <code>tests/unit/test_recordings.py</code> now replays the new scenario
+together with all the others.</p>
+</li>
+</ol>
+<p>A recording made this way works like one recorded live. It differs in two harmless
+ways: it has no <code>"scenario"</code> and <code>"call"</code> keys, and a BQL answer stays one long JSON
+string instead of readable JSON.</p>
+<h3 id="fix-a-parsing-bug">Fix a parsing bug<a class="headerlink" href="#fix-a-parsing-bug" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Find the parser in the <a href="#the-library-in-one-minute">method table</a> and open a
+   recording of that method to see the shape of the payloads.</li>
+<li>
+<p>Reproduce the bug in a test. Replay a recording as in the recipe above, or
+   write the payload by hand when a few lines are enough:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_bdp_security_without_field_data_gives_a_null</span><span class="p">():</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"securityData"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"security"</span><span class="p">:</span> <span class="s2">"IBM US Equity"</span><span class="p">,</span> <span class="s2">"fieldData"</span><span class="p">:</span> <span class="p">{}}]}</span>
+    <span class="n">bq</span> <span class="o">=</span> <span class="n">fake_bq</span><span class="p">([</span><span class="n">answer</span><span class="p">(</span><span class="n">payload</span><span class="p">)])</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bdp</span><span class="p">([</span><span class="s2">"IBM US Equity"</span><span class="p">],</span> <span class="p">[</span><span class="s2">"NAME"</span><span class="p">])</span>
+
+    <span class="k">assert</span> <span class="n">df</span><span class="p">[</span><span class="s2">"NAME"</span><span class="p">]</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+</code></pre></div>
+<p><code>fake_bq</code> and <code>answer</code> are in <code>tests/support.py</code>. The files
+<code>tests/unit/test_bdp.py</code> to <code>test_bsrch.py</code> show both kinds of test.</p>
+</li>
+<li>
+<p>Fix the parser and run <code>pytest</code>.</p>
+</li>
+<li>Run <code>python tests/record.py --refresh-expected</code> and read
+   <code>git diff tests/data/recordings</code>. Only the scenarios whose result you meant to
+   change may differ.</li>
+<li>If users can notice the fix, add a line to <code>CHANGELOG.md</code>.</li>
+</ol>
+<h3 id="add-an-option">Add an option<a class="headerlink" href="#add-an-option" title="Permanent link">&para;</a></h3>
+<p>A Bloomberg request option needs no new code. <code>options={"periodicitySelection":
+"MONTHLY"}</code> reaches the request through <code>_set_options</code>, under Bloomberg's own
+element name.</p>
+<p>The offline tests build real <code>blpapi</code> requests on a reduced, hand-written schema,
+<code>tests/data/schemas/refdata_test.xml</code>. An option that the schema does not list
+raises <code>NotFoundException</code> there. To test a request with a new option, add the
+<code>&lt;element&gt;</code> to the request type in that file, then assert on the request in
+<code>tests/unit/test_requests.py</code> with <code>request_sent_by</code>.</p>
+<p>A new keyword argument of a public method goes the same way as the existing ones:
+check it in step 1, set it in step 2, test the request in
+<code>tests/unit/test_requests.py</code>, describe it in the docstring and in
+<code>docs/usage/&lt;method&gt;.md</code>, and add it to <code>CHANGELOG.md</code>.</p>
+<h3 id="add-a-new-request-type">Add a new request type<a class="headerlink" href="#add-a-new-request-type" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Write the public method on <code>BQuery</code> in the five steps, after the method it
+   resembles most.</li>
+<li>Add a numbered section for it below the class with its <code>_parse_&lt;name&gt;</code> function,
+   and add the method to the table and the section list in the module docstring.</li>
+<li>Make the request testable offline. For <code>//blp/refdata</code>, add the operation and its
+   request and response types to <code>tests/data/schemas/refdata_test.xml</code>. For another
+   service there is no offline schema; the tests use a <code>MagicMock</code> service, as
+   <code>tests/unit/test_bsrch.py</code> does.</li>
+<li>Add scenarios to <code>SCENARIOS</code> in <code>tests/recordings.py</code> and record them at a
+   Terminal: <code>python tests/record.py &lt;name&gt;/</code>. List a scenario in <code>VOLATILE</code> if its
+   data changes from run to run, and in <code>CONTRACT</code> if a live test should watch the
+   format of its answer.</li>
+<li>Add <code>tests/unit/test_&lt;name&gt;.py</code> (offline, end to end) and
+   <code>tests/integration/test_integration_&lt;name&gt;.py</code> (live).</li>
+<li>Document it: a Google-style docstring with an example (<code>docs/api.md</code> renders
+   it), a page <code>docs/usage/&lt;name&gt;.md</code> listed in <code>mkdocs.yml</code>, a section in
+   <code>README.md</code>, a line in <code>CHANGELOG.md</code>, and a row in the tables of this page.</li>
+</ol>
+<h3 id="re-record-or-refresh-recordings">Re-record or refresh recordings<a class="headerlink" href="#re-record-or-refresh-recordings" title="Permanent link">&para;</a></h3>
+<p>A recording is one file: the request, the raw messages, and <code>"expected"</code>, the result
+the call gave.</p>
+<ul>
+<li><strong>You changed the output on purpose</strong> (no Terminal needed). Run
+  <code>python tests/record.py --refresh-expected</code>; it replays every recording and
+  rewrites only <code>"expected"</code>. Add name prefixes to limit it, for example
+  <code>python tests/record.py --refresh-expected bql/</code>. Review
+  <code>git diff tests/data/recordings</code> before you commit.</li>
+<li><strong>You need a fresh answer from Bloomberg</strong> (Terminal needed). Run
+  <code>python tests/record.py bdp/ bql/syntax_error</code> for the scenarios whose names start
+  with these prefixes, or <code>python tests/record.py</code> for all. Scenarios in <code>VOLATILE</code>
+  change on every run; scenarios in <code>CONVERTED</code> are skipped.</li>
+<li><strong>You suspect Bloomberg changed a format.</strong> <code>pytest --bbg</code> includes
+  <code>tests/integration/test_contract.py</code>, which asks Bloomberg again for the scenarios
+  in <code>CONTRACT</code> and compares the shape of the fresh answer with the recording.</li>
+<li><strong>You changed the dump format</strong> in <code>_write_debug_dump</code>. Every recording is a dump,
+  so all of them have to be recorded again. Avoid it.</li>
+</ul>
+<h2 id="conventions">Conventions<a class="headerlink" href="#conventions" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Users must not be surprised.</strong> Method names, parameters, column names, dtypes,
+  exception types and the wording of log messages are part of the interface; tests
+  assert on them. A change that users can notice goes into <code>CHANGELOG.md</code>.</li>
+<li><strong>One file, plain functions.</strong> Being able to open <code>plbbg.py</code> and follow a call
+  from request to DataFrame is the main strength of the library. Prefer a function
+  to a new class, and do not split the file.</li>
+<li><strong>Comments say why.</strong> When a comment explains a Bloomberg quirk, name the
+  recording that shows it.</li>
+<li><strong>Ruff</strong> checks and formats the code (<code>pyproject.toml</code>): line length 89,
+  docstrings required in the package but not in tests, at most six arguments per
+  function.</li>
+<li><strong>Public methods</strong> keep Google-style docstrings with an example and its output.</li>
+<li><strong>Diagnostics</strong> go through <code>logger</code>, never <code>print</code>.</li>
+<li><strong>No new dependencies</strong>, at runtime or for development. Python 3.12+, polars
+  1.7.1+, blpapi 3.24.2+.</li>
+<li><strong>Tests</strong> check one behavior each, and the name states the scenario and the
+  expected result, for example
+  <code>test_bdh_weekend_range_returns_empty_frame_with_columns</code>. They go through the
+  public methods with the fake session; they do not patch private functions.
+  Offline test modules set <code>pytestmark = pytest.mark.no_bbg</code>, live ones
+  <code>pytest.mark.requires_bbg</code>.</li>
+<li><strong>Recordings stay small and public:</strong> well-known instruments, at most three
+  securities and five rows where the scenario allows it, no machine names.</li>
+<li><strong>Releases</strong> are the maintainer's: do not bump the version, tag or publish.</li>
+</ul>
+<h2 id="before-you-open-a-pull-request">Before you open a pull request<a class="headerlink" href="#before-you-open-a-pull-request" title="Permanent link">&para;</a></h2>
+<ol>
+<li><code>pytest</code>, <code>ruff check .</code> and <code>ruff format --check .</code> pass.</li>
+<li><code>python tests/record.py --refresh-expected</code> changes no recording, or only the
+   recordings whose result you meant to change.</li>
+<li>If you changed <code>plbbg.py</code>, the offline tests also pass on the
+   <a href="#run-the-checks">minimum dependencies</a>.</li>
+<li>A bug fix comes with a test that failed before the fix.</li>
+<li>A change that users can notice has a line under "Unreleased" in <code>CHANGELOG.md</code>,
+   and the docstring and the page in <code>docs/usage/</code> say what the code now does.</li>
+<li>The version number is untouched.</li>
+</ol>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  <script data-mkdocs-jupyter-mathjax="{&quot;url&quot;: &quot;https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js&quot;, &quot;version&quot;: 4}">
+/* Shared by full pages and Material's instant navigation. */
+(() => {
+  const config = JSON.parse(document.currentScript.dataset.mkdocsJupyterMathjax);
+  if (window.mkdocsJupyterMathJax) return;
+
+  let loading;
+  let queue = Promise.resolve();
+  let previous = [];
+
+  const ready = async () => {
+    if (!loading) {
+      loading = (async () => {
+        let math = window.MathJax;
+        if (!math?.typesetPromise) {
+          const url = new URL(config.url, document.baseURI).href;
+          const existing = Array.from(document.scripts).find(script =>
+            script.src && (script.src === url || script.id === 'MathJax-script' ||
+              (/mathjax/i.test(script.src) &&
+               /\/(?:MathJax|latest|(?:tex|mml)(?:-mml)?-(?:chtml|svg))\.js(?:[?#]|$)/i.test(script.src))));
+          if (existing) {
+            if (!math?.startup?.promise) {
+              await new Promise((resolve, reject) => {
+                existing.addEventListener('load', resolve, { once: true });
+                existing.addEventListener('error', reject, { once: true });
+              });
+            }
+          } else {
+            // Keep site macros, delimiters and startup hooks when supplied.
+            const options = math || {};
+            window.MathJax = {
+              ...options,
+              loader: {
+                ...options.loader,
+                load: Array.from(new Set(['ui/safe', ...(options.loader?.load || [])]))
+              },
+              startup: { typeset: false, ...options.startup },
+              tex: {
+                tags: 'ams',
+                useLabelIds: true,
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true,
+                ...options.tex
+              }
+            };
+            await new Promise((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = config.url;
+              script.id = 'MathJax-script';
+              script.async = true;
+              script.onload = resolve;
+              script.onerror = reject;
+              document.head.appendChild(script);
+            });
+          }
+        }
+        math = window.MathJax;
+        await math.startup.promise;
+        return math;
+      })();
+    }
+    const math = await loading;
+    // A site owner can extend the v3 queue again on each navigation.
+    await math.startup.promise;
+    return math;
+  };
+
+  const unrendered = node => {
+    if (node.matches('mjx-container')) return [];
+    if (!node.querySelector('mjx-container')) return [node];
+    // In v3, scanning generated assistive MathML again produces nested output.
+    return Array.from(node.children).flatMap(unrendered);
+  };
+
+  const refresh = () => {
+    // A separate chain also serializes v3, without changing v4's startup promise.
+    queue = queue.then(async () => {
+      const notebooks = Array.from(document.querySelectorAll('.jupyter-wrapper'));
+      if (!notebooks.length && !previous.length) return;
+      if (notebooks.length === previous.length &&
+          notebooks.every((node, index) => node === previous[index])) return;
+      const math = await ready();
+      if (previous.length) {
+        math.typesetClear(previous);
+        math.texReset();
+      }
+      previous = notebooks.filter(node => node.isConnected);
+      const pending = previous.flatMap(unrendered);
+      if (pending.length) await math.typesetPromise(pending);
+    }).catch(error => console.error('mkdocs-jupyter: MathJax rendering failed', error));
+    return queue;
+  };
+
+  window.mkdocsJupyterMathJax = { refresh };
+  const start = () => {
+    if (typeof document$ !== 'undefined') document$.subscribe(refresh);
+    else refresh();
+  };
+  // Theme bundles and user-provided MathJax scripts can follow notebook content.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else start();
+})();
+
+</script>
+</body>
+</html>
