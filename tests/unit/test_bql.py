@@ -6,6 +6,7 @@ Bloomberg sends a BQL answer as one JSON string; `bql_answer` builds that string
 import json
 import logging
 
+import polars as pl
 import pytest
 from support import DATA_DIR, answer, fake_bq
 
@@ -71,3 +72,28 @@ def test_bql_syntax_error_returns_empty_result_and_logs(caplog):
 
     assert len(result) == 0
     assert "Unable to parse request" in caplog.text
+
+
+def test_bql_secondary_column_without_type_is_string():
+    item = bql_item(["IBM US Equity"], [150.0], "DOUBLE")
+    item["secondaryColumns"] = [{"name": "CURRENCY", "values": ["USD"]}]
+    bq = fake_bq([bql_answer({"px_last": item})])
+
+    result = bq.bql("get(px_last) for(['IBM US Equity'])")
+
+    assert result[0].schema["CURRENCY"] == pl.String
+    assert result[0]["CURRENCY"].to_list() == ["USD"]
+
+
+def test_bql_item_with_null_columns_does_not_crash():
+    items = {
+        "skipped": None,
+        "px_last": {"idColumn": None, "valuesColumn": None, "secondaryColumns": None},
+    }
+    bq = fake_bq([bql_answer(items)])
+
+    result = bq.bql("get(px_last) for(['IBM US Equity'])")
+
+    assert result.names == ["px_last"]
+    assert result[0].columns == ["ID", "px_last"]
+    assert result[0].height == 0

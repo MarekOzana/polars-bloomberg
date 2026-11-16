@@ -1418,20 +1418,24 @@ class BQuery:
         """Convert a single BQL results dictionary into a list[SITable]."""
         tables: list[SITable] = []
         for field, content in results.items():
-            data = {}
-            schema_str = {}
-
-            data["ID"] = content.get("idColumn", {}).get("values", [])
-            data[field] = content.get("valuesColumn", {}).get("values", [])
-
-            schema_str["ID"] = content.get("idColumn", {}).get("type", "STRING")
-            schema_str[field] = content.get("valuesColumn", {}).get("type", "STRING")
+            if content is None:
+                continue
+            id_column = content.get("idColumn") or {}
+            values_column = content.get("valuesColumn") or {}
+            data = {
+                "ID": id_column.get("values") or [],
+                field: values_column.get("values") or [],
+            }
+            schema_str = {
+                "ID": id_column.get("type") or "STRING",
+                field: values_column.get("type") or "STRING",
+            }
 
             # Process secondary columns
-            for sec_col in content.get("secondaryColumns", []):
+            for sec_col in content.get("secondaryColumns") or []:
                 name = sec_col.get("name", "")
-                data[name] = sec_col.get("values", [])
-                schema_str[name] = sec_col.get("type", str)
+                data[name] = sec_col.get("values") or []
+                schema_str[name] = sec_col.get("type") or "STRING"
             schema = self._map_types(schema_str)
             tables.append(SITable(name=field, data=data, schema=schema))
 
