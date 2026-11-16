@@ -5,9 +5,22 @@ import polars as pl
 import pytest
 from support import answer, fake_bq, replay
 
-from polars_bloomberg import BQuery
+from polars_bloomberg import BloombergError, BQuery
 
 pytestmark = pytest.mark.no_bbg
+
+
+def grid(titles, *records, **extra):
+    """A GridResponse payload as Bloomberg sends it (live check L8)."""
+    return {
+        "NumOfFields": len(titles),
+        "NumOfRecords": len(records),
+        "ColumnTitles": titles,
+        "DataRecords": [{"DataFields": list(fields)} for fields in records],
+        "ReachMax": False,
+        "SequenceNumber": 0,
+        **extra,
+    }
 
 
 class TestBsrch:
@@ -44,47 +57,23 @@ class TestBsrch:
     def test_parse_bsrch_responses_success(self):
         bq = BQuery()
         responses = [
-            {
-                "GridResponse": {
-                    "ColumnTitles": ["Ticker", "PX_LAST", "COUNT"],
-                    "DataRecords": [
-                        {
-                            "DataFields": [
-                                {"Ticker": "IBM US Equity"},
-                                {"DoubleData": 125.3},
-                                {"Int32Data": 5},
-                            ]
-                        },
-                        {
-                            "DataFields": [
-                                {"Ticker": "MSFT US Equity"},
-                                {"DoubleValue": 402.1},
-                                {"Int32Value": 4},
-                            ]
-                        },
-                    ],
-                    "ReachMax": False,
-                }
-            }
+            grid(
+                ["Ticker", "PX_LAST"],
+                [{"StringValue": "IBM US Equity"}, {"DoubleValue": 125.3}],
+                [{"StringValue": "MSFT US Equity"}, {"DoubleValue": 402.1}],
+            )
         ]
 
-        rows = bq._parse_bsrch_responses(responses)
+        rows, columns = bq._parse_bsrch_responses(responses)
         assert rows == [
-            {"Ticker": "IBM US Equity", "PX_LAST": 125.3, "COUNT": 5},
-            {"Ticker": "MSFT US Equity", "PX_LAST": 402.1, "COUNT": 4},
+            {"Ticker": "IBM US Equity", "PX_LAST": 125.3},
+            {"Ticker": "MSFT US Equity", "PX_LAST": 402.1},
         ]
+        assert columns == ["Ticker", "PX_LAST"]
 
     def test_parse_bsrch_responses_error(self):
         bq = BQuery()
-        responses = [
-            {
-                "GridResponse": {
-                    "Error": "Invalid domain",
-                    "NumOfRecords": 0,
-                    "DataRecords": [],
-                }
-            }
-        ]
+        responses = [grid([], Error="Invalid domain")]
 
         with pytest.raises(ValueError, match="BSRCH error: Invalid domain"):
             bq._parse_bsrch_responses(responses)
@@ -92,17 +81,11 @@ class TestBsrch:
     def test_parse_bsrch_responses_reachmax(self, caplog):
         bq = BQuery()
         responses = [
-            {
-                "GridResponse": {
-                    "ColumnTitles": ["Ticker"],
-                    "DataRecords": [{"DataFields": [{"StringData": "AAPL US Equity"}]}],
-                    "ReachMax": True,
-                }
-            }
+            grid(["Ticker"], [{"StringValue": "AAPL US Equity"}], ReachMax=True)
         ]
 
         with caplog.at_level("WARNING"):
-            rows = bq._parse_bsrch_responses(responses)
+            rows, _ = bq._parse_bsrch_responses(responses)
 
         assert rows == [{"Ticker": "AAPL US Equity"}]
         assert any("reached internal limit" in rec.message for rec in caplog.records)
@@ -110,37 +93,28 @@ class TestBsrch:
     def test_parse_bsrch_responses_coerces_numeric_whitespace(self):
         bq = BQuery()
         responses = [
-            {
-                "GridResponse": {
-                    "ColumnTitles": ["Ticker", "PX_LAST", "COUNT"],
-                    "DataRecords": [
-                        {
-                            "DataFields": [
-                                {"StringValue": "IBM US Equity"},
-                                {"DoubleValue": 125.3},
-                                {"StringValue": " "},
-                            ]
-                        },
-                        {
-                            "DataFields": [
-                                {"StringValue": "MSFT US Equity"},
-                                {"StringValue": ""},
-                                {"IntValue": 4},
-                            ]
-                        },
-                    ],
-                    "ReachMax": False,
-                }
-            }
+            grid(
+                ["Ticker", "PX_LAST", "COUNT"],
+                [
+                    {"StringValue": "IBM US Equity"},
+                    {"DoubleValue": 125.3},
+                    {"StringValue": " "},
+                ],
+                [
+                    {"StringValue": "MSFT US Equity"},
+                    {"StringValue": ""},
+                    {"DoubleValue": 4.0},
+                ],
+            )
         ]
 
-        rows = bq._parse_bsrch_responses(responses)
+        rows, _ = bq._parse_bsrch_responses(responses)
         df = pl.DataFrame(rows, infer_schema_length=None, strict=False)
 
         assert df.schema["PX_LAST"] == pl.Float64
-        assert df.schema["COUNT"] == pl.Int64
+        assert df.schema["COUNT"] == pl.Float64
         assert df["PX_LAST"].to_list() == [125.3, None]
-        assert df["COUNT"].to_list() == [None, 4]
+        assert df["COUNT"].to_list() == [None, 4.0]
 
     def test_create_bsrch_request_with_options(self):
         bq = BQuery()
@@ -157,22 +131,11 @@ class TestBsrch:
         request_mock.set.assert_any_call("Domain", "FI:SRCHEX.@CLOSUB")
         request_mock.set.assert_any_call("Foo", "Bar")
 
-    def test_parse_bsrch_root_payload_and_empty(self):
+    def test_parse_bsrch_skips_a_payload_that_is_not_a_grid(self):
         bq = BQuery()
-        responses = [
-            {
-                "NumOfFields": 1,
-                "NumOfRecords": 1,
-                "ColumnTitles": ["Ticker"],
-                "DataRecords": [
-                    {"DataFields": [{"StringValue": "AAPL US Equity"}]}
-                ],
-                "ReachMax": False,
-            },
-            {},
-        ]
+        responses = [grid(["Ticker"], [{"StringValue": "AAPL US Equity"}]), {}]
 
-        rows = bq._parse_bsrch_responses(responses)
+        rows, _ = bq._parse_bsrch_responses(responses)
         assert rows == [{"Ticker": "AAPL US Equity"}]
 
     def test_bsrch_calls_components(self):
@@ -183,7 +146,9 @@ class TestBsrch:
         with (
             patch.object(bq, "_create_bsrch_request", return_value=mock_request),
             patch.object(bq, "_send_request", return_value=["raw_response"]),
-            patch.object(bq, "_parse_bsrch_responses", return_value=parsed_rows),
+            patch.object(
+                bq, "_parse_bsrch_responses", return_value=(parsed_rows, ["Ticker"])
+            ),
         ):
             df = bq.bsrch("FI:SRCHEX.@CLOSUB", overrides={"LIMIT": 10000})
 
@@ -211,16 +176,12 @@ class TestBsrch:
         bq._coerce_bsrch_numeric_columns(rows)
         assert rows == []
 
-    def test_extract_bsrch_field_value_variants(self):
+    def test_extract_bsrch_field_value_reads_string_and_double_values(self):
         bq = BQuery()
 
+        assert bq._extract_bsrch_field_value({"StringValue": "A Corp"}) == "A Corp"
+        assert bq._extract_bsrch_field_value({"DoubleValue": 1.5}) == 1.5
         assert bq._extract_bsrch_field_value("raw") == "raw"
-        assert bq._extract_bsrch_field_value({"DoubleValue": "bad"}) == "bad"
-        assert bq._extract_bsrch_field_value({"IntValue": "bad"}) == "bad"
-        assert (
-            bq._extract_bsrch_field_value({"DateValue": "2024-01-01"})
-            == "2024-01-01"
-        )
         unknown = {"Unknown": "x"}
         assert bq._extract_bsrch_field_value(unknown) == unknown
 
@@ -229,15 +190,12 @@ class TestBsrch:
 
 
 def test_bsrch_blank_cells_in_numeric_column_become_null():
-    grid = {
-        "ColumnTitles": ["Ticker", "Yield"],
-        "DataRecords": [
-            {"DataFields": [{"StringValue": "A Corp"}, {"DoubleValue": 1.5}]},
-            {"DataFields": [{"StringValue": "B Corp"}, {"StringValue": " "}]},
-        ],
-        "ReachMax": False,
-    }
-    bq = fake_bq([answer({"GridResponse": grid})])
+    payload = grid(
+        ["Ticker", "Yield"],
+        [{"StringValue": "A Corp"}, {"DoubleValue": 1.5}],
+        [{"StringValue": "B Corp"}, {"StringValue": " "}],
+    )
+    bq = fake_bq([answer(payload)])
 
     df = bq.bsrch("FI:SRCHEX.@COCO")
 
@@ -246,8 +204,7 @@ def test_bsrch_blank_cells_in_numeric_column_become_null():
 
 
 def test_bsrch_grid_error_raises_value_error():
-    grid = {"Error": "Invalid domain", "DataRecords": []}
-    bq = fake_bq([answer({"GridResponse": grid})])
+    bq = fake_bq([answer(grid([], Error="Invalid domain"))])
 
     with pytest.raises(ValueError, match="Invalid domain"):
         bq.bsrch("FI:NOT_A_SEARCH")
@@ -261,3 +218,70 @@ def test_bsrch_limit_given_as_pair_does_not_warn_about_the_limit(caplog):
 
     assert df.height == 2
     assert caplog.records == []
+
+
+def test_bsrch_empty_result_keeps_column_titles():
+    bq = fake_bq([answer(grid(["id", "Yield"]))])
+
+    df = bq.bsrch("FI:SRCHEX.@COCO")
+
+    assert df.columns == ["id", "Yield"]
+    assert df.height == 0
+
+
+def test_bsrch_duplicate_titles_get_a_suffix(caplog):
+    bq = fake_bq(
+        [answer(grid(["Name", "Name"], [{"StringValue": "A"}, {"StringValue": "B"}]))]
+    )
+
+    with caplog.at_level(logging.WARNING, logger="polars_bloomberg.plbbg"):
+        df = bq.bsrch("FI:SRCHEX.@COCO")
+
+    assert df.columns == ["Name", "Name_1"]
+    assert df.row(0) == ("A", "B")
+    assert "Name_1" in caplog.text
+
+
+def test_bsrch_error_next_to_rows_is_logged(caplog):
+    payload = grid(["id"], [{"StringValue": "A Corp"}], Error="Some rows missing")
+    bq = fake_bq([answer(payload)])
+
+    with caplog.at_level(logging.WARNING, logger="polars_bloomberg.plbbg"):
+        df = bq.bsrch("FI:SRCHEX.@COCO")
+
+    assert df["id"].to_list() == ["A Corp"]
+    assert "Some rows missing" in caplog.text
+
+
+def test_bsrch_column_missing_in_first_row_is_still_coerced():
+    payload = grid(
+        ["Name", "Score"],
+        [{"StringValue": "A"}],
+        [{"StringValue": "B"}, {"StringValue": " "}],
+        [{"StringValue": "C"}, {"DoubleValue": 1.5}],
+    )
+    bq = fake_bq([answer(payload)])
+
+    df = bq.bsrch("FI:SRCHEX.@COCO")
+
+    assert df.schema["Score"] == pl.Float64
+    assert df["Score"].to_list() == [None, None, 1.5]
+
+
+def test_bsrch_error_without_rows_raises_bloomberg_error():
+    payload = grid([], Error="Failed to build query")
+    bq = fake_bq([answer(payload)])
+
+    with pytest.raises(BloombergError, match="BSRCH error: Failed to build query"):
+        bq.bsrch("FI:NOT_A_SEARCH")
+
+
+def test_bsrch_unknown_value_key_is_logged_once(caplog):
+    payload = grid(["When"], [{"DateValue": "2024-01-02"}], [{"DateValue": "x"}])
+    bq = fake_bq([answer(payload)])
+
+    with caplog.at_level(logging.WARNING, logger="polars_bloomberg.plbbg"):
+        bq.bsrch("FI:SRCHEX.@COCO")
+
+    assert len(caplog.records) == 1
+    assert "DateValue" in caplog.text

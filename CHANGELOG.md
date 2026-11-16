@@ -71,6 +71,17 @@ All notable changes to polars-bloomberg are listed here.
 - BQL: an item whose DataFrame cannot be built raises `BloombergError` naming the
   item.
 
+- `bsrch`: a search without results keeps its columns instead of having none.
+- `bsrch`: a failed search raises `BloombergError` (still a `ValueError`). An error
+  that Bloomberg sends together with rows is logged as a warning; it used to be
+  dropped.
+- `bsrch`: a repeated column title gets a suffix (`Name`, `Name_1`) and a warning is
+  logged; the second column used to overwrite the first.
+- `bsrch`: the parser reads the answer as Bloomberg sends it (the grid at the top
+  level, values as `StringValue` or `DoubleValue`) and no longer guesses other
+  spellings. A value under any other key is kept as it is, and a warning names the
+  key.
+
 ### Fixed
 
 - After a `TimeoutError` or an interrupted call (for example "interrupt kernel" in a
@@ -94,3 +105,5 @@ All notable changes to polars-bloomberg are listed here.
 - BQL: `DATE` values with fractional seconds or without a time are parsed.
 - BQL: an item with a column that has no type, or with null parts, no longer
   crashes the query.
+- `bsrch`: blank cells become null in a numeric column also when the column is
+  missing from the first row.

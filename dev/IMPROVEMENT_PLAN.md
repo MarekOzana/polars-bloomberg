@@ -46,7 +46,7 @@ Do the steps of section 7 in order. Later steps use the test tools of earlier on
 - [x] Step 5: `bdp` and `bdh` results
 - [x] Step 6: inputs
 - [x] Step 7: BQL
-- [ ] Step 8: `bsrch`
+- [x] Step 8: `bsrch`
 - [ ] Step 9: clean-up
 - [ ] Step 10: tooling and CI
 - [ ] Step 11: documentation

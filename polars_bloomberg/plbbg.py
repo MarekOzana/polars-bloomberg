@@ -168,6 +168,23 @@ def _check_key_columns(fields: list[str], keys: tuple[str, ...]) -> None:
         raise ValueError(f"{names} cannot be requested as fields")
 
 
+# --- bsrch ---
+
+
+def _unique_titles(titles: list[str]) -> list[str]:
+    """Give each repeat of an earlier title a suffix (Name, Name_1, ...) and log it."""
+    unique: list[str] = []
+    for title in titles:
+        candidate, n = title, 0
+        while candidate in unique:
+            n += 1
+            candidate = f"{title}_{n}"
+        if candidate != title:
+            logger.warning("BSRCH column %r repeated; renamed %r.", title, candidate)
+        unique.append(candidate)
+    return unique
+
+
 # --- BQL values ---
 
 
@@ -988,9 +1005,12 @@ class BQuery:
 
         Returns:
             pl.DataFrame with one row per search record and columns from the grid.
+                A search without results keeps its columns. A repeated column title
+                gets a suffix (``Name``, ``Name_1``) and a warning is logged.
 
         Raises:
-            ValueError: When Bloomberg returns an error string in GridResponse.
+            BloombergError: When Bloomberg returns an error and no rows (a subclass
+                of ValueError). An error that comes with rows is logged instead.
             TimeoutError/ConnectionError: As surfaced by the session helpers.
 
         Example:
@@ -1023,8 +1043,12 @@ class BQuery:
         request = self._create_bsrch_request(domain, overrides, options)
         responses = self._send_request(request)
         limit_applied = any(name == "LIMIT" for name, _ in _override_items(overrides))
-        rows = self._parse_bsrch_responses(responses, limit_applied=limit_applied)
-        return pl.DataFrame(rows, infer_schema_length=None, strict=False)
+        rows, columns = self._parse_bsrch_responses(
+            responses, limit_applied=limit_applied
+        )
+        return pl.DataFrame(
+            rows, schema=columns or None, infer_schema_length=None, strict=False
+        )
 
     def _create_request(
         self,
@@ -1253,106 +1277,72 @@ class BQuery:
 
     def _parse_bsrch_responses(
         self, responses: list[dict], *, limit_applied: bool = False
-    ) -> list[dict]:
-        """Parse GridResponse payloads from ExcelGetGridRequest."""
+    ) -> tuple[list[dict], list[str]]:
+        """Parse the grids that ExcelGetGridRequest returns; one per message.
+
+        Each payload is the grid itself (live check L8): ColumnTitles, DataRecords,
+        ReachMax and, when the search fails, Error. Returns the rows and the column
+        names used: the titles, plus any col_<n> invented for an untitled field.
+        """
         rows: list[dict[str, Any]] = []
+        titles: list[str] = []
         errors: list[str] = []
         reach_max = False
-        column_titles: list[str] | None = None
 
-        for response in responses:
-            grid = response.get("GridResponse", {})
-            if not grid and any(
-                key in response for key in ("NumOfFields", "NumOfRecords", "DataRecords")
-            ):
-                grid = response
-            if not grid:
-                continue
-
-            column_titles = grid.get("ColumnTitles") or column_titles
+        for grid in responses:
+            if not isinstance(grid, dict) or "DataRecords" not in grid:
+                continue  # not a grid
+            titles = _unique_titles(grid.get("ColumnTitles") or []) or titles
             reach_max = reach_max or bool(grid.get("ReachMax"))
-            data_records = grid.get("DataRecords", []) or []
-            error_text = grid.get("Error")
-            if error_text and not data_records:
-                errors.append(error_text)
-                continue
+            if grid.get("Error"):
+                errors.append(grid["Error"])
+            for record in grid["DataRecords"] or []:
+                fields = record.get("DataFields") or []
+                values = [self._extract_bsrch_field_value(field) for field in fields]
+                names = titles + [f"col_{i}" for i in range(len(titles), len(values))]
+                rows.append(dict(zip(names, values, strict=False)))
 
-            for record in data_records:
-                data_fields = record.get("DataFields", []) or []
-                row: dict[str, Any] = {}
-                for idx, field in enumerate(data_fields):
-                    value = self._extract_bsrch_field_value(field)
-                    col_name = (
-                        column_titles[idx]
-                        if column_titles and idx < len(column_titles)
-                        else f"col_{idx}"
-                    )
-                    row[col_name] = value
-                rows.append(row)
-
+        columns = list(dict.fromkeys([*titles, *(col for row in rows for col in row)]))
+        unknown_keys = {
+            key
+            for row in rows
+            for value in row.values()
+            if isinstance(value, dict)
+            for key in value
+        }
         if errors and not rows:
-            raise ValueError(f"BSRCH error: {errors[0]}")
-
+            raise BloombergError(f"BSRCH error: {errors[0]}")
+        if errors:
+            logger.warning("BSRCH returned rows and an error: %s", "; ".join(errors))
+        if unknown_keys:
+            logger.warning(
+                "BSRCH values with unknown keys %s are kept as they are.",
+                sorted(unknown_keys),
+            )
         if reach_max and not limit_applied:
             logger.warning(
                 "BSRCH response reached internal limit; consider using LIMIT override."
             )
 
-        if rows:
-            self._coerce_bsrch_numeric_columns(rows)
-
-        return rows
+        self._coerce_bsrch_numeric_columns(rows)
+        return rows, columns
 
     @staticmethod
-    def _extract_bsrch_field_value(field: Any) -> Any:  # noqa: PLR0911
-        """Extract typed value from a GridResponse DataField."""
-        if not isinstance(field, dict):
-            return field
+    def _extract_bsrch_field_value(field: Any) -> Any:
+        """Return the value of a DataFields entry; return other entries unchanged.
 
-        # Possible keys observed in GridResponse DataFields
-        key_order = [
-            "Ticker",
-            "StringValue",
-            "StringData",
-            "value",
-            "Value",
-            "DoubleData",
-            "DoubleValue",
-            "FloatValue",
-            "Int32Data",
-            "Int32Value",
-            "IntValue",
-            "LongValue",
-            "DateValue",
-            "TimeValue",
-            "DateTimeValue",
-        ]
-        for key in key_order:
-            if key in field:
-                val = field.get(key)
-                if key.startswith("Double") or key.startswith("Float"):
-                    try:
-                        return float(val)
-                    except (TypeError, ValueError):
-                        return val
-                if key.startswith("Int32") or key in {"IntValue", "LongValue"}:
-                    try:
-                        return int(val)
-                    except (TypeError, ValueError):
-                        return val
-                if key in {"DateValue", "TimeValue", "DateTimeValue"}:
-                    return val
-                return val
-        # If no known key found, return the dict itself
+        Bloomberg sends {"StringValue": ...} or {"DoubleValue": ...} (live check L8).
+        """
+        if isinstance(field, dict):
+            for key in ("StringValue", "DoubleValue"):
+                if key in field:
+                    return field[key]
         return field
 
     @staticmethod
     def _coerce_bsrch_numeric_columns(rows: list[dict[str, Any]]) -> None:
         """Convert empty/whitespace strings to None to allow numeric inference."""
-        if not rows:
-            return
-
-        cols = rows[0].keys()
+        cols = dict.fromkeys(col for row in rows for col in row)  # in order of first use
         for col in cols:
             values = [row.get(col) for row in rows]
             cleaned: list[Any] = []

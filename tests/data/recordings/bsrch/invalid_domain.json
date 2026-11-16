@@ -33,7 +33,7 @@
   }
  ],
  "expected": {
-  "raises": "ValueError",
+  "raises": "BloombergError",
   "message": "BSRCH error: Failed to build query, probably because of empty criteriaArray. Check logs. || TraceId : <trace>"
  }
 }
