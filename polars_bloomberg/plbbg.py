@@ -423,12 +423,30 @@ def _as_list(value: str | Sequence[str]) -> list[str]:
     return [value] if isinstance(value, str) else list(value)
 
 
-def _override_items(overrides: Mapping[str, Any] | Sequence | None) -> list[tuple]:
+def _yyyymmdd(value: date | str) -> str:
+    """Return a date as Bloomberg's YYYYMMDD; accept YYYYMMDD and ISO strings."""
+    if isinstance(value, str):
+        return value.replace("-", "")
+    return value.strftime("%Y%m%d")
+
+
+def _iso_datetime(value: datetime | date | str) -> str:
+    """Return Bloomberg's ISO 8601 text: a date is midnight, a str is sent as is."""
+    if isinstance(value, str):
+        return value
+    if not isinstance(value, datetime):  # a plain date means midnight
+        value = datetime.combine(value, time())
+    if value.tzinfo is None:
+        return value.strftime("%Y-%m-%dT%H:%M:%S")
+    return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _override_pairs(overrides: Mapping[str, Any] | Sequence | None) -> list[tuple]:
     """Return overrides as (name, value) pairs; accept a dict or a sequence of pairs."""
     if not overrides:
         return []
     pairs = overrides.items() if isinstance(overrides, Mapping) else overrides
-    items = []
+    checked = []
     for pair in pairs:
         if isinstance(pair, str) or len(pair) != 2:  # noqa: PLR2004
             raise TypeError(
@@ -438,16 +456,35 @@ def _override_items(overrides: Mapping[str, Any] | Sequence | None) -> list[tupl
         if value is None:
             raise TypeError(f"override {name!r} has no value")
         if isinstance(value, date):  # also covers datetime
-            value = value.strftime("%Y%m%d")
-        items.append((name, value))
-    return items
+            value = _yyyymmdd(value)
+        checked.append((name, value))
+    return checked
 
 
-def _format_date(value: date | str) -> str:
-    """Return a date as Bloomberg's YYYYMMDD; accept YYYYMMDD and ISO strings."""
-    if isinstance(value, str):
-        return value.replace("-", "")
-    return value.strftime("%Y%m%d")
+def _append_values(request: blpapi.Request, name: str, values: list[str]) -> None:
+    """Append each value to an array element of the request, e.g. "securities"."""
+    element = request.getElement(name)
+    for value in values:
+        element.appendValue(value)
+
+
+def _set_overrides(
+    request: blpapi.Request, overrides: Mapping[str, Any] | Sequence | None
+) -> None:
+    """Check the overrides and write them to a //blp/refdata request."""
+    if not overrides:
+        return
+    overrides_element = request.getElement("overrides")
+    for field_id, value in _override_pairs(overrides):
+        override = overrides_element.appendElement()
+        override.setElement("fieldId", field_id)
+        override.setElement("value", value)
+
+
+def _set_options(request: blpapi.Request, options: dict | None) -> None:
+    """Set each option as an element of the request, under Bloomberg's own name."""
+    for name, value in (options or {}).items():
+        request.set(name, value)
 
 
 def _check_key_columns(fields: list[str], keys: tuple[str, ...]) -> None:
@@ -503,6 +540,27 @@ def _convert_datetime(value: Any) -> datetime | None:
     if parsed.tzinfo is not None:
         parsed = parsed.astimezone(UTC).replace(tzinfo=None)
     return parsed
+
+
+def _set_bql_client_context(request: blpapi.Request) -> None:
+    """Say that the query comes from Excel, as Bloomberg's own Excel add-in does."""
+    # BLPAPI requires setting sub-elements on the sequence element.
+    try:
+        client_context = request.getElement("clientContext")
+        client_context.setElement("appName", "EXCEL")
+    except blpapi.NotFoundException:
+        logger.debug("BQL request has no 'clientContext' element in this SDK/schema.")
+
+
+def _set_bsrch_overrides(request: blpapi.Request, overrides: list[tuple]) -> None:
+    """Write (name, value) pairs to an ExcelGetGridRequest, which takes them as text."""
+    if not overrides:
+        return
+    overrides_element = request.getElement("Overrides")
+    for name, value in overrides:
+        override = overrides_element.appendElement()
+        override.setElement("name", str(name))
+        override.setElement("value", str(value))
 
 
 class BQuery:
@@ -641,18 +699,18 @@ class BQuery:
     ) -> None:
         self.stop()
 
-    def _get_service(self, name: str) -> blpapi.Service:
-        """Return a service, opening it the first time it is needed."""
+    def _create_request(self, service_name: str, operation: str) -> blpapi.Request:
+        """Return an empty request, opening its service the first time it is needed."""
         if self.session is None:
             raise ConnectionError(
                 "Bloomberg session is not started. "
                 "Use 'with BQuery() as bq:' or call bq.start()."
             )
-        if name not in self._open_services:
-            if not self.session.openService(name):
-                raise ConnectionError(f"Failed to open service {name}.")
-            self._open_services.add(name)
-        return self.session.getService(name)
+        if service_name not in self._open_services:
+            if not self.session.openService(service_name):
+                raise ConnectionError(f"Failed to open service {service_name}.")
+            self._open_services.add(service_name)
+        return self.session.getService(service_name).createRequest(operation)
 
     def _send_request(self, request: blpapi.Request) -> list[Any]:
         """Send a request and return the payloads (``msg.toPy()``) of its responses."""
@@ -780,49 +838,17 @@ class BQuery:
         securities = _as_list(securities)
         fields = _as_list(fields)
         _check_key_columns(fields, ("security",))
-        request = self._create_request(
-            "ReferenceDataRequest", securities, fields, overrides, options
-        )
+
+        request = self._create_request("//blp/refdata", "ReferenceDataRequest")
+        _append_values(request, "securities", securities)
+        _append_values(request, "fields", fields)
+        _set_overrides(request, overrides)
+        _set_options(request, options)
+
         responses = self._send_request(request)
         data = self._parse_bdp_responses(responses, fields)
         schema = {"security": pl.String, **dict.fromkeys(fields)}
         return pl.DataFrame(data, schema=schema, infer_schema_length=None)
-
-    def _create_request(
-        self,
-        request_type: str,
-        securities: list[str],
-        fields: list[str],
-        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
-        options: dict | None = None,
-    ) -> blpapi.Request:
-        """Create a ReferenceDataRequest (bdp) or HistoricalDataRequest (bdh).
-
-        Both take securities, fields, overrides and options the same way.
-        """
-        service = self._get_service("//blp/refdata")
-        request = service.createRequest(request_type)
-
-        securities_element = request.getElement("securities")
-        for security in securities:
-            securities_element.appendValue(security)
-
-        fields_element = request.getElement("fields")
-        for field in fields:
-            fields_element.appendValue(field)
-
-        if overrides:
-            overrides_element = request.getElement("overrides")
-            for field_id, value in _override_items(overrides):
-                override_element = overrides_element.appendElement()
-                override_element.setElement("fieldId", field_id)
-                override_element.setElement("value", value)
-
-        if options:
-            for key, value in options.items():
-                request.set(key, value)
-
-        return request
 
     def _parse_bdp_responses(
         self, responses: list[dict], fields: list[str]
@@ -924,11 +950,15 @@ class BQuery:
         securities = _as_list(securities)
         fields = _as_list(fields)
         _check_key_columns(fields, ("security", "date"))
-        request = self._create_request(
-            "HistoricalDataRequest", securities, fields, overrides, options
-        )
-        request.set("startDate", _format_date(start_date))
-        request.set("endDate", _format_date(end_date))
+
+        request = self._create_request("//blp/refdata", "HistoricalDataRequest")
+        _append_values(request, "securities", securities)
+        _append_values(request, "fields", fields)
+        _set_overrides(request, overrides)
+        _set_options(request, options)
+        request.set("startDate", _yyyymmdd(start_date))
+        request.set("endDate", _yyyymmdd(end_date))
+
         responses = self._send_request(request)
         data = self._parse_bdh_responses(responses, fields)
         schema = {
@@ -1037,15 +1067,15 @@ class BQuery:
             ```
 
         """  # noqa: E501
-        request = self._create_intraday_bar_request(
-            security=security,
-            event_type=event_type,
-            interval=interval,
-            start_datetime=start_datetime,
-            end_datetime=end_datetime,
-            overrides=overrides,
-            options=options,
-        )
+        request = self._create_request("//blp/refdata", "IntradayBarRequest")
+        request.set("security", security)
+        request.set("eventType", event_type)
+        request.set("interval", interval)
+        request.set("startDateTime", _iso_datetime(start_datetime))
+        request.set("endDateTime", _iso_datetime(end_datetime))
+        _set_overrides(request, overrides)
+        _set_options(request, options)
+
         responses = self._send_request(request)
         data = self._parse_bdib_responses(responses, fallback_security=security)
         schema = {
@@ -1061,49 +1091,6 @@ class BQuery:
         }
         df = pl.DataFrame(data, schema=schema, strict=False, infer_schema_length=None)
         return df.sort(["security", "time"]) if not df.is_empty() else df
-
-    def _create_intraday_bar_request(  # noqa: PLR0913
-        self,
-        security: str,
-        event_type: str,
-        interval: int,
-        start_datetime: datetime | date | str,
-        end_datetime: datetime | date | str,
-        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None,
-        options: dict | None,
-    ) -> blpapi.Request:
-        """Create an IntradayBarRequest with overrides and options support."""
-        service = self._get_service("//blp/refdata")
-        request = service.createRequest("IntradayBarRequest")
-        request.set("security", security)
-        request.set("eventType", event_type)
-        request.set("interval", interval)
-        request.set("startDateTime", self._format_datetime(start_datetime))
-        request.set("endDateTime", self._format_datetime(end_datetime))
-
-        if overrides:
-            overrides_element = request.getElement("overrides")
-            for field_id, value in _override_items(overrides):
-                override_element = overrides_element.appendElement()
-                override_element.setElement("fieldId", field_id)
-                override_element.setElement("value", value)
-
-        if options:
-            for key, value in options.items():
-                request.set(key, value)
-
-        return request
-
-    @staticmethod
-    def _format_datetime(value: datetime | date | str) -> str:
-        """Return Bloomberg's ISO 8601 text: a date is midnight, a str is sent as is."""
-        if isinstance(value, str):
-            return value
-        if not isinstance(value, datetime):  # a plain date means midnight
-            value = datetime.combine(value, time())
-        if value.tzinfo is None:
-            return value.strftime("%Y-%m-%dT%H:%M:%S")
-        return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def _parse_bdib_responses(
         self, responses: list[dict], fallback_security: str | None = None
@@ -1215,7 +1202,10 @@ class BQuery:
             ```
 
         """  # noqa: E501
-        request = self._create_bql_request(expression)
+        request = self._create_request("//blp/bqlsvc", "sendQuery")
+        request.set("expression", expression)
+        _set_bql_client_context(request)
+
         responses = self._send_request(request)
         tables, errors = self._parse_bql_responses(responses)
         dataframes = []
@@ -1229,22 +1219,6 @@ class BQuery:
             dataframes.append(df)
         names = [table.name for table in tables]
         return BqlResult(dataframes, names, errors)
-
-    def _create_bql_request(self, expression: str) -> blpapi.Request:
-        """Create a BQL request."""
-        service = self._get_service("//blp/bqlsvc")
-        request = service.createRequest("sendQuery")
-        request.set("expression", expression)
-        # BLPAPI requires setting sub-elements on the sequence element.
-        try:
-            ctx = request.getElement("clientContext")
-            ctx.setElement("appName", "EXCEL")
-        except blpapi.NotFoundException:
-            logger.debug(
-                "BQL request has no 'clientContext' element in this SDK/schema."
-            )
-
-        return request
 
     def _parse_bql_responses(
         self, responses: list[Any]
@@ -1435,8 +1409,13 @@ class BQuery:
             ```
 
         """
-        overrides = _override_items(overrides)  # (name, value) pairs
-        request = self._create_bsrch_request(domain, overrides, options)
+        overrides = _override_pairs(overrides)
+
+        request = self._create_request("//blp/exrsvc", "ExcelGetGridRequest")
+        request.set("Domain", domain)
+        _set_bsrch_overrides(request, overrides)
+        _set_options(request, options)
+
         responses = self._send_request(request)
         rows, columns = self._parse_bsrch_responses(
             responses, limit_applied="LIMIT" in dict(overrides)
@@ -1444,30 +1423,6 @@ class BQuery:
         return pl.DataFrame(
             rows, schema=columns or None, infer_schema_length=None, strict=False
         )
-
-    def _create_bsrch_request(
-        self,
-        domain: str,
-        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
-        options: dict | None = None,
-    ) -> blpapi.Request:
-        """Create an ExcelGetGridRequest for BSRCH on //blp/exrsvc."""
-        service = self._get_service("//blp/exrsvc")
-        request = service.createRequest("ExcelGetGridRequest")
-        request.set("Domain", domain)
-
-        if overrides:
-            overrides_element = request.getElement("Overrides")
-            for name, value in _override_items(overrides):
-                override = overrides_element.appendElement()
-                override.setElement("name", str(name))
-                override.setElement("value", str(value))
-
-        if options:
-            for key, value in options.items():
-                request.set(key, value)
-
-        return request
 
     def _parse_bsrch_responses(
         self, responses: list[dict], *, limit_applied: bool = False

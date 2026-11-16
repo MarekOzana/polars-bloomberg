@@ -1,10 +1,6 @@
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 import pytest
-
-from polars_bloomberg import BQuery
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -22,11 +18,3 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list) -> None:
     for item in items:
         if "requires_bbg" in item.keywords:
             item.add_marker(skip)
-
-
-@pytest.fixture()
-def bq() -> BQuery:
-    """Return a BQuery instance with a mocked session for unit tests."""
-    bq_instance = BQuery()
-    bq_instance.session = MagicMock()
-    return bq_instance

@@ -7,8 +7,6 @@ import blpapi
 import pytest
 from support import answer, fake_bq
 
-from polars_bloomberg import BQuery
-
 pytestmark = pytest.mark.no_bbg
 
 
@@ -229,42 +227,42 @@ def test_bdib_request_with_aware_datetimes_sends_them_in_utc():
     assert request["endDateTime"] == datetime(2024, 1, 2, 12, 0, tzinfo=UTC)
 
 
-# --- bql: the bqlsvc schema is not available offline ---
+# --- bql: no offline schema for //blp/bqlsvc, so the service is a stand-in ---
 
 
-def test_create_bql_request_sets_client_context(bq: BQuery):
-    session_mock = MagicMock()
-    service_mock = MagicMock()
-    request_mock = MagicMock()
-    client_context_mock = MagicMock()
+def bql_on_stand_in_service(expression, request):
+    """Run bql() on a fake session whose BQL service hands out `request`."""
+    bq = fake_bq([answer("{}")])  # an empty BQL answer
+    service = MagicMock()
+    service.createRequest.return_value = request
+    bq.session.getService = MagicMock(return_value=service)
 
-    session_mock.getService.return_value = service_mock
-    service_mock.createRequest.return_value = request_mock
-    request_mock.getElement.return_value = client_context_mock
-    bq.session = session_mock
+    bq.bql(expression)
 
+    bq.session.getService.assert_called_once_with("//blp/bqlsvc")
+    service.createRequest.assert_called_once_with("sendQuery")
+    return bq
+
+
+def test_bql_request_sets_expression_and_client_context():
+    request = MagicMock()
+    client_context = request.getElement.return_value
     expression = "get(px_last) for(['AAPL US Equity'])"
-    result = bq._create_bql_request(expression)
 
-    session_mock.getService.assert_called_once_with("//blp/bqlsvc")
-    service_mock.createRequest.assert_called_once_with("sendQuery")
-    request_mock.set.assert_called_once_with("expression", expression)
-    client_context_mock.setElement.assert_called_once_with("appName", "EXCEL")
-    assert result is request_mock
+    bq = bql_on_stand_in_service(expression, request)
+
+    request.set.assert_called_once_with("expression", expression)
+    request.getElement.assert_called_once_with("clientContext")
+    client_context.setElement.assert_called_once_with("appName", "EXCEL")
+    assert bq.session.sent == [request]
 
 
-def test_create_bql_request_missing_client_context(bq: BQuery):
-    session_mock = MagicMock()
-    service_mock = MagicMock()
-    request_mock = MagicMock()
-
-    session_mock.getService.return_value = service_mock
-    service_mock.createRequest.return_value = request_mock
-    request_mock.getElement.side_effect = blpapi.NotFoundException(0, "missing")
-    bq.session = session_mock
-
+def test_bql_request_without_client_context_element_is_still_sent():
+    request = MagicMock()
+    request.getElement.side_effect = blpapi.NotFoundException(0, "missing")
     expression = "get(px_last) for(['AAPL US Equity'])"
-    result = bq._create_bql_request(expression)
 
-    request_mock.set.assert_called_once_with("expression", expression)
-    assert result is request_mock
+    bq = bql_on_stand_in_service(expression, request)
+
+    request.set.assert_called_once_with("expression", expression)
+    assert bq.session.sent == [request]
