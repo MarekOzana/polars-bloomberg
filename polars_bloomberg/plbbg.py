@@ -1407,15 +1407,17 @@ class BQuery:
         """
         extracted = []
         errors = []
-        for response in responses:
-            resp_dict = response
-            if isinstance(response, str):
-                try:
-                    resp_dict = json.loads(response)
-                except json.JSONDecodeError as e:
-                    errors.append(f"Failed to decode JSON: {e}")
-                    continue
+        # Bloomberg splits a large BQL answer over several messages, each a fragment
+        # of one JSON text (live check L7), so the strings are joined before parsing.
+        payloads = [response for response in responses if not isinstance(response, str)]
+        text = "".join(response for response in responses if isinstance(response, str))
+        if text:
+            try:
+                payloads.append(json.loads(text))
+            except json.JSONDecodeError as e:
+                errors.append(f"Failed to decode JSON: {e}")
 
+        for resp_dict in payloads:
             # Skip non-dict responses (e.g., connection metadata)
             if not isinstance(resp_dict, dict):
                 continue

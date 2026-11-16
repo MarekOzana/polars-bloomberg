@@ -7,9 +7,10 @@ import json
 import logging
 from datetime import date
 
+import blpapi
 import polars as pl
 import pytest
-from support import DATA_DIR, answer, fake_bq, replay
+from support import DATA_DIR, FakeEvent, FakeMessage, answer, fake_bq, replay
 
 from polars_bloomberg import BloombergError
 
@@ -187,3 +188,22 @@ def test_bql_item_named_id_keeps_the_id_column():
 
     assert result[0].columns == ["ID", "ID_1"]
     assert result[0].row(0) == ("IBM US Equity", "IBM US Equity")
+
+
+def test_bql_answer_split_over_several_messages_is_joined():
+    items = {"px_last": bql_item(["A", "B", "C"], [1.5, 2.5, 3.5], "DOUBLE")}
+    text = json.dumps({"results": items, "responseExceptions": None})
+    third = len(text) // 3
+    pieces = [text[:third], text[third : 2 * third], text[2 * third :]]
+    bq = fake_bq(
+        [
+            FakeEvent(blpapi.Event.PARTIAL_RESPONSE, [FakeMessage(pieces[0])]),
+            FakeEvent(blpapi.Event.PARTIAL_RESPONSE, [FakeMessage(pieces[1])]),
+            FakeEvent(blpapi.Event.RESPONSE, [FakeMessage(pieces[2])]),
+        ]
+    )
+
+    result = bq.bql("get(px_last) for(['A', 'B', 'C'])")
+
+    assert result.errors == []
+    assert result[0]["px_last"].to_list() == [1.5, 2.5, 3.5]
