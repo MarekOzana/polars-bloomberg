@@ -15,6 +15,13 @@ All notable changes to polars-bloomberg are listed here.
 - `debug=` also accepts a directory: `BQuery(debug="dumps")`. `debug=True` still
   writes to `debug_cases/` in the working directory.
 
+- `bdp` and `bdh` accept a single security or field as a string:
+  `bq.bdp("IBM US Equity", "NAME")`.
+- Overrides can be a dict or a sequence of (name, value) pairs in `bdp`, `bdh`,
+  `bdib` and `bsrch` alike.
+- `bdh` accepts its dates also as `YYYYMMDD` or `YYYY-MM-DD` strings, and `bdib` its
+  start and end also as a `date` (midnight).
+
 ### Changed
 
 - New debug dump format: one JSON file per request, named after the request type,
@@ -45,6 +52,14 @@ All notable changes to polars-bloomberg are listed here.
   unchanged: an invalid security is still a null row in `bdp` and has no rows in
   `bdh`; an invalid field is still a column of nulls.
 
+- A `date` (or `datetime`) override value is sent as `YYYYMMDD`. Bloomberg silently
+  ignores an override date in another format.
+- An override value of `None` raises `TypeError`; it used to be sent as the text
+  `"None"`. Overrides that are neither a dict nor (name, value) pairs raise
+  `TypeError` too.
+- `bdp` raises `ValueError` when `security` is requested as a field, and `bdh` when
+  `security` or `date` is; such a field used to overwrite the key column.
+
 ### Fixed
 
 - After a `TimeoutError` or an interrupted call (for example "interrupt kernel" in a
@@ -54,3 +69,9 @@ All notable changes to polars-bloomberg are listed here.
 - Session and service status messages are no longer collected as part of an answer.
 - `bdp` no longer fails with a Polars `ComputeError` when a field's first value comes
   after the first 100 securities.
+- A bare string for `securities` or `fields` is no longer sent one character at a
+  time.
+- Overrides given as one pair without the enclosing list, such as `("AB", "CD")`, are
+  no longer sent as the overrides `A=B` and `C=D`.
+- `bsrch` with a `LIMIT` given as a (name, value) pair no longer crashes.
+- `bdib` with a `date` instead of a `datetime` no longer crashes.

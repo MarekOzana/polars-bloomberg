@@ -1,8 +1,9 @@
+import logging
 from unittest.mock import MagicMock, patch
 
 import polars as pl
 import pytest
-from support import answer, fake_bq
+from support import answer, fake_bq, replay
 
 from polars_bloomberg import BQuery
 
@@ -250,3 +251,13 @@ def test_bsrch_grid_error_raises_value_error():
 
     with pytest.raises(ValueError, match="Invalid domain"):
         bq.bsrch("FI:NOT_A_SEARCH")
+
+
+def test_bsrch_limit_given_as_pair_does_not_warn_about_the_limit(caplog):
+    bq, _ = replay("bsrch/coco_limit_2")
+
+    with caplog.at_level(logging.WARNING, logger="polars_bloomberg.plbbg"):
+        df = bq.bsrch("FI:SRCHEX.@COCO", [("LIMIT", 2)])
+
+    assert df.height == 2
+    assert caplog.records == []

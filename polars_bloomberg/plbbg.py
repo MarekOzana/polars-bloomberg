@@ -33,7 +33,7 @@ with BQuery() as bq:
 import json
 import logging
 import os
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time
 from typing import Any
@@ -123,6 +123,48 @@ def _warn_item_errors(lines: list[str]) -> None:
     logger.warning(
         "Bloomberg reported %d error(s):\n  %s", len(lines), "\n  ".join(shown)
     )
+
+
+# --- inputs ---
+
+
+def _as_list(value: str | Sequence[str]) -> list[str]:
+    """Accept one name or several."""
+    return [value] if isinstance(value, str) else list(value)
+
+
+def _override_items(overrides: Mapping[str, Any] | Sequence | None) -> list[tuple]:
+    """Return overrides as (name, value) pairs; accept a dict or a sequence of pairs."""
+    if not overrides:
+        return []
+    pairs = overrides.items() if isinstance(overrides, Mapping) else overrides
+    items = []
+    for pair in pairs:
+        if isinstance(pair, str) or len(pair) != 2:  # noqa: PLR2004
+            raise TypeError(
+                "overrides must be a dict or a sequence of (name, value) pairs"
+            )
+        name, value = pair
+        if value is None:
+            raise TypeError(f"override {name!r} has no value")
+        if isinstance(value, date):  # also covers datetime
+            value = value.strftime("%Y%m%d")
+        items.append((name, value))
+    return items
+
+
+def _format_date(value: date | str) -> str:
+    """Return a date as Bloomberg's YYYYMMDD; accept YYYYMMDD and ISO strings."""
+    if isinstance(value, str):
+        return value.replace("-", "")
+    return value.strftime("%Y%m%d")
+
+
+def _check_key_columns(fields: list[str], keys: tuple[str, ...]) -> None:
+    """Refuse a field that would overwrite one of the key columns of the result."""
+    if clash := [key for key in keys if key in fields]:
+        names = " and ".join(repr(key) for key in clash)
+        raise ValueError(f"{names} cannot be requested as fields")
 
 
 @dataclass
@@ -536,9 +578,9 @@ class BQuery:
 
     def bdp(
         self,
-        securities: list[str],
-        fields: list[str],
-        overrides: list[tuple] | None = None,
+        securities: str | Sequence[str],
+        fields: str | Sequence[str],
+        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
         options: dict | None = None,
     ) -> pl.DataFrame:
         """Bloomberg Data Point, equivalent to Excel BDP() function.
@@ -546,9 +588,14 @@ class BQuery:
         Fetch reference data for given securities and fields.
 
         Args:
-            securities (list[str]): List of security identifiers (e.g. 'AAPL US Equity').
-            fields (list[str]): List of data fields to retrieve (e.g., 'PX_LAST').
-            overrides (list[tuple], optional): List of tuples for field overrides. Defaults to None.
+            securities (str | Sequence[str]): One security identifier or several
+                (e.g. 'AAPL US Equity').
+            fields (str | Sequence[str]): One data field or several (e.g. 'PX_LAST').
+                ``security`` cannot be a field name.
+            overrides (dict | Sequence[tuple], optional): Field overrides as a dict
+                (``{"REFERENCE_DATE": date(2020, 7, 15)}``) or as (name, value)
+                pairs. A ``date`` value is sent as ``YYYYMMDD``; ``None`` is not
+                allowed. Defaults to None.
             options (dict, optional): Additional request options. Defaults to None.
 
         Returns:
@@ -563,7 +610,10 @@ class BQuery:
 
         Raises:
             ConnectionError: If there is an issue with the Bloomberg session.
-            ValueError: If the request parameters are invalid.
+            ValueError: If the request parameters are invalid, or a field name
+                is a key column name.
+            TypeError: If the overrides are not a dict or (name, value) pairs, or
+                an override has no value.
 
         Example:
             Fetch last price for Apple and Microsoft stocks:
@@ -589,7 +639,10 @@ class BQuery:
             └────────────────┴──────────┘
             ```
 
-        """  # noqa: E501
+        """
+        securities = _as_list(securities)
+        fields = _as_list(fields)
+        _check_key_columns(fields, ("security",))
         request = self._create_request(
             "ReferenceDataRequest", securities, fields, overrides, options
         )
@@ -600,11 +653,11 @@ class BQuery:
 
     def bdh(
         self,
-        securities: list[str],
-        fields: list[str],
-        start_date: date,
-        end_date: date,
-        overrides: list[tuple] | None = None,
+        securities: str | Sequence[str],
+        fields: str | Sequence[str],
+        start_date: date | str,
+        end_date: date | str,
+        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
         options: dict | None = None,
     ) -> pl.DataFrame:
         """Bloomberg Data History, equivalent to Excel BDH() function.
@@ -612,11 +665,17 @@ class BQuery:
         Fetch historical data for given securities and fields between dates.
 
         Args:
-            securities (list[str]): List of security identifiers (e.g., 'AAPL US Equity').
-            fields (list[str]): List of data fields to retrieve (e.g., 'PX_LAST').
-            start_date (date): Start date for the historical data.
-            end_date (date): End date for the historical data.
-            overrides (list[tuple], optional): List of tuples for field overrides. Defaults to None.
+            securities (str | Sequence[str]): One security identifier or several
+                (e.g. 'AAPL US Equity').
+            fields (str | Sequence[str]): One data field or several (e.g. 'PX_LAST').
+                ``security`` and ``date`` cannot be field names.
+            start_date (date | str): Start date for the historical data, as a
+                ``date`` or a ``YYYYMMDD`` or ``YYYY-MM-DD`` string.
+            end_date (date | str): End date for the historical data, same formats.
+            overrides (dict | Sequence[tuple], optional): Field overrides as a dict
+                (``{"REFERENCE_DATE": date(2020, 7, 15)}``) or as (name, value)
+                pairs. A ``date`` value is sent as ``YYYYMMDD``; ``None`` is not
+                allowed. Defaults to None.
             options (dict, optional): Additional request options. Defaults to None.
 
         Returns:
@@ -629,7 +688,10 @@ class BQuery:
 
         Raises:
             ConnectionError: If there is an issue with the Bloomberg session.
-            ValueError: If the request parameters are invalid.
+            ValueError: If the request parameters are invalid, or a field name
+                is a key column name.
+            TypeError: If the overrides are not a dict or (name, value) pairs, or
+                an override has no value.
 
         Example:
             Fetch historical closing prices for TLT:
@@ -663,12 +725,15 @@ class BQuery:
             └───────────────┴────────────┴─────────┘
             ```
 
-        """  # noqa: E501
+        """
+        securities = _as_list(securities)
+        fields = _as_list(fields)
+        _check_key_columns(fields, ("security", "date"))
         request = self._create_request(
             "HistoricalDataRequest", securities, fields, overrides, options
         )
-        request.set("startDate", start_date.strftime("%Y%m%d"))
-        request.set("endDate", end_date.strftime("%Y%m%d"))
+        request.set("startDate", _format_date(start_date))
+        request.set("endDate", _format_date(end_date))
         responses = self._send_request(request)
         data = self._parse_bdh_responses(responses, fields)
         schema = {
@@ -683,9 +748,9 @@ class BQuery:
         security: str,
         event_type: str,
         interval: int,
-        start_datetime: datetime,
-        end_datetime: datetime,
-        overrides: Sequence | None = None,
+        start_datetime: datetime | date,
+        end_datetime: datetime | date,
+        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
         options: dict | None = None,
     ) -> pl.DataFrame:
         """Fetch intraday bars from Bloomberg, mirroring Excel's BDIB() function.
@@ -694,10 +759,15 @@ class BQuery:
             security (str): Instrument identifier (for example 'AAPL US Equity').
             event_type (str): One of TRADE, BID, ASK, BEST_BID, BEST_ASK.
             interval (int): Bar length in minutes (1-1440).
-            start_datetime (datetime): First bar timestamp; naive vals are treated as UTC
-                tz-aware values are converted to UTC before the request is sent.
-            end_datetime (datetime): Last bar timestamp; handled same way as start_dtm
-            overrides (Sequence | None, optional): Sequence of (field, value) overrides.
+            start_datetime (datetime | date): First bar timestamp; naive vals are
+                treated as UTC, tz-aware values are converted to UTC before the
+                request is sent, and a ``date`` means midnight.
+            end_datetime (datetime | date): Last bar timestamp; handled same way as
+                start_datetime.
+            overrides (dict | Sequence[tuple], optional): Field overrides as a dict
+                (``{"REFERENCE_DATE": date(2020, 7, 15)}``) or as (name, value)
+                pairs. A ``date`` value is sent as ``YYYYMMDD``; ``None`` is not
+                allowed. Defaults to None.
             options (dict | None, optional): Additional Bloomberg request options.
 
         Returns:
@@ -870,14 +940,15 @@ class BQuery:
     def bsrch(
         self,
         domain: str,
-        overrides: dict[str, Any] | None = None,
+        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
         options: dict | None = None,
     ) -> pl.DataFrame:
         r"""Bloomberg SRCH (search) via ExcelGetGridRequest on //blp/exrsvc.
 
         Args:
             domain: Domain string, e.g. ``\"FI:SRCHEX.@COCO\"``.
-            overrides: Optional override map (e.g. ``{\"LIMIT\": 20000}``).
+            overrides: Optional overrides as a dict (e.g. ``{\"LIMIT\": 20000}``)
+                or as (name, value) pairs.
             options: Additional request options applied directly to the request.
 
         Returns:
@@ -916,7 +987,7 @@ class BQuery:
         """
         request = self._create_bsrch_request(domain, overrides, options)
         responses = self._send_request(request)
-        limit_applied = bool(overrides and "LIMIT" in overrides)
+        limit_applied = any(name == "LIMIT" for name, _ in _override_items(overrides))
         rows = self._parse_bsrch_responses(responses, limit_applied=limit_applied)
         return pl.DataFrame(rows, infer_schema_length=None, strict=False)
 
@@ -925,7 +996,7 @@ class BQuery:
         request_type: str,
         securities: list[str],
         fields: list[str],
-        overrides: Sequence | None = None,
+        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
         options: dict | None = None,
     ) -> blpapi.Request:
         """Create a Bloomberg request with support for overrides and options."""
@@ -945,7 +1016,7 @@ class BQuery:
         # Add overrides if provided
         if overrides:
             overrides_element = request.getElement("overrides")
-            for field_id, value in overrides:
+            for field_id, value in _override_items(overrides):
                 override_element = overrides_element.appendElement()
                 override_element.setElement("fieldId", field_id)
                 override_element.setElement("value", value)
@@ -960,7 +1031,7 @@ class BQuery:
     def _create_bsrch_request(
         self,
         domain: str,
-        overrides: dict[str, Any] | None = None,
+        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
         options: dict | None = None,
     ) -> blpapi.Request:
         """Create an ExcelGetGridRequest for BSRCH on //blp/exrsvc."""
@@ -970,7 +1041,7 @@ class BQuery:
 
         if overrides:
             overrides_element = request.getElement("Overrides")
-            for name, value in overrides.items():
+            for name, value in _override_items(overrides):
                 override = overrides_element.appendElement()
                 override.setElement("name", str(name))
                 override.setElement("value", str(value))
@@ -986,9 +1057,9 @@ class BQuery:
         security: str,
         event_type: str,
         interval: int,
-        start_datetime: datetime,
-        end_datetime: datetime,
-        overrides: Sequence | None,
+        start_datetime: datetime | date,
+        end_datetime: datetime | date,
+        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None,
         options: dict | None,
     ) -> blpapi.Request:
         """Create an IntradayBarRequest with overrides and options support."""
@@ -1002,7 +1073,7 @@ class BQuery:
 
         if overrides:
             overrides_element = request.getElement("overrides")
-            for field_id, value in overrides:
+            for field_id, value in _override_items(overrides):
                 override_element = overrides_element.appendElement()
                 override_element.setElement("fieldId", field_id)
                 override_element.setElement("value", value)
@@ -1378,10 +1449,12 @@ class BQuery:
         return {col: mapping.get(t.upper(), pl.Utf8) for col, t in type_map.items()}
 
     @staticmethod
-    def _format_datetime(value: datetime | str) -> str:
+    def _format_datetime(value: datetime | date | str) -> str:
         """Convert datetime objects to Bloomberg's ISO8601 string format."""
         if isinstance(value, str):
             return value
+        if not isinstance(value, datetime):  # a plain date means midnight
+            value = datetime.combine(value, time())
         if value.tzinfo is None:
             return value.strftime("%Y-%m-%dT%H:%M:%S")
         return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
