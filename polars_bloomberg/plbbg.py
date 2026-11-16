@@ -51,15 +51,6 @@ class BloombergError(ValueError):
 
 
 @dataclass
-class SITable:
-    """Holds data and schema for a Single Item response Table."""
-
-    name: str  # data item name
-    data: dict[str, list[Any]]  # column_name -> list of values
-    schema: dict[str, pl.DataType | None]  # column_name -> Polars datatype or infer
-
-
-@dataclass
 class BqlResult:
     """Holds the result of a BQL query as a list of Polars DataFrames.
 
@@ -460,37 +451,6 @@ def _check_no_field_is_named(fields: list[str], *key_columns: str) -> None:
     if clash := [key for key in key_columns if key in fields]:
         names = " and ".join(repr(key) for key in clash)
         raise ValueError(f"{names} cannot be requested as fields")
-
-
-# --- BQL values ---
-
-
-def _convert_number(value: Any) -> Any:
-    """Turn BQL's text for NaN and infinity into None and float infinities."""
-    if isinstance(value, str):
-        lower_val = value.lower()
-        if lower_val == "nan":
-            return None
-        if lower_val in {"infinity", "inf"}:
-            return float("inf")
-        if lower_val in {"-infinity", "-inf"}:
-            return float("-inf")
-    return value
-
-
-def _convert_date(value: Any) -> date | None:
-    """Turn BQL's ISO text (2024-01-02T00:00:00Z) into a date."""
-    return datetime.fromisoformat(value).date() if isinstance(value, str) else None
-
-
-def _convert_datetime(value: Any) -> datetime | None:
-    """Turn BQL's ISO text into a naive datetime holding UTC, like bdib's times."""
-    if not isinstance(value, str):
-        return None
-    parsed = datetime.fromisoformat(value)
-    if parsed.tzinfo is not None:
-        parsed = parsed.astimezone(UTC).replace(tzinfo=None)
-    return parsed
 
 
 def _set_bql_client_context(request: blpapi.Request) -> None:
@@ -1081,150 +1041,10 @@ class BQuery:
         request.set("expression", expression)
         _set_bql_client_context(request)
 
-        responses = self._send_request(request)
-        tables, errors = self._parse_bql_responses(responses)
-        dataframes = []
-        for table in tables:
-            try:
-                df = pl.DataFrame(table.data, schema=table.schema, strict=True)
-            except (pl.exceptions.PolarsError, TypeError, ValueError) as error:
-                raise BloombergError(
-                    f"Cannot build a DataFrame for BQL item {table.name!r}: {error}"
-                ) from error
-            dataframes.append(df)
-        names = [table.name for table in tables]
-        return BqlResult(dataframes, names, errors)
-
-    def _parse_bql_responses(
-        self, responses: list[Any]
-    ) -> tuple[list[SITable], list[str]]:
-        """Parse BQL responses into SITable objects and the BQL error messages."""
-        tables: list[SITable] = []
-        results, errors = self._extract_results(responses)
-
-        for result in results:
-            tables.extend(self._parse_result(result))
-        return [self._apply_schema(table) for table in tables], errors
-
-    def _extract_results(self, responses: list[Any]) -> tuple[list[dict], list[str]]:
-        """Return the 'results' sections of the responses and the BQL error messages.
-
-        Results that arrive together with responseExceptions are kept. The error
-        messages (from responseExceptions, or a payload that is not valid JSON) are
-        logged as one error. A screen that matches nothing is not a failure: Bloomberg
-        sends it as an exception of type BENIGN ("No results match ...", live check
-        L4), which is logged as a warning.
-
-        """
-        extracted = []
-        errors = []
-        exceptions = []  # BQL's responseExceptions entries, as sent
-        # Bloomberg splits a large BQL answer over several messages, each a fragment
-        # of one JSON text (live check L7), so the strings are joined before parsing.
-        payloads = [response for response in responses if not isinstance(response, str)]
-        text = "".join(response for response in responses if isinstance(response, str))
-        if text:
-            try:
-                payloads.append(json.loads(text))
-            except json.JSONDecodeError as e:
-                errors.append(f"Failed to decode JSON: {e}")
-
-        for resp_dict in payloads:
-            # BQL errors (e.g. syntax errors) are in responseExceptions
-            exceptions += [
-                exc
-                for exc in resp_dict.get("responseExceptions") or []
-                if isinstance(exc, dict)
-            ]
-            results = resp_dict.get("results")
-            if results:
-                extracted.append(results)
-
-        benign = not errors and all(exc.get("type") == "BENIGN" for exc in exceptions)
-        errors += [
-            exc.get("message") or exc.get("internalMessage") or "Unknown error"
-            for exc in exceptions
-        ]
-        if errors and benign:
-            logger.warning("BQL returned no results: %s", "; ".join(errors))
-        elif errors:
-            logger.error("BQL error: %s", "; ".join(errors))
-        return extracted, errors
-
-    def _parse_result(self, results: dict[str, Any]) -> list[SITable]:
-        """Convert a single BQL results dictionary into a list[SITable]."""
-        tables: list[SITable] = []
-        for field, content in results.items():
-            if content is None:
-                continue
-            columns = [
-                ("ID", content.get("idColumn") or {}),
-                (field, content.get("valuesColumn") or {}),
-            ]
-            columns += [
-                (sec_col.get("name", ""), sec_col)
-                for sec_col in content.get("secondaryColumns") or []
-            ]
-            data = {}
-            schema_str = {}
-            for name, column in columns:
-                unique, n = name, 0
-                while unique in data:  # e.g. an item named ID, or like a column
-                    n += 1
-                    unique = f"{name}_{n}"
-                if unique != name:
-                    logger.warning(
-                        "BQL item %r has two columns named %r; the second one is "
-                        "renamed %r.",
-                        field,
-                        name,
-                        unique,
-                    )
-                data[unique] = column.get("values") or []
-                schema_str[unique] = column.get("type") or "STRING"
-            schema = self._map_types(schema_str)
-            tables.append(SITable(name=field, data=data, schema=schema))
-
-        return tables
-
-    def _map_types(self, type_map: dict[str, str]) -> dict[str, pl.DataType | None]:
-        """Map BQL type names to Polars data types; None (infer) for unknown names."""
-        mapping = {
-            "STRING": pl.Utf8,
-            "ENUM": pl.Utf8,  # e.g. CPN_TYP of cpn(), the rating of bb_composite()
-            "DOUBLE": pl.Float64,
-            "INT": pl.Int64,
-            "DATE": pl.Date,
-            "DATETIME": pl.Datetime,  # e.g. the quote times of axes()
-            "BOOLEAN": pl.Boolean,
-        }
-        schema = {}
-        for col, bql_type in type_map.items():
-            name = (bql_type or "STRING").upper()
-            if name not in mapping:
-                logger.warning(
-                    "Unknown BQL type %r for column %r; Polars infers its dtype.",
-                    bql_type,
-                    col,
-                )
-            schema[col] = mapping.get(name)
-        return schema
-
-    def _apply_schema(self, table: SITable) -> SITable:
-        """Turn the text BQL sends into the schema's types: dates, NaN, infinity."""
-        for col, dtype in table.schema.items():
-            try:
-                if dtype == pl.Date:
-                    table.data[col] = [_convert_date(v) for v in table.data[col]]
-                elif dtype == pl.Datetime:
-                    table.data[col] = [_convert_datetime(v) for v in table.data[col]]
-                elif dtype in {pl.Float64, pl.Int64}:
-                    table.data[col] = [_convert_number(v) for v in table.data[col]]
-            except ValueError as error:  # a date that is not ISO text
-                raise BloombergError(
-                    f"BQL item {table.name!r}, column {col!r}: {error}"
-                ) from error
-        return table
+        payloads = self._send_request(request)
+        items, errors = _parse_bql(payloads)
+        dataframes = [_bql_dataframe(item) for item in items]
+        return BqlResult(dataframes, [item.name for item in items], errors)
 
     # --- bsrch ---
 
@@ -1416,6 +1236,212 @@ def _parse_bdib(payloads: list[dict], requested_security: str) -> list[dict]:
             row |= {key: bar.get(key) for key in _BAR_SCHEMA if key != "security"}
             rows.append(row)
     return rows
+
+
+# -------------------------------------------------------------------------------------
+# bql: Bloomberg Query Language
+# -------------------------------------------------------------------------------------
+
+
+@dataclass
+class _BqlItem:
+    """One item of a BQL answer, laid out as the columns of its DataFrame.
+
+    ``get(name, px_last)`` asks for two items, and each becomes one DataFrame.
+    """
+
+    name: str
+    columns: dict[str, list[Any]]  # column name -> values
+    schema: dict[str, pl.DataType | None]  # column name -> dtype; None: Polars infers
+
+
+def _parse_bql(payloads: list[Any]) -> tuple[list[_BqlItem], list[str]]:
+    """Return the items of a BQL answer and the error messages BQL sent with it.
+
+    The answer is JSON (see recording bql/two_items):
+    ``{"results": {ITEM: {"idColumn": ..., "valuesColumn": ...,
+    "secondaryColumns": [...]}}, "responseExceptions": [...]}``.
+    A query that fails has null results and its reason in responseExceptions
+    (recording bql/syntax_error). The messages are logged here and returned, not
+    raised: bql() hands them to the user as ``BqlResult.errors``.
+    """
+    answers, errors = _load_bql_answers(payloads)
+
+    exceptions = [
+        exception
+        for answer in answers
+        for exception in answer.get("responseExceptions") or []
+        if isinstance(exception, dict)
+    ]
+    # A screen that matches nothing is not a failure. Bloomberg reports it as an
+    # exception of type BENIGN, "No results match ..." (recording
+    # bql/empty_universe), so it is logged as a warning and not as an error.
+    only_benign = not errors and all(e.get("type") == "BENIGN" for e in exceptions)
+    errors += [
+        exception.get("message") or exception.get("internalMessage") or "Unknown error"
+        for exception in exceptions
+    ]
+    if errors and only_benign:
+        logger.warning("BQL returned no results: %s", "; ".join(errors))
+    elif errors:
+        logger.error("BQL error: %s", "; ".join(errors))
+
+    # Results that arrive together with exceptions are kept.
+    items = [
+        _bql_item(name, content)
+        for answer in answers
+        for name, content in (answer.get("results") or {}).items()
+        if content is not None
+    ]
+    for item in items:
+        _read_text_values(item)
+    return items, errors
+
+
+def _load_bql_answers(payloads: list[Any]) -> tuple[list[dict], list[str]]:
+    """Return the BQL answer as parsed JSON, and an error message if it is not JSON.
+
+    BQL is the one service that answers with JSON text instead of a structure, and
+    Bloomberg cuts a long text into several messages. Five years of daily prices
+    for the members of SPX Index arrived as 12 messages of 4 MiB each, none of
+    them valid JSON on its own. So the text payloads are joined before they are
+    parsed. A payload that is not text is taken as an answer already parsed.
+    """
+    answers = [payload for payload in payloads if not isinstance(payload, str)]
+    errors = []
+    text = "".join(payload for payload in payloads if isinstance(payload, str))
+    if text:
+        try:
+            answers.append(json.loads(text))
+        except json.JSONDecodeError as error:
+            errors.append(f"Failed to decode JSON: {error}")
+    return answers, errors
+
+
+def _bql_item(name: str, content: dict) -> _BqlItem:
+    """Lay out one entry of "results" as named columns with Polars dtypes.
+
+    BQL sends an item as an ID column, a values column and any number of secondary
+    columns such as DATE and CURRENCY, each ``{"type": ..., "values": [...]}``. The
+    values column takes the name of the item.
+    """
+    bql_columns = [
+        ("ID", content.get("idColumn") or {}),
+        (name, content.get("valuesColumn") or {}),
+        *(
+            (column.get("name", ""), column)
+            for column in content.get("secondaryColumns") or []
+        ),
+    ]
+    columns: dict[str, list[Any]] = {}
+    bql_types: dict[str, str] = {}
+    for column_name, column in bql_columns:
+        # An item can be named like another of its columns: get(ID) gives two
+        # columns named ID (recording bql/item_named_id). The later one is renamed.
+        unique = _unique_name(column_name, taken=columns)
+        if unique != column_name:
+            logger.warning(
+                "BQL item %r has two columns named %r; the second one is renamed %r.",
+                name,
+                column_name,
+                unique,
+            )
+        columns[unique] = column.get("values") or []
+        bql_types[unique] = column.get("type") or "STRING"
+    schema = {
+        column: _polars_dtype(bql_type, column) for column, bql_type in bql_types.items()
+    }
+    return _BqlItem(name, columns, schema)
+
+
+_BQL_DTYPES = {
+    "STRING": pl.String,
+    "ENUM": pl.String,  # e.g. CPN_TYP of cpn(), the rating of bb_composite()
+    "DOUBLE": pl.Float64,
+    "INT": pl.Int64,
+    "DATE": pl.Date,
+    "DATETIME": pl.Datetime,  # e.g. the quote times of axes()
+    "BOOLEAN": pl.Boolean,
+}
+
+
+def _polars_dtype(bql_type: str, column: str) -> pl.DataType | None:
+    """Return the Polars dtype for a BQL type; None, meaning infer, if it is unknown."""
+    dtype = _BQL_DTYPES.get(bql_type.upper())
+    if dtype is None:
+        logger.warning(
+            "Unknown BQL type %r for column %r; Polars infers its dtype.",
+            bql_type,
+            column,
+        )
+    return dtype
+
+
+# JSON has no dates, NaN or infinity, so BQL sends them as text. The three functions
+# below read that text; _read_text_values applies them by dtype.
+
+
+def _bql_number(value: Any) -> Any:
+    """Turn BQL's text for NaN and infinity into None and float infinities.
+
+    Recording bql/nan_and_infinity has all three: "NaN", "Infinity", "-Infinity".
+    """
+    if isinstance(value, str):
+        text = value.lower()
+        if text == "nan":
+            return None
+        if text in {"infinity", "inf"}:
+            return float("inf")
+        if text in {"-infinity", "-inf"}:
+            return float("-inf")
+    return value
+
+
+def _bql_date(value: Any) -> date | None:
+    """Turn BQL's ISO text (2024-01-02T00:00:00Z) into a date."""
+    return datetime.fromisoformat(value).date() if isinstance(value, str) else None
+
+
+def _bql_datetime(value: Any) -> datetime | None:
+    """Turn BQL's ISO text into a naive datetime holding UTC, like bdib's times."""
+    if not isinstance(value, str):
+        return None
+    parsed = datetime.fromisoformat(value)
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone(UTC).replace(tzinfo=None)
+    return parsed
+
+
+_BQL_TEXT_READERS = {
+    pl.Date: _bql_date,
+    pl.Datetime: _bql_datetime,
+    pl.Float64: _bql_number,
+    pl.Int64: _bql_number,
+}
+
+
+def _read_text_values(item: _BqlItem) -> None:
+    """Replace the text BQL sends for dates, NaN and infinity by values, in place."""
+    for column, dtype in item.schema.items():
+        read = _BQL_TEXT_READERS.get(dtype)
+        if read is None:
+            continue
+        try:
+            item.columns[column] = [read(value) for value in item.columns[column]]
+        except ValueError as error:  # a date that is not ISO text
+            raise BloombergError(
+                f"BQL item {item.name!r}, column {column!r}: {error}"
+            ) from error
+
+
+def _bql_dataframe(item: _BqlItem) -> pl.DataFrame:
+    """Build the DataFrame of one item; a failure names the item."""
+    try:
+        return pl.DataFrame(item.columns, schema=item.schema, strict=True)
+    except (pl.exceptions.PolarsError, TypeError, ValueError) as error:
+        raise BloombergError(
+            f"Cannot build a DataFrame for BQL item {item.name!r}: {error}"
+        ) from error
 
 
 # -------------------------------------------------------------------------------------
