@@ -34,7 +34,7 @@ import dataclasses
 import json
 import logging
 import os
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Collection, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time
 from types import TracebackType
@@ -383,38 +383,6 @@ def _write_debug_dump(
         logger.warning("Could not write debug dump %s: %s", path, error)
 
 
-# --- errors Bloomberg reports inside a //blp/refdata answer ---
-
-_MAX_LOGGED_ERRORS = 10
-
-
-def _item_errors(security_data: dict) -> list[str]:
-    """Describe the errors Bloomberg reported for one securityData element."""
-    name = security_data.get("security")
-    lines = []
-    if error := security_data.get("securityError"):
-        lines.append(f"{name}: {error.get('message')} ({error.get('category')})")
-    for exception in security_data.get("fieldExceptions") or []:
-        info = exception.get("errorInfo") or {}
-        lines.append(
-            f"{name} / {exception.get('fieldId')}: "
-            f"{info.get('message')} ({info.get('category')})"
-        )
-    return lines
-
-
-def _warn_item_errors(lines: list[str]) -> None:
-    """Log the errors of one call as a single warning, at most ten lines of them."""
-    if not lines:
-        return
-    shown = lines[:_MAX_LOGGED_ERRORS]
-    if len(lines) > _MAX_LOGGED_ERRORS:
-        shown.append(f"... and {len(lines) - _MAX_LOGGED_ERRORS} more")
-    logger.warning(
-        "Bloomberg reported %d error(s):\n  %s", len(lines), "\n  ".join(shown)
-    )
-
-
 # --- inputs ---
 
 
@@ -487,28 +455,11 @@ def _set_options(request: blpapi.Request, options: dict | None) -> None:
         request.set(name, value)
 
 
-def _check_key_columns(fields: list[str], keys: tuple[str, ...]) -> None:
+def _check_no_field_is_named(fields: list[str], *key_columns: str) -> None:
     """Refuse a field that would overwrite one of the key columns of the result."""
-    if clash := [key for key in keys if key in fields]:
+    if clash := [key for key in key_columns if key in fields]:
         names = " and ".join(repr(key) for key in clash)
         raise ValueError(f"{names} cannot be requested as fields")
-
-
-# --- bsrch column titles ---
-
-
-def _unique_titles(titles: list[str]) -> list[str]:
-    """Give each repeat of an earlier title a suffix (Name, Name_1, ...) and log it."""
-    unique: list[str] = []
-    for title in titles:
-        candidate, n = title, 0
-        while candidate in unique:
-            n += 1
-            candidate = f"{title}_{n}"
-        if candidate != title:
-            logger.warning("BSRCH column %r repeated; renamed %r.", title, candidate)
-        unique.append(candidate)
-    return unique
 
 
 # --- BQL values ---
@@ -837,7 +788,7 @@ class BQuery:
         """
         securities = _as_list(securities)
         fields = _as_list(fields)
-        _check_key_columns(fields, ("security",))
+        _check_no_field_is_named(fields, "security")
 
         request = self._create_request("//blp/refdata", "ReferenceDataRequest")
         _append_values(request, "securities", securities)
@@ -845,29 +796,10 @@ class BQuery:
         _set_overrides(request, overrides)
         _set_options(request, options)
 
-        responses = self._send_request(request)
-        data = self._parse_bdp_responses(responses, fields)
+        payloads = self._send_request(request)
+        rows = _parse_bdp(payloads, fields)
         schema = {"security": pl.String, **dict.fromkeys(fields)}
-        return pl.DataFrame(data, schema=schema, infer_schema_length=None)
-
-    def _parse_bdp_responses(
-        self, responses: list[dict], fields: list[str]
-    ) -> list[dict]:
-        """One row per securityData element: the security and its fieldData values."""
-        data = []
-        errors = []
-        for response in responses:
-            security_data = response.get("securityData", [])
-            for sec in security_data:
-                errors.extend(_item_errors(sec))
-                security = sec.get("security")
-                field_data = sec.get("fieldData", {})
-                record = {"security": security}
-                for field in fields:
-                    record[field] = field_data.get(field)
-                data.append(record)
-        _warn_item_errors(errors)
-        return data
+        return pl.DataFrame(rows, schema=schema, infer_schema_length=None)
 
     # --- bdh ---
 
@@ -949,7 +881,7 @@ class BQuery:
         """
         securities = _as_list(securities)
         fields = _as_list(fields)
-        _check_key_columns(fields, ("security", "date"))
+        _check_no_field_is_named(fields, "security", "date")
 
         request = self._create_request("//blp/refdata", "HistoricalDataRequest")
         _append_values(request, "securities", securities)
@@ -959,32 +891,10 @@ class BQuery:
         request.set("startDate", _yyyymmdd(start_date))
         request.set("endDate", _yyyymmdd(end_date))
 
-        responses = self._send_request(request)
-        data = self._parse_bdh_responses(responses, fields)
-        schema = {
-            "security": pl.String,
-            "date": pl.Date,
-            **dict.fromkeys(fields),
-        }
-        return pl.DataFrame(data, schema=schema, infer_schema_length=None)
-
-    def _parse_bdh_responses(
-        self, responses: list[dict], fields: list[str]
-    ) -> list[dict]:
-        """One row per date: each response holds one security and its fieldData list."""
-        data = []
-        errors = []
-        for response in responses:
-            security_data = response.get("securityData", {})
-            errors.extend(_item_errors(security_data))
-            security = security_data.get("security")
-            for entry in security_data.get("fieldData", []):
-                record = {"security": security, "date": entry.get("date")}
-                for field in fields:
-                    record[field] = entry.get(field)
-                data.append(record)
-        _warn_item_errors(errors)
-        return data
+        payloads = self._send_request(request)
+        rows = _parse_bdh(payloads, fields)
+        schema = {"security": pl.String, "date": pl.Date, **dict.fromkeys(fields)}
+        return pl.DataFrame(rows, schema=schema, infer_schema_length=None)
 
     # --- bdib ---
 
@@ -1076,47 +986,12 @@ class BQuery:
         _set_overrides(request, overrides)
         _set_options(request, options)
 
-        responses = self._send_request(request)
-        data = self._parse_bdib_responses(responses, fallback_security=security)
-        schema = {
-            "security": pl.Utf8,
-            "time": pl.Datetime,
-            "open": pl.Float64,
-            "high": pl.Float64,
-            "low": pl.Float64,
-            "close": pl.Float64,
-            "volume": pl.Int64,
-            "numEvents": pl.Int64,
-            "value": pl.Float64,
-        }
-        df = pl.DataFrame(data, schema=schema, strict=False, infer_schema_length=None)
+        payloads = self._send_request(request)
+        rows = _parse_bdib(payloads, requested_security=security)
+        df = pl.DataFrame(
+            rows, schema=_BAR_SCHEMA, strict=False, infer_schema_length=None
+        )
         return df.sort(["security", "time"]) if not df.is_empty() else df
-
-    def _parse_bdib_responses(
-        self, responses: list[dict], fallback_security: str | None = None
-    ) -> list[dict]:
-        """One row per bar of barTickData, under the requested security.
-
-        barData itself names no security (none of the bdib recordings has the key).
-        """
-        bars: list[dict[str, Any]] = []
-        for response in responses:
-            bar_data = response.get("barData", {})
-            security = bar_data.get("security") or fallback_security
-            for entry in bar_data.get("barTickData", []):
-                record = {
-                    "security": security,
-                    "time": entry.get("time"),
-                    "open": entry.get("open"),
-                    "high": entry.get("high"),
-                    "low": entry.get("low"),
-                    "close": entry.get("close"),
-                    "volume": entry.get("volume"),
-                    "numEvents": entry.get("numEvents"),
-                    "value": entry.get("value"),
-                }
-                bars.append(record)
-        return bars
 
     # --- bql ---
 
@@ -1416,95 +1291,246 @@ class BQuery:
         _set_bsrch_overrides(request, overrides)
         _set_options(request, options)
 
-        responses = self._send_request(request)
-        rows, columns = self._parse_bsrch_responses(
-            responses, limit_applied="LIMIT" in dict(overrides)
-        )
+        payloads = self._send_request(request)
+        rows, columns = _parse_bsrch(payloads, limit_given="LIMIT" in dict(overrides))
         return pl.DataFrame(
             rows, schema=columns or None, infer_schema_length=None, strict=False
         )
 
-    def _parse_bsrch_responses(
-        self, responses: list[dict], *, limit_applied: bool = False
-    ) -> tuple[list[dict], list[str]]:
-        """Parse the grids that ExcelGetGridRequest returns; one per message.
 
-        Each payload is the grid itself (live check L8): ColumnTitles, DataRecords,
-        ReachMax and, when the search fails, Error. Returns the rows and the column
-        names used: the titles, plus any col_<n> invented for an untitled field.
-        """
-        rows: list[dict[str, Any]] = []
-        titles: list[str] = []
-        errors: list[str] = []
-        reach_max = False
+# -------------------------------------------------------------------------------------
+# bdp and bdh: reference data and history
+# -------------------------------------------------------------------------------------
 
-        for grid in responses:
-            if not isinstance(grid, dict) or "DataRecords" not in grid:
-                continue  # not a grid
-            titles = _unique_titles(grid.get("ColumnTitles") or []) or titles
-            reach_max = reach_max or bool(grid.get("ReachMax"))
-            if grid.get("Error"):
-                errors.append(grid["Error"])
-            for record in grid["DataRecords"] or []:
-                fields = record.get("DataFields") or []
-                values = [self._extract_bsrch_field_value(field) for field in fields]
-                names = titles + [f"col_{i}" for i in range(len(titles), len(values))]
-                rows.append(dict(zip(names, values, strict=False)))
 
-        columns = list(dict.fromkeys([*titles, *(col for row in rows for col in row)]))
-        unknown_keys = {
-            key
-            for row in rows
-            for value in row.values()
-            if isinstance(value, dict)
-            for key in value
-        }
-        if errors and not rows:
-            raise BloombergError(f"BSRCH error: {errors[0]}")
-        if errors:
-            logger.warning("BSRCH returned rows and an error: %s", "; ".join(errors))
-        if unknown_keys:
-            logger.warning(
-                "BSRCH values with unknown keys %s are kept as they are.",
-                sorted(unknown_keys),
-            )
-        if reach_max and not limit_applied:
-            logger.warning(
-                "BSRCH response reached internal limit; consider using LIMIT override."
-            )
+def _parse_bdp(payloads: list[dict], fields: list[str]) -> list[dict]:
+    """Return one row per security: its name and the value of each requested field.
 
-        self._blank_strings_to_none(rows)
-        return rows, columns
+    A ReferenceDataResponse payload lists several securities:
+    ``{"securityData": [{"security": ..., "fieldData": {FIELD: value}}, ...]}``.
+    """
+    rows = []
+    errors = []
+    for payload in payloads:
+        for security_data in payload.get("securityData", []):
+            errors += _security_errors(security_data)
+            # fieldData is keyed by the field names as the request spelled them
+            # (recording bdp/lowercase_field), and has no key for a field without
+            # a value.
+            field_data = security_data.get("fieldData", {})
+            row = {"security": security_data.get("security")}
+            row |= {field: field_data.get(field) for field in fields}
+            rows.append(row)
+    _warn_security_errors(errors)
+    return rows
 
-    @staticmethod
-    def _extract_bsrch_field_value(field: Any) -> Any:
-        """Return the value of a DataFields entry; return other entries unchanged.
 
-        Bloomberg sends {"StringValue": ...} or {"DoubleValue": ...} (live check L8).
-        """
-        if isinstance(field, dict):
-            for key in ("StringValue", "DoubleValue"):
-                if key in field:
-                    return field[key]
-        return field
+def _parse_bdh(payloads: list[dict], fields: list[str]) -> list[dict]:
+    """Return one row per security and date, with the value of each requested field.
 
-    @staticmethod
-    def _blank_strings_to_none(rows: list[dict[str, Any]]) -> None:
-        """In columns that hold only numbers and blanks, make the blanks None.
+    A HistoricalDataResponse payload holds one security and a list of its days:
+    ``{"securityData": {"security": ..., "fieldData": [{"date": ..., FIELD: value}]}}``.
+    """
+    rows = []
+    errors = []
+    for payload in payloads:
+        security_data = payload.get("securityData", {})
+        errors += _security_errors(security_data)
+        security = security_data.get("security")
+        for day in security_data.get("fieldData", []):
+            row = {"security": security, "date": day.get("date")}
+            row |= {field: day.get(field) for field in fields}
+            rows.append(row)
+    _warn_security_errors(errors)
+    return rows
 
-        Bloomberg sends an empty numeric cell as a blank StringValue; left as is, it
-        would make Polars read the whole column as strings. Columns with other text
-        are not touched: no string is ever parsed into a number here.
-        """
 
-        def number_or_blank(value: Any) -> bool:
-            if isinstance(value, str):
-                return value.strip() == ""
-            return value is None or isinstance(value, (int, float))
+def _security_errors(security_data: dict) -> list[str]:
+    """Describe the errors Bloomberg reported inside one securityData element.
 
-        columns = dict.fromkeys(col for row in rows for col in row)  # first-use order
-        for col in columns:
-            if all(number_or_blank(row.get(col)) for row in rows):
-                for row in rows:
-                    if isinstance(row.get(col), str):
-                        row[col] = None
+    An unknown security or field does not fail the request. Bloomberg answers as
+    usual and adds a ``securityError`` for the security, or an entry in
+    ``fieldExceptions`` for the field (recordings bdp/invalid_security_mixed and
+    bdp/invalid_field_mixed; bdh has the same two).
+    """
+    security = security_data.get("security")
+    lines = []
+    if error := security_data.get("securityError"):
+        lines.append(f"{security}: {error.get('message')} ({error.get('category')})")
+    for exception in security_data.get("fieldExceptions") or []:
+        info = exception.get("errorInfo") or {}
+        lines.append(
+            f"{security} / {exception.get('fieldId')}: "
+            f"{info.get('message')} ({info.get('category')})"
+        )
+    return lines
+
+
+_MAX_LOGGED_ERRORS = 10
+
+
+def _warn_security_errors(lines: list[str]) -> None:
+    """Log the errors of one call as a single warning, at most ten lines of them."""
+    if not lines:
+        return
+    shown = lines[:_MAX_LOGGED_ERRORS]
+    if len(lines) > _MAX_LOGGED_ERRORS:
+        shown.append(f"... and {len(lines) - _MAX_LOGGED_ERRORS} more")
+    logger.warning(
+        "Bloomberg reported %d error(s):\n  %s", len(lines), "\n  ".join(shown)
+    )
+
+
+# -------------------------------------------------------------------------------------
+# bdib: intraday bars
+# -------------------------------------------------------------------------------------
+
+# The columns of a bdib frame. All but "security" are the keys of one bar in
+# Bloomberg's barTickData, under Bloomberg's names.
+_BAR_SCHEMA = {
+    "security": pl.String,
+    "time": pl.Datetime,
+    "open": pl.Float64,
+    "high": pl.Float64,
+    "low": pl.Float64,
+    "close": pl.Float64,
+    "volume": pl.Int64,
+    "numEvents": pl.Int64,
+    "value": pl.Float64,
+}
+
+
+def _parse_bdib(payloads: list[dict], requested_security: str) -> list[dict]:
+    """Return one row per bar, under the requested security.
+
+    An IntradayBarResponse payload is ``{"barData": {"barTickData": [bar, ...]}}``.
+    barData names no security (see recording bdib/trade_bars_60min), so each row
+    gets the security that was asked for.
+    """
+    rows = []
+    for payload in payloads:
+        bar_data = payload.get("barData", {})
+        security = bar_data.get("security") or requested_security
+        for bar in bar_data.get("barTickData", []):
+            row = {"security": security}
+            row |= {key: bar.get(key) for key in _BAR_SCHEMA if key != "security"}
+            rows.append(row)
+    return rows
+
+
+# -------------------------------------------------------------------------------------
+# bsrch: search grids
+# -------------------------------------------------------------------------------------
+
+
+def _parse_bsrch(
+    payloads: list[Any], *, limit_given: bool
+) -> tuple[list[dict], list[str]]:
+    """Return the rows of a search and the names of its columns.
+
+    Each payload is one grid (see recording bsrch/coco_limit_2):
+    ``{"ColumnTitles": [...], "DataRecords": [{"DataFields": [cell, ...]}, ...],
+    "ReachMax": bool}``, plus ``"Error": text`` when the search fails (recording
+    bsrch/invalid_domain). The column names are the titles, and a col_<n> invented
+    for each cell that has no title.
+    """
+    rows: list[dict[str, Any]] = []
+    titles: list[str] = []
+    errors: list[str] = []
+    reached_max = False
+
+    for grid in payloads:
+        if not isinstance(grid, dict) or "DataRecords" not in grid:
+            continue  # not a grid
+        titles = _unique_titles(grid.get("ColumnTitles") or []) or titles
+        reached_max = reached_max or bool(grid.get("ReachMax"))
+        if grid.get("Error"):
+            errors.append(grid["Error"])
+        for record in grid["DataRecords"] or []:
+            values = [_cell_value(cell) for cell in record.get("DataFields") or []]
+            names = titles + [f"col_{i}" for i in range(len(titles), len(values))]
+            rows.append(dict(zip(names, values, strict=False)))
+
+    columns = list(dict.fromkeys([*titles, *(name for row in rows for name in row)]))
+    unknown_keys = {
+        key
+        for row in rows
+        for value in row.values()
+        if isinstance(value, dict)
+        for key in value
+    }
+    if errors and not rows:
+        raise BloombergError(f"BSRCH error: {errors[0]}")
+    if errors:
+        logger.warning("BSRCH returned rows and an error: %s", "; ".join(errors))
+    if unknown_keys:
+        logger.warning(
+            "BSRCH values with unknown keys %s are kept as they are.",
+            sorted(unknown_keys),
+        )
+    # ReachMax is true also when a LIMIT override cut the search short (recording
+    # bsrch/coco_limit_2), so it is worth a warning only when no LIMIT was given.
+    if reached_max and not limit_given:
+        logger.warning(
+            "BSRCH response reached internal limit; consider using LIMIT override."
+        )
+
+    _blank_strings_to_none(rows, columns)
+    return rows, columns
+
+
+def _unique_titles(titles: list[str]) -> list[str]:
+    """Give each repeat of an earlier title a suffix (Name, Name_1, ...) and log it."""
+    unique: list[str] = []
+    for title in titles:
+        name = _unique_name(title, taken=unique)
+        if name != title:
+            logger.warning("BSRCH column %r repeated; renamed %r.", title, name)
+        unique.append(name)
+    return unique
+
+
+def _cell_value(cell: Any) -> Any:
+    """Return the value of one DataFields entry; return other entries unchanged.
+
+    Bloomberg sends each cell as {"StringValue": ...} or {"DoubleValue": ...}.
+    """
+    if isinstance(cell, dict):
+        for key in ("StringValue", "DoubleValue"):
+            if key in cell:
+                return cell[key]
+    return cell
+
+
+def _blank_strings_to_none(rows: list[dict[str, Any]], columns: list[str]) -> None:
+    """In columns that hold only numbers and blanks, make the blanks None, in place.
+
+    Bloomberg sends an empty numeric cell as a blank StringValue; left as is, it
+    would make Polars read the whole column as strings. Columns with other text
+    are not touched: no string is ever parsed into a number here.
+    """
+
+    def is_number_or_blank(value: Any) -> bool:
+        if isinstance(value, str):
+            return value.strip() == ""
+        return value is None or isinstance(value, (int, float))
+
+    for column in columns:
+        if all(is_number_or_blank(row.get(column)) for row in rows):
+            for row in rows:
+                if isinstance(row.get(column), str):
+                    row[column] = None
+
+
+# -------------------------------------------------------------------------------------
+# Shared by the parsers
+# -------------------------------------------------------------------------------------
+
+
+def _unique_name(name: str, taken: Collection[str]) -> str:
+    """Return the name, or the first of name_1, name_2, ... that is not taken."""
+    candidate, n = name, 0
+    while candidate in taken:
+        n += 1
+        candidate = f"{name}_{n}"
+    return candidate
