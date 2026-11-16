@@ -1,0 +1,172 @@
+{
+ "scenario": "bql/usage_grouped_monthly_history",
+ "call": "bq.bql(\"let(#is_coco=if(capital_contingent_security(),true,false); #s=spread(spread_type=OAS,dates=range('2024-01-31','2024-02-29',frq=M),fill=PREV); #grp=group(#s,by=[bb_composite(),#is_coco,MONTH(#s().DATE),YEAR(#s().DATE)]); #med=median(#grp);) get(#med) for(['XS2479344561 Corp','YX231113 Corp'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "let(#is_coco=if(capital_contingent_security(),true,false); #s=spread(spread_type=OAS,dates=range('2024-01-31','2024-02-29',frq=M),fill=PREV); #grp=group(#s,by=[bb_composite(),#is_coco,MONTH(#s().DATE),YEAR(#s().DATE)]); #med=median(#grp);) get(#med) for(['XS2479344561 Corp','YX231113 Corp'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "#med": {
+         "name": "#med",
+         "offsets": [
+          0,
+          1,
+          2,
+          3
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "BBB:true:1.0:2024.0",
+           "BBB:true:2.0:2024.0",
+           "B+:false:1.0:2024.0",
+           "B+:false:2.0:2024.0"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           350.0830087,
+           326.91955897,
+           "NaN",
+           "NaN"
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-01-31T00:00:00Z",
+            "2024-02-29T00:00:00Z",
+            "2024-01-31T00:00:00Z",
+            "2024-02-29T00:00:00Z"
+           ],
+           "defaultDate": true
+          },
+          {
+           "name": "ORIG_IDS",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            "XS2479344561 Corp",
+            "XS2479344561 Corp",
+            "YX231113 Corp",
+            "YX231113 Corp"
+           ]
+          },
+          {
+           "name": "BB_COMPOSITE()",
+           "type": "ENUM",
+           "rank": 0,
+           "values": [
+            "BBB",
+            "BBB",
+            "B+",
+            "B+"
+           ]
+          },
+          {
+           "name": "#IS_COCO",
+           "type": "BOOLEAN",
+           "rank": 0,
+           "values": [
+            true,
+            true,
+            false,
+            false
+           ]
+          },
+          {
+           "name": "MONTH(#S().DATE)",
+           "type": "INT",
+           "rank": 0,
+           "values": [
+            1,
+            2,
+            1,
+            2
+           ]
+          },
+          {
+           "name": "YEAR(#S().DATE)",
+           "type": "INT",
+           "rank": 0,
+           "values": [
+            2024,
+            2024,
+            2024,
+            2024
+           ]
+          }
+         ],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": false,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "#med"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "#med"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "#med": "Float64",
+     "DATE": "Date",
+     "ORIG_IDS": "String",
+     "BB_COMPOSITE()": "String",
+     "#IS_COCO": "Boolean",
+     "MONTH(#S().DATE)": "Int64",
+     "YEAR(#S().DATE)": "Int64"
+    }
+   }
+  ]
+ }
+}

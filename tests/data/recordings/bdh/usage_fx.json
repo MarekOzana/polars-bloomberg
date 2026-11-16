@@ -1,0 +1,104 @@
+{
+ "scenario": "bdh/usage_fx",
+ "call": "bq.bdh(['EURSEK Curncy'], ['PX_LAST'], date(2024, 1, 2), date(2024, 1, 5))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "EURSEK Curncy"
+   ],
+   "fields": [
+    "PX_LAST"
+   ],
+   "startDate": "20240102",
+   "endDate": "20240105"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "EURSEK Curncy",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-02"
+         },
+         "PX_LAST": 11.1807
+        },
+        {
+         "date": {
+          "$date": "2024-01-03"
+         },
+         "PX_LAST": 11.2343
+        },
+        {
+         "date": {
+          "$date": "2024-01-04"
+         },
+         "PX_LAST": 11.1844
+        },
+        {
+         "date": {
+          "$date": "2024-01-05"
+         },
+         "PX_LAST": 11.2274
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "PX_LAST": "Float64"
+  },
+  "rows": [
+   [
+    "EURSEK Curncy",
+    {
+     "$date": "2024-01-02"
+    },
+    11.1807
+   ],
+   [
+    "EURSEK Curncy",
+    {
+     "$date": "2024-01-03"
+    },
+    11.2343
+   ],
+   [
+    "EURSEK Curncy",
+    {
+     "$date": "2024-01-04"
+    },
+    11.1844
+   ],
+   [
+    "EURSEK Curncy",
+    {
+     "$date": "2024-01-05"
+    },
+    11.2274
+   ]
+  ]
+ }
+}

@@ -1,0 +1,216 @@
+{
+ "scenario": "bql/usage_index_yield_spread_history",
+ "call": "bq.bql(\"get(yield(yield_type=YTW,universe_type=PROJECTED),spread(spread_type=OAS_SOVEREIGN,universe_type=RETURNS)) for(['I30904EU Index']) with(dates=range(2024-01-05,2024-01-19,frq=W),fill=PREV,per=W)\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "get(yield(yield_type=YTW,universe_type=PROJECTED),spread(spread_type=OAS_SOVEREIGN,universe_type=RETURNS)) for(['I30904EU Index']) with(dates=range(2024-01-05,2024-01-19,frq=W),fill=PREV,per=W)",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "yield(yield_type=YTW,universe_type=PROJECTED)": {
+         "name": "yield(yield_type=YTW,universe_type=PROJECTED)",
+         "offsets": [
+          2
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "I30904EU Index",
+           "I30904EU Index",
+           "I30904EU Index"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           8.625959,
+           8.264758,
+           8.274828
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-01-05T00:00:00Z",
+            "2024-01-12T00:00:00Z",
+            "2024-01-19T00:00:00Z"
+           ],
+           "defaultDate": true
+          }
+         ],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "spread(spread_type=OAS_SOVEREIGN,universe_type=RETURNS)": {
+         "name": "spread(spread_type=OAS_SOVEREIGN,universe_type=RETURNS)",
+         "offsets": [
+          2
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "I30904EU Index",
+           "I30904EU Index",
+           "I30904EU Index"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           513.5113,
+           495.28090000000003,
+           482.43280000000004
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-01-05T00:00:00Z",
+            "2024-01-12T00:00:00Z",
+            "2024-01-19T00:00:00Z"
+           ],
+           "defaultDate": true
+          }
+         ],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "yield(yield_type=YTW,universe_type=PROJECTED)"
+        },
+        {
+         "requestIndex": 1,
+         "responseName": "spread(spread_type=OAS_SOVEREIGN,universe_type=RETURNS)"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "yield(yield_type=YTW,universe_type=PROJECTED)",
+   "spread(spread_type=OAS_SOVEREIGN,universe_type=RETURNS)"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "yield(yield_type=YTW,universe_type=PROJECTED)": "Float64",
+     "DATE": "Date"
+    },
+    "rows": [
+     [
+      "I30904EU Index",
+      8.625959,
+      {
+       "$date": "2024-01-05"
+      }
+     ],
+     [
+      "I30904EU Index",
+      8.264758,
+      {
+       "$date": "2024-01-12"
+      }
+     ],
+     [
+      "I30904EU Index",
+      8.274828,
+      {
+       "$date": "2024-01-19"
+      }
+     ]
+    ]
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "spread(spread_type=OAS_SOVEREIGN,universe_type=RETURNS)": "Float64",
+     "DATE": "Date"
+    },
+    "rows": [
+     [
+      "I30904EU Index",
+      513.5113,
+      {
+       "$date": "2024-01-05"
+      }
+     ],
+     [
+      "I30904EU Index",
+      495.28090000000003,
+      {
+       "$date": "2024-01-12"
+      }
+     ],
+     [
+      "I30904EU Index",
+      482.43280000000004,
+      {
+       "$date": "2024-01-19"
+      }
+     ]
+    ]
+   }
+  ]
+ }
+}

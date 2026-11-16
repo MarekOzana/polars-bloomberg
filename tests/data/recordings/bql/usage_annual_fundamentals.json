@@ -1,0 +1,228 @@
+{
+ "scenario": "bql/usage_annual_fundamentals",
+ "call": "bq.bql(\"get(sales_rev_turn,ebitda) for(['IBM US Equity']) with(fa_period_type=A,fa_adjusted=N,fa_period_offset=range(-1Y,0Y),fill=PREV)\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "get(sales_rev_turn,ebitda) for(['IBM US Equity']) with(fa_period_type=A,fa_adjusted=N,fa_period_offset=range(-1Y,0Y),fill=PREV)",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "sales_rev_turn": {
+         "name": "sales_rev_turn",
+         "offsets": [
+          1
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "DATANEXT",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "IBM US Equity",
+           "IBM US Equity"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           62753000000.0,
+           67535000000.0
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "REVISION_DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2025-02-25T00:00:00Z",
+            "2026-02-24T00:00:00Z"
+           ],
+           "defaultDate": false
+          },
+          {
+           "name": "PERIOD_END_DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-12-31T00:00:00Z",
+            "2025-12-31T00:00:00Z"
+           ],
+           "defaultDate": true
+          },
+          {
+           "name": "AS_OF_DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2026-11-16T00:00:00Z",
+            "2026-11-16T00:00:00Z"
+           ],
+           "defaultDate": false
+          },
+          {
+           "name": "CURRENCY",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            "USD",
+            "USD"
+           ]
+          }
+         ],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "ebitda": {
+         "name": "ebitda",
+         "offsets": [
+          1
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "CFDN",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "IBM US Equity",
+           "IBM US Equity"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           14030000000.0,
+           16881000000.0
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "REVISION_DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2025-02-25T00:00:00Z",
+            "2026-02-24T00:00:00Z"
+           ],
+           "defaultDate": false
+          },
+          {
+           "name": "AS_OF_DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2026-11-16T00:00:00Z",
+            "2026-11-16T00:00:00Z"
+           ],
+           "defaultDate": false
+          },
+          {
+           "name": "PERIOD_END_DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-12-31T00:00:00Z",
+            "2025-12-31T00:00:00Z"
+           ],
+           "defaultDate": true
+          },
+          {
+           "name": "CURRENCY",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            "USD",
+            "USD"
+           ]
+          }
+         ],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "sales_rev_turn"
+        },
+        {
+         "requestIndex": 1,
+         "responseName": "ebitda"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "sales_rev_turn",
+   "ebitda"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "sales_rev_turn": "Float64",
+     "REVISION_DATE": "Date",
+     "PERIOD_END_DATE": "Date",
+     "AS_OF_DATE": "Date",
+     "CURRENCY": "String"
+    }
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "ebitda": "Float64",
+     "REVISION_DATE": "Date",
+     "AS_OF_DATE": "Date",
+     "PERIOD_END_DATE": "Date",
+     "CURRENCY": "String"
+    }
+   }
+  ]
+ }
+}

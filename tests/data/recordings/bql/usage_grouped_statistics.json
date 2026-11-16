@@ -1,0 +1,280 @@
+{
+ "scenario": "bql/usage_grouped_statistics",
+ "call": "bq.bql(\"let(#is_coco=if(capital_contingent_security(),true,false); #grp=group(spread(spread_type=OAS),by=[bb_composite(),#is_coco]); #n=count(#grp); #med=median(#grp); #q3=quantile(#grp,0.75);) get(#n,#med,#q3) for(['XS2479344561 Corp','YX231113 Corp']) preferences(dropCols=['ORIG_IDS','ID'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "let(#is_coco=if(capital_contingent_security(),true,false); #grp=group(spread(spread_type=OAS),by=[bb_composite(),#is_coco]); #n=count(#grp); #med=median(#grp); #q3=quantile(#grp,0.75);) get(#n,#med,#q3) for(['XS2479344561 Corp','YX231113 Corp']) preferences(dropCols=['ORIG_IDS','ID'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "#n": {
+         "name": "#n",
+         "offsets": [
+          0,
+          1
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "BBB:true",
+           "B+:false"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "INT",
+          "rank": 0,
+          "values": [
+           1,
+           1
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2026-11-16T00:00:00Z",
+            "2026-11-16T00:00:00Z"
+           ],
+           "defaultDate": true
+          },
+          {
+           "name": "BB_COMPOSITE()",
+           "type": "ENUM",
+           "rank": 0,
+           "values": [
+            "BBB",
+            "B+"
+           ]
+          },
+          {
+           "name": "#IS_COCO",
+           "type": "BOOLEAN",
+           "rank": 0,
+           "values": [
+            true,
+            false
+           ]
+          }
+         ],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": false,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "#med": {
+         "name": "#med",
+         "offsets": [
+          0,
+          1
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "BBB:true",
+           "B+:false"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           186.26084846,
+           159.87504047
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2026-11-16T00:00:00Z",
+            "2026-11-16T00:00:00Z"
+           ],
+           "defaultDate": true
+          },
+          {
+           "name": "BB_COMPOSITE()",
+           "type": "ENUM",
+           "rank": 0,
+           "values": [
+            "BBB",
+            "B+"
+           ]
+          },
+          {
+           "name": "#IS_COCO",
+           "type": "BOOLEAN",
+           "rank": 0,
+           "values": [
+            true,
+            false
+           ]
+          }
+         ],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": false,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "#q3": {
+         "name": "#q3",
+         "offsets": [
+          0,
+          1
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "BBB:true",
+           "B+:false"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           186.26084846,
+           159.87504047
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2026-11-16T00:00:00Z",
+            "2026-11-16T00:00:00Z"
+           ],
+           "defaultDate": true
+          },
+          {
+           "name": "BB_COMPOSITE()",
+           "type": "ENUM",
+           "rank": 0,
+           "values": [
+            "BBB",
+            "B+"
+           ]
+          },
+          {
+           "name": "#IS_COCO",
+           "type": "BOOLEAN",
+           "rank": 0,
+           "values": [
+            true,
+            false
+           ]
+          }
+         ],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": false,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "#n"
+        },
+        {
+         "requestIndex": 1,
+         "responseName": "#med"
+        },
+        {
+         "requestIndex": 2,
+         "responseName": "#q3"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "#n",
+   "#med",
+   "#q3"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "#n": "Int64",
+     "DATE": "Date",
+     "BB_COMPOSITE()": "String",
+     "#IS_COCO": "Boolean"
+    }
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "#med": "Float64",
+     "DATE": "Date",
+     "BB_COMPOSITE()": "String",
+     "#IS_COCO": "Boolean"
+    }
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "#q3": "Float64",
+     "DATE": "Date",
+     "BB_COMPOSITE()": "String",
+     "#IS_COCO": "Boolean"
+    }
+   }
+  ]
+ }
+}

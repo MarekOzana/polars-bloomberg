@@ -1,0 +1,194 @@
+{
+ "scenario": "bql/usage_bank_quarterly",
+ "call": "bq.bql(\"get(bs_tier1_com_equity_ratio(),normalized_roe()) for(['SEBA SS Equity']) with(fpt='Q',fpr=range(2024Q1,2024Q2)) preferences(dropCols=['AS_OF_DATE','REVISION_DATE'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "get(bs_tier1_com_equity_ratio(),normalized_roe()) for(['SEBA SS Equity']) with(fpt='Q',fpr=range(2024Q1,2024Q2)) preferences(dropCols=['AS_OF_DATE','REVISION_DATE'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "bs_tier1_com_equity_ratio()": {
+         "name": "bs_tier1_com_equity_ratio()",
+         "offsets": [
+          1
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "DATANEXT",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "SEBA SS Equity",
+           "SEBA SS Equity"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           18.9,
+           19.0
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "PERIOD_END_DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-03-31T00:00:00Z",
+            "2024-06-30T00:00:00Z"
+           ],
+           "defaultDate": true
+          }
+         ],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "normalized_roe()": {
+         "name": "normalized_roe()",
+         "offsets": [
+          1
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "SEBA SS Equity",
+           "SEBA SS Equity"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           18.071621576794946,
+           17.859571926751183
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "PERIOD_END_DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-03-31T00:00:00Z",
+            "2024-06-30T00:00:00Z"
+           ],
+           "defaultDate": true
+          }
+         ],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "PERIOD_END_DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "bs_tier1_com_equity_ratio()"
+        },
+        {
+         "requestIndex": 1,
+         "responseName": "normalized_roe()"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "bs_tier1_com_equity_ratio()",
+   "normalized_roe()"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "bs_tier1_com_equity_ratio()": "Float64",
+     "PERIOD_END_DATE": "Date"
+    },
+    "rows": [
+     [
+      "SEBA SS Equity",
+      18.9,
+      {
+       "$date": "2024-03-31"
+      }
+     ],
+     [
+      "SEBA SS Equity",
+      19.0,
+      {
+       "$date": "2024-06-30"
+      }
+     ]
+    ]
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "normalized_roe()": "Float64",
+     "PERIOD_END_DATE": "Date"
+    },
+    "rows": [
+     [
+      "SEBA SS Equity",
+      18.071621576794946,
+      {
+       "$date": "2024-03-31"
+      }
+     ],
+     [
+      "SEBA SS Equity",
+      17.859571926751183,
+      {
+       "$date": "2024-06-30"
+      }
+     ]
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,86 @@
+{
+ "scenario": "bdh/usage_fiscal_fundamentals",
+ "call": "bq.bdh(['IBM US Equity'], ['TRAIL_12M_EBITDA', 'NET_DEBT'], date(2023, 1, 1), date(2024, 12, 31), options={'periodicitySelection': 'YEARLY', 'periodicityAdjustment': 'FISCAL'})",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "IBM US Equity"
+   ],
+   "fields": [
+    "TRAIL_12M_EBITDA",
+    "NET_DEBT"
+   ],
+   "periodicitySelection": "YEARLY",
+   "periodicityAdjustment": "FISCAL",
+   "startDate": "20230101",
+   "endDate": "20241231"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "IBM US Equity",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2023-12-31"
+         },
+         "TRAIL_12M_EBITDA": 13870.0,
+         "NET_DEBT": 46494.0
+        },
+        {
+         "date": {
+          "$date": "2024-12-31"
+         },
+         "TRAIL_12M_EBITDA": 14030.0,
+         "NET_DEBT": 43805.0
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "TRAIL_12M_EBITDA": "Float64",
+   "NET_DEBT": "Float64"
+  },
+  "rows": [
+   [
+    "IBM US Equity",
+    {
+     "$date": "2023-12-31"
+    },
+    13870.0,
+    46494.0
+   ],
+   [
+    "IBM US Equity",
+    {
+     "$date": "2024-12-31"
+    },
+    14030.0,
+    43805.0
+   ]
+  ]
+ }
+}

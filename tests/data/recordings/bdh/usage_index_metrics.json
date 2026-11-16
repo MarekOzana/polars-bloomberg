@@ -1,0 +1,114 @@
+{
+ "scenario": "bdh/usage_index_metrics",
+ "call": "bq.bdh(['I30904EU Index'], ['INDEX_OAS_TSY', 'INDEX_YIELD_TO_WORST'], date(2024, 1, 2), date(2024, 1, 5))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "I30904EU Index"
+   ],
+   "fields": [
+    "INDEX_OAS_TSY",
+    "INDEX_YIELD_TO_WORST"
+   ],
+   "startDate": "20240102",
+   "endDate": "20240105"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "I30904EU Index",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-02"
+         },
+         "INDEX_OAS_TSY": 4.936456,
+         "INDEX_YIELD_TO_WORST": 8.218356
+        },
+        {
+         "date": {
+          "$date": "2024-01-03"
+         },
+         "INDEX_OAS_TSY": 5.177939,
+         "INDEX_YIELD_TO_WORST": 8.545768
+        },
+        {
+         "date": {
+          "$date": "2024-01-04"
+         },
+         "INDEX_OAS_TSY": 5.119665,
+         "INDEX_YIELD_TO_WORST": 8.555351
+        },
+        {
+         "date": {
+          "$date": "2024-01-05"
+         },
+         "INDEX_OAS_TSY": 5.135113,
+         "INDEX_YIELD_TO_WORST": 8.625959
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "INDEX_OAS_TSY": "Float64",
+   "INDEX_YIELD_TO_WORST": "Float64"
+  },
+  "rows": [
+   [
+    "I30904EU Index",
+    {
+     "$date": "2024-01-02"
+    },
+    4.936456,
+    8.218356
+   ],
+   [
+    "I30904EU Index",
+    {
+     "$date": "2024-01-03"
+    },
+    5.177939,
+    8.545768
+   ],
+   [
+    "I30904EU Index",
+    {
+     "$date": "2024-01-04"
+    },
+    5.119665,
+    8.555351
+   ],
+   [
+    "I30904EU Index",
+    {
+     "$date": "2024-01-05"
+    },
+    5.135113,
+    8.625959
+   ]
+  ]
+ }
+}

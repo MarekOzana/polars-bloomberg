@@ -1,0 +1,134 @@
+{
+ "scenario": "bdh/usage_ohlc",
+ "call": "bq.bdh(['SPX Index'], ['PX_OPEN', 'PX_HIGH', 'PX_LOW', 'PX_LAST'], date(2024, 1, 2), date(2024, 1, 5))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "SPX Index"
+   ],
+   "fields": [
+    "PX_OPEN",
+    "PX_HIGH",
+    "PX_LOW",
+    "PX_LAST"
+   ],
+   "startDate": "20240102",
+   "endDate": "20240105"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "SPX Index",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-02"
+         },
+         "PX_OPEN": 4745.2,
+         "PX_HIGH": 4754.33,
+         "PX_LOW": 4722.67,
+         "PX_LAST": 4742.83
+        },
+        {
+         "date": {
+          "$date": "2024-01-03"
+         },
+         "PX_OPEN": 4725.07,
+         "PX_HIGH": 4729.29,
+         "PX_LOW": 4699.71,
+         "PX_LAST": 4704.81
+        },
+        {
+         "date": {
+          "$date": "2024-01-04"
+         },
+         "PX_OPEN": 4697.42,
+         "PX_HIGH": 4726.78,
+         "PX_LOW": 4687.53,
+         "PX_LAST": 4688.68
+        },
+        {
+         "date": {
+          "$date": "2024-01-05"
+         },
+         "PX_OPEN": 4690.57,
+         "PX_HIGH": 4721.49,
+         "PX_LOW": 4682.11,
+         "PX_LAST": 4697.24
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "PX_OPEN": "Float64",
+   "PX_HIGH": "Float64",
+   "PX_LOW": "Float64",
+   "PX_LAST": "Float64"
+  },
+  "rows": [
+   [
+    "SPX Index",
+    {
+     "$date": "2024-01-02"
+    },
+    4745.2,
+    4754.33,
+    4722.67,
+    4742.83
+   ],
+   [
+    "SPX Index",
+    {
+     "$date": "2024-01-03"
+    },
+    4725.07,
+    4729.29,
+    4699.71,
+    4704.81
+   ],
+   [
+    "SPX Index",
+    {
+     "$date": "2024-01-04"
+    },
+    4697.42,
+    4726.78,
+    4687.53,
+    4688.68
+   ],
+   [
+    "SPX Index",
+    {
+     "$date": "2024-01-05"
+    },
+    4690.57,
+    4721.49,
+    4682.11,
+    4697.24
+   ]
+  ]
+ }
+}

@@ -1,0 +1,136 @@
+{
+ "scenario": "bql/usage_agency_ratings",
+ "call": "bq.bql(\"let(#sp=rating(rating_source=SP); #moody=rating(rating_source=MOODY);) get(#sp,#moody) for(['XS2479344561 Corp']) preferences(dropCols=['NORMALIZED_SCALE','DATE','SOURCE_SCALE','BASE_RATING','RATING_SOURCE','EFFECTIVE_DATE','WATCH'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "let(#sp=rating(rating_source=SP); #moody=rating(rating_source=MOODY);) get(#sp,#moody) for(['XS2479344561 Corp']) preferences(dropCols=['NORMALIZED_SCALE','DATE','SOURCE_SCALE','BASE_RATING','RATING_SOURCE','EFFECTIVE_DATE','WATCH'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "#sp": {
+         "name": "#sp",
+         "offsets": [
+          0
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "XS2479344561 Corp"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "N.A."
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "#moody": {
+         "name": "#moody",
+         "offsets": [
+          0
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "XS2479344561 Corp"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "Baa2"
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "#sp"
+        },
+        {
+         "requestIndex": 1,
+         "responseName": "#moody"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "#sp",
+   "#moody"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "#sp": "String"
+    }
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "#moody": "String"
+    }
+   }
+  ]
+ }
+}

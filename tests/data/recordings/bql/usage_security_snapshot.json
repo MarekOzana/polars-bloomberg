@@ -1,0 +1,269 @@
+{
+ "scenario": "bql/usage_security_snapshot",
+ "call": "bq.bql(\"let(#amt=amt_outstanding(); #zsprd_EUR=spread(spread_type=Z,currency=EUR).value; #ret_1d=total_return(calc_interval=range('-1d','0d')).value/100;) get(#amt, cpn, #zsprd_EUR, #ret_1d) for(['XS2479344561 Corp'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "let(#amt=amt_outstanding(); #zsprd_EUR=spread(spread_type=Z,currency=EUR).value; #ret_1d=total_return(calc_interval=range('-1d','0d')).value/100;) get(#amt, cpn, #zsprd_EUR, #ret_1d) for(['XS2479344561 Corp'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "#amt": {
+         "name": "#amt",
+         "offsets": [
+          0
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "SRCH",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "XS2479344561 Corp"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           500000000.0
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "CURRENCY_OF_ISSUE",
+           "type": "ENUM",
+           "rank": 0,
+           "values": [
+            "USD"
+           ]
+          },
+          {
+           "name": "MULTIPLIER",
+           "type": "DOUBLE",
+           "rank": 0,
+           "values": [
+            1.0
+           ]
+          },
+          {
+           "name": "CURRENCY",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            "USD"
+           ]
+          }
+         ],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "cpn": {
+         "name": "cpn",
+         "offsets": [
+          0
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "SRCH",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "XS2479344561 Corp"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           6.875
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "MULTIPLIER",
+           "type": "DOUBLE",
+           "rank": 0,
+           "values": [
+            1.0
+           ]
+          },
+          {
+           "name": "CPN_TYP",
+           "type": "ENUM",
+           "rank": 0,
+           "values": [
+            "VARIABLE"
+           ]
+          }
+         ],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "#zsprd_EUR": {
+         "name": "#zsprd_EUR",
+         "offsets": [
+          0
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "XS2479344561 Corp"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           135.016225762502
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "#ret_1d": {
+         "name": "#ret_1d",
+         "offsets": [
+          0
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "XS2479344561 Corp"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           0.0006248832790847203
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "#amt"
+        },
+        {
+         "requestIndex": 1,
+         "responseName": "cpn"
+        },
+        {
+         "requestIndex": 2,
+         "responseName": "#zsprd_EUR"
+        },
+        {
+         "requestIndex": 3,
+         "responseName": "#ret_1d"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "#amt",
+   "cpn",
+   "#zsprd_EUR",
+   "#ret_1d"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "#amt": "Float64",
+     "CURRENCY_OF_ISSUE": "String",
+     "MULTIPLIER": "Float64",
+     "CURRENCY": "String"
+    }
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "cpn": "Float64",
+     "MULTIPLIER": "Float64",
+     "CPN_TYP": "String"
+    }
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "#zsprd_EUR": "Float64"
+    }
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "#ret_1d": "Float64"
+    }
+   }
+  ]
+ }
+}

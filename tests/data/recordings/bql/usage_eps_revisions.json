@@ -1,0 +1,187 @@
+{
+ "scenario": "bql/usage_eps_revisions",
+ "call": "bq.bql(\"let(#eps=headline_eps_market(fa_period_offset=1,fa_period_type=A,as_of_date=range('2024-01-05','2024-01-19',frq=W));) get(#eps) for(['SPX Index'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "let(#eps=headline_eps_market(fa_period_offset=1,fa_period_type=A,as_of_date=range('2024-01-05','2024-01-19',frq=W));) get(#eps) for(['SPX Index'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "#eps": {
+         "name": "#eps",
+         "offsets": [
+          2
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "INDEXFUNDAMENTALS",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "SPX Index",
+           "SPX Index",
+           "SPX Index"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           221.7106803487933,
+           221.59636177347474,
+           222.2999898580315
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "CURRENCY",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            "USD",
+            "USD",
+            "USD"
+           ]
+          },
+          {
+           "name": "REVISION_DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-01-05T00:00:00Z",
+            "2024-01-12T00:00:00Z",
+            "2024-01-19T00:00:00Z"
+           ],
+           "defaultDate": false
+          },
+          {
+           "name": "AS_OF_DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-01-05T00:00:00Z",
+            "2024-01-12T00:00:00Z",
+            "2024-01-19T00:00:00Z"
+           ],
+           "defaultDate": true
+          },
+          {
+           "name": "PERIOD_END_DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2023-12-31T00:00:00Z",
+            "2023-12-31T00:00:00Z",
+            "2023-12-31T00:00:00Z"
+           ],
+           "defaultDate": false
+          }
+         ],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "#eps"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "#eps"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "#eps": "Float64",
+     "CURRENCY": "String",
+     "REVISION_DATE": "Date",
+     "AS_OF_DATE": "Date",
+     "PERIOD_END_DATE": "Date"
+    },
+    "rows": [
+     [
+      "SPX Index",
+      221.7106803487933,
+      "USD",
+      {
+       "$date": "2024-01-05"
+      },
+      {
+       "$date": "2024-01-05"
+      },
+      {
+       "$date": "2023-12-31"
+      }
+     ],
+     [
+      "SPX Index",
+      221.59636177347474,
+      "USD",
+      {
+       "$date": "2024-01-12"
+      },
+      {
+       "$date": "2024-01-12"
+      },
+      {
+       "$date": "2023-12-31"
+      }
+     ],
+     [
+      "SPX Index",
+      222.2999898580315,
+      "USD",
+      {
+       "$date": "2024-01-19"
+      },
+      {
+       "$date": "2024-01-19"
+      },
+      {
+       "$date": "2023-12-31"
+      }
+     ]
+    ]
+   }
+  ]
+ }
+}

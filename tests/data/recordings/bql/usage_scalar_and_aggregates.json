@@ -1,0 +1,179 @@
+{
+ "scenario": "bql/usage_scalar_and_aggregates",
+ "call": "bq.bql(\"let(#last_price=px_last(); #12m_fwd_eps=headline_eps_market(fpt=BT,fpo=1); #avg_pe=avg(headline_pe_ratio(fpt=BT,fpo=1,fill=PREV,dates=range(-1M,0D,frq=W)));) get(#last_price,#12m_fwd_eps,#avg_pe) for('SPX Index') preferences(dropCols=['CURRENCY','DATE','AS_OF_DATE','REVISION_DATE','PERIOD_END_DATE'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "let(#last_price=px_last(); #12m_fwd_eps=headline_eps_market(fpt=BT,fpo=1); #avg_pe=avg(headline_pe_ratio(fpt=BT,fpo=1,fill=PREV,dates=range(-1M,0D,frq=W)));) get(#last_price,#12m_fwd_eps,#avg_pe) for('SPX Index') preferences(dropCols=['CURRENCY','DATE','AS_OF_DATE','REVISION_DATE','PERIOD_END_DATE'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "#last_price": {
+         "name": "#last_price",
+         "offsets": [
+          0
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "CR",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "SPX Index"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           7561.67
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "#12m_fwd_eps": {
+         "name": "#12m_fwd_eps",
+         "offsets": [
+          0
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "INDEXFUNDAMENTALS",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "SPX Index"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           417.3080324905701
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "#avg_pe": {
+         "name": "#avg_pe",
+         "offsets": [
+          0
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "SPX Index"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           18.241438538923518
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "AS_OF_DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "#last_price"
+        },
+        {
+         "requestIndex": 1,
+         "responseName": "#12m_fwd_eps"
+        },
+        {
+         "requestIndex": 2,
+         "responseName": "#avg_pe"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "#last_price",
+   "#12m_fwd_eps",
+   "#avg_pe"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "#last_price": "Float64"
+    }
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "#12m_fwd_eps": "Float64"
+    }
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "#avg_pe": "Float64"
+    }
+   }
+  ]
+ }
+}

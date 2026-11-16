@@ -1,0 +1,79 @@
+{
+ "scenario": "bdh/usage_previous_value",
+ "call": "bq.bdh(['SPX Index'], ['PX_LAST'], '20240105', '20240108', options={'nonTradingDayFillMethod': 'PREVIOUS_VALUE'})",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "SPX Index"
+   ],
+   "fields": [
+    "PX_LAST"
+   ],
+   "nonTradingDayFillMethod": "PREVIOUS_VALUE",
+   "startDate": "20240105",
+   "endDate": "20240108"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "SPX Index",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-05"
+         },
+         "PX_LAST": 4697.24
+        },
+        {
+         "date": {
+          "$date": "2024-01-08"
+         },
+         "PX_LAST": 4763.54
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "PX_LAST": "Float64"
+  },
+  "rows": [
+   [
+    "SPX Index",
+    {
+     "$date": "2024-01-05"
+    },
+    4697.24
+   ],
+   [
+    "SPX Index",
+    {
+     "$date": "2024-01-08"
+    },
+    4763.54
+   ]
+  ]
+ }
+}

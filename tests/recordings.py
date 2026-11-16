@@ -107,6 +107,75 @@ SCENARIOS = {
     "bdh/lowercase_field": lambda bq: bq.bdh(
         ["OMX Index"], ["px_last"], date(2024, 1, 2), date(2024, 1, 5)
     ),
+    # --- bdh as used in real-life reports and charts (tests/unit/test_usage.py) ---
+    "bdh/usage_fund_nav_aum": lambda bq: bq.bdh(
+        ["SPY US Equity"],
+        ["PX_LAST", "FUND_TOTAL_ASSETS"],
+        date(2024, 1, 2),
+        date(2024, 1, 5),
+    ),
+    "bdh/usage_weekly_spreads": lambda bq: bq.bdh(
+        ["I00423 Index"],
+        ["BX218", "BX326"],
+        date(2024, 1, 1),
+        date(2024, 1, 19),
+        options={"periodicitySelection": "WEEKLY"},
+    ),
+    "bdh/usage_ohlc": lambda bq: bq.bdh(
+        ["SPX Index"],
+        ["PX_OPEN", "PX_HIGH", "PX_LOW", "PX_LAST"],
+        date(2024, 1, 2),
+        date(2024, 1, 5),
+    ),
+    # 6 and 7 January 2024 were a weekend
+    "bdh/usage_previous_value": lambda bq: bq.bdh(
+        ["SPX Index"],
+        ["PX_LAST"],
+        "20240105",
+        "20240108",
+        options={"nonTradingDayFillMethod": "PREVIOUS_VALUE"},
+    ),
+    "bdh/usage_all_calendar_days": lambda bq: bq.bdh(
+        ["SPX Index"],
+        ["PX_LAST"],
+        "20240105",
+        "20240108",
+        options={
+            "nonTradingDayFillOption": "ALL_CALENDAR_DAYS",
+            "nonTradingDayFillMethod": "PREVIOUS_VALUE",
+        },
+    ),
+    "bdh/usage_index_metrics": lambda bq: bq.bdh(
+        ["I30904EU Index"],
+        ["INDEX_OAS_TSY", "INDEX_YIELD_TO_WORST"],
+        date(2024, 1, 2),
+        date(2024, 1, 5),
+    ),
+    "bdh/usage_cds_basis": lambda bq: bq.bdh(
+        ["ITRXEBE Index"],
+        ["PX_LAST", "CDS_INDEX_INTRINSIC_BASIS_VALUE"],
+        date(2024, 1, 2),
+        date(2024, 1, 5),
+    ),
+    "bdh/usage_fiscal_fundamentals": lambda bq: bq.bdh(
+        ["IBM US Equity"],
+        ["TRAIL_12M_EBITDA", "NET_DEBT"],
+        date(2023, 1, 1),
+        date(2024, 12, 31),
+        options={"periodicitySelection": "YEARLY", "periodicityAdjustment": "FISCAL"},
+    ),
+    "bdh/usage_fx": lambda bq: bq.bdh(
+        ["EURSEK Curncy"], ["PX_LAST"], date(2024, 1, 2), date(2024, 1, 5)
+    ),
+    "bdh/usage_fx_hedge_cost": lambda bq: bq.bdh(
+        ["FXHCEUUS Index"], ["PX_LAST"], date(2024, 1, 2), date(2024, 1, 8)
+    ),
+    "bdh/usage_bank_price_to_book": lambda bq: bq.bdh(
+        ["SX7E Index"], ["PX_TO_BOOK_RATIO"], date(2024, 1, 2), date(2024, 1, 5)
+    ),
+    "bdh/usage_govt_yield": lambda bq: bq.bdh(
+        ["GDBR5 Index"], ["PX_LAST"], date(2024, 1, 2), date(2024, 1, 5)
+    ),
     # --- bdib ---
     "bdib/trade_bars_60min": lambda bq: bq.bdib(
         "OMX Index", "TRADE", 60, at(D, 8), at(D, 12)
@@ -158,6 +227,89 @@ SCENARIOS = {
         "let(#DATE = px_last(dates=2024-01-02);) get(#DATE) for(['IBM US Equity'])"
     ),
     "bql/apostrophe_in_value": lambda bq: bq.bql("get(name) for(['BFOR US Equity'])"),
+    # --- bql as used in real-life reports and charts (tests/unit/test_usage.py) ---
+    "bql/usage_security_snapshot": lambda bq: bq.bql(
+        "let(#amt=amt_outstanding(); "
+        "#zsprd_EUR=spread(spread_type=Z,currency=EUR).value; "
+        "#ret_1d=total_return(calc_interval=range('-1d','0d')).value/100;) "
+        "get(#amt, cpn, #zsprd_EUR, #ret_1d) for(['XS2479344561 Corp'])"
+    ),
+    "bql/usage_grouped_statistics": lambda bq: bq.bql(
+        "let(#is_coco=if(capital_contingent_security(),true,false); "
+        "#grp=group(spread(spread_type=OAS),by=[bb_composite(),#is_coco]); "
+        "#n=count(#grp); #med=median(#grp); #q3=quantile(#grp,0.75);) "
+        "get(#n,#med,#q3) for(['XS2479344561 Corp','YX231113 Corp']) "
+        "preferences(dropCols=['ORIG_IDS','ID'])"
+    ),
+    "bql/usage_grouped_monthly_history": lambda bq: bq.bql(
+        "let(#is_coco=if(capital_contingent_security(),true,false); "
+        "#s=spread(spread_type=OAS,dates=range('2024-01-31','2024-02-29',frq=M),"
+        "fill=PREV); "
+        "#grp=group(#s,by=[bb_composite(),#is_coco,MONTH(#s().DATE),YEAR(#s().DATE)]); "
+        "#med=median(#grp);) "
+        "get(#med) for(['XS2479344561 Corp','YX231113 Corp'])"
+    ),
+    "bql/usage_annual_fundamentals": lambda bq: bq.bql(
+        "get(sales_rev_turn,ebitda) for(['IBM US Equity']) "
+        "with(fa_period_type=A,fa_adjusted=N,fa_period_offset=range(-1Y,0Y),fill=PREV)"
+    ),
+    "bql/usage_segment_revenue": lambda bq: bq.bql(
+        "let(#segment=segment_name(); "
+        "#revenue=sales_Rev_turn(fpt=q,fpr=range(2024Q1,2024Q2));) "
+        "get(#segment,#revenue) "
+        "for(segments('GTN US Equity',type=reported,hierarchy=PRODUCT,level=1))"
+    ),
+    "bql/usage_eps_revisions": lambda bq: bq.bql(
+        "let(#eps=headline_eps_market(fa_period_offset=1,fa_period_type=A,"
+        "as_of_date=range('2024-01-05','2024-01-19',frq=W));) "
+        "get(#eps) for(['SPX Index'])"
+    ),
+    "bql/usage_scalar_and_aggregates": lambda bq: bq.bql(
+        "let(#last_price=px_last(); "
+        "#12m_fwd_eps=headline_eps_market(fpt=BT,fpo=1); "
+        "#avg_pe=avg(headline_pe_ratio(fpt=BT,fpo=1,fill=PREV,"
+        "dates=range(-1M,0D,frq=W)));) "
+        "get(#last_price,#12m_fwd_eps,#avg_pe) for('SPX Index') "
+        "preferences(dropCols=['CURRENCY','DATE','AS_OF_DATE','REVISION_DATE',"
+        "'PERIOD_END_DATE'])"
+    ),
+    "bql/usage_issuer_bonds": lambda bq: bq.bql(
+        "get(name,maturity,nxt_call_dt,cpn().value,normalized_payment_rank().value) "
+        "for(filter(bondsuniv(ACTIVE,consolidateduplicates=True),ticker in ['GTN']))"
+    ),
+    "bql/usage_issuer_lineage": lambda bq: bq.bql(
+        "get(name,value(bs_tier1_com_equity_ratio,fundamentalticker,mapby=LINEAGE)"
+        ".value) for(['XS2479344561 Corp'])"
+    ),
+    "bql/usage_index_yield_spread_history": lambda bq: bq.bql(
+        "get(yield(yield_type=YTW,universe_type=PROJECTED),"
+        "spread(spread_type=OAS_SOVEREIGN,universe_type=RETURNS)) "
+        "for(['I30904EU Index']) "
+        "with(dates=range(2024-01-05,2024-01-19,frq=W),fill=PREV,per=W)"
+    ),
+    "bql/usage_member_mean_per_date": lambda bq: bq.bql(
+        "let(#s=spread(spread_type=Z,dates=range(2024-01-02,2024-01-04)); "
+        "#d=#s().DATE; #avg_z=avg(group(#s,by=#d));) "
+        "get(#avg_z) for(members('I31415 Index'))"
+    ),
+    "bql/usage_bank_quarterly": lambda bq: bq.bql(
+        "get(bs_tier1_com_equity_ratio(),normalized_roe()) for(['SEBA SS Equity']) "
+        "with(fpt='Q',fpr=range(2024Q1,2024Q2)) "
+        "preferences(dropCols=['AS_OF_DATE','REVISION_DATE'])"
+    ),
+    "bql/usage_agency_ratings": lambda bq: bq.bql(
+        "let(#sp=rating(rating_source=SP); #moody=rating(rating_source=MOODY);) "
+        "get(#sp,#moody) for(['XS2479344561 Corp']) "
+        "preferences(dropCols=['NORMALIZED_SCALE','DATE','SOURCE_SCALE','BASE_RATING',"
+        "'RATING_SOURCE','EFFECTIVE_DATE','WATCH'])"
+    ),
+    "bql/usage_macro_surprise": lambda bq: bq.bql(
+        "let(#actual=dropna(ACTUAL_RELEASE(dates=range(2024-01-01,2024-03-31))); "
+        "#survey=dropna(BN_SURVEY_MEDIAN(dates=range(2024-01-01,2024-03-31))); "
+        "#volat=dropna(FORECAST_STANDARD_DEVIATION(dates=range(2024-01-01,2024-03-31)));"
+        " #surprise=(#actual - #survey) / #volat;) "
+        "get(#actual,#survey,#volat,#surprise) for(['PCE CYOY Index'])"
+    ),
     # --- bsrch ---
     "bsrch/coco_limit_2": lambda bq: bq.bsrch("FI:SRCHEX.@COCO", {"LIMIT": 2}),
     "bsrch/invalid_domain": lambda bq: bq.bsrch("FI:NOT_A_SEARCH"),
@@ -173,6 +325,17 @@ VOLATILE = {
     "bdib/saturday_no_bars",
     "bsrch/coco_limit_2",
     "bsrch/bi_template_limit_3",
+    # current spreads, ratings, fundamentals, universes, or an AS_OF_DATE of today
+    "bql/usage_security_snapshot",
+    "bql/usage_grouped_statistics",
+    "bql/usage_grouped_monthly_history",
+    "bql/usage_annual_fundamentals",
+    "bql/usage_segment_revenue",
+    "bql/usage_scalar_and_aggregates",
+    "bql/usage_issuer_bonds",
+    "bql/usage_issuer_lineage",
+    "bql/usage_member_mean_per_date",
+    "bql/usage_agency_ratings",
 }
 
 # Scenarios that the live contract tests compare with a fresh answer from Bloomberg.
@@ -185,4 +348,6 @@ CONTRACT = [
     "bql/px_last_fixed_date",
     "bql/syntax_error",
     "bsrch/coco_limit_2",
+    "bdh/usage_previous_value",
+    "bql/usage_eps_revisions",
 ]

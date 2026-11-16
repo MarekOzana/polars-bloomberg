@@ -1,0 +1,117 @@
+{
+ "scenario": "bdh/usage_fx_hedge_cost",
+ "call": "bq.bdh(['FXHCEUUS Index'], ['PX_LAST'], date(2024, 1, 2), date(2024, 1, 8))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "FXHCEUUS Index"
+   ],
+   "fields": [
+    "PX_LAST"
+   ],
+   "startDate": "20240102",
+   "endDate": "20240108"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "FXHCEUUS Index",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-02"
+         },
+         "PX_LAST": -1.4603
+        },
+        {
+         "date": {
+          "$date": "2024-01-03"
+         },
+         "PX_LAST": -1.4716
+        },
+        {
+         "date": {
+          "$date": "2024-01-04"
+         },
+         "PX_LAST": -1.4665
+        },
+        {
+         "date": {
+          "$date": "2024-01-05"
+         },
+         "PX_LAST": -1.4682
+        },
+        {
+         "date": {
+          "$date": "2024-01-08"
+         },
+         "PX_LAST": -1.4764
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "PX_LAST": "Float64"
+  },
+  "rows": [
+   [
+    "FXHCEUUS Index",
+    {
+     "$date": "2024-01-02"
+    },
+    -1.4603
+   ],
+   [
+    "FXHCEUUS Index",
+    {
+     "$date": "2024-01-03"
+    },
+    -1.4716
+   ],
+   [
+    "FXHCEUUS Index",
+    {
+     "$date": "2024-01-04"
+    },
+    -1.4665
+   ],
+   [
+    "FXHCEUUS Index",
+    {
+     "$date": "2024-01-05"
+    },
+    -1.4682
+   ],
+   [
+    "FXHCEUUS Index",
+    {
+     "$date": "2024-01-08"
+    },
+    -1.4764
+   ]
+  ]
+ }
+}

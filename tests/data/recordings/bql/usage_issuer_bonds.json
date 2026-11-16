@@ -1,0 +1,344 @@
+{
+ "scenario": "bql/usage_issuer_bonds",
+ "call": "bq.bql(\"get(name,maturity,nxt_call_dt,cpn().value,normalized_payment_rank().value) for(filter(bondsuniv(ACTIVE,consolidateduplicates=True),ticker in ['GTN']))\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "get(name,maturity,nxt_call_dt,cpn().value,normalized_payment_rank().value) for(filter(bondsuniv(ACTIVE,consolidateduplicates=True),ticker in ['GTN']))",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "name": {
+         "name": "name",
+         "offsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "BS116983 Corp",
+           "DO673586 Corp",
+           "YM129635 Corp",
+           "YM619872 Corp",
+           "YX231113 Corp",
+           "ZO860846 Corp"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "GTN 5 ⅜ 11/15/31",
+           "GTN 7 ½ 09/15/34",
+           "GTN 9 ⅝ 07/15/32",
+           "GTN 7 ¼ 08/15/33",
+           "GTN 10 ½ 07/15/29",
+           "GTN 4 ¾ 10/15/30"
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "maturity": {
+         "name": "maturity",
+         "offsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "SRCH",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "BS116983 Corp",
+           "DO673586 Corp",
+           "YM129635 Corp",
+           "YM619872 Corp",
+           "YX231113 Corp",
+           "ZO860846 Corp"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DATE",
+          "rank": 0,
+          "values": [
+           "2031-11-15T00:00:00Z",
+           "2034-09-15T00:00:00Z",
+           "2032-07-15T00:00:00Z",
+           "2033-08-15T00:00:00Z",
+           "2029-07-15T00:00:00Z",
+           "2030-10-15T00:00:00Z"
+          ],
+          "defaultDate": false
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "nxt_call_dt": {
+         "name": "nxt_call_dt",
+         "offsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "SRCH",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "BS116983 Corp",
+           "DO673586 Corp",
+           "YM129635 Corp",
+           "YM619872 Corp",
+           "YX231113 Corp",
+           "ZO860846 Corp"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DATE",
+          "rank": 0,
+          "values": [
+           "2026-12-13T00:00:00Z",
+           "2029-09-15T00:00:00Z",
+           "2028-07-15T00:00:00Z",
+           "2028-08-15T00:00:00Z",
+           "2026-11-23T00:00:00Z",
+           "2026-11-23T00:00:00Z"
+          ],
+          "defaultDate": false
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "cpn().value": {
+         "name": "cpn().value",
+         "offsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "BS116983 Corp",
+           "DO673586 Corp",
+           "YM129635 Corp",
+           "YM619872 Corp",
+           "YX231113 Corp",
+           "ZO860846 Corp"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           5.375,
+           7.5,
+           9.625,
+           7.25,
+           10.5,
+           4.75
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "normalized_payment_rank().value": {
+         "name": "normalized_payment_rank().value",
+         "offsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "BS116983 Corp",
+           "DO673586 Corp",
+           "YM129635 Corp",
+           "YM619872 Corp",
+           "YX231113 Corp",
+           "ZO860846 Corp"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "Sr Unsecured",
+           "1st Lien Secured",
+           "2nd Lien Secured",
+           "1st Lien Secured",
+           "1st Lien Secured",
+           "Sr Unsecured"
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "name"
+        },
+        {
+         "requestIndex": 1,
+         "responseName": "maturity"
+        },
+        {
+         "requestIndex": 2,
+         "responseName": "nxt_call_dt"
+        },
+        {
+         "requestIndex": 3,
+         "responseName": "cpn().value"
+        },
+        {
+         "requestIndex": 4,
+         "responseName": "normalized_payment_rank().value"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "name",
+   "maturity",
+   "nxt_call_dt",
+   "cpn().value",
+   "normalized_payment_rank().value"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "name": "String"
+    }
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "maturity": "Date"
+    }
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "nxt_call_dt": "Date"
+    }
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "cpn().value": "Float64"
+    }
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "normalized_payment_rank().value": "String"
+    }
+   }
+  ]
+ }
+}

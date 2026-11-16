@@ -1,0 +1,104 @@
+{
+ "scenario": "bdh/usage_govt_yield",
+ "call": "bq.bdh(['GDBR5 Index'], ['PX_LAST'], date(2024, 1, 2), date(2024, 1, 5))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "GDBR5 Index"
+   ],
+   "fields": [
+    "PX_LAST"
+   ],
+   "startDate": "20240102",
+   "endDate": "20240105"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "GDBR5 Index",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-02"
+         },
+         "PX_LAST": 1.994
+        },
+        {
+         "date": {
+          "$date": "2024-01-03"
+         },
+         "PX_LAST": 1.943
+        },
+        {
+         "date": {
+          "$date": "2024-01-04"
+         },
+         "PX_LAST": 2.064
+        },
+        {
+         "date": {
+          "$date": "2024-01-05"
+         },
+         "PX_LAST": 2.102
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "PX_LAST": "Float64"
+  },
+  "rows": [
+   [
+    "GDBR5 Index",
+    {
+     "$date": "2024-01-02"
+    },
+    1.994
+   ],
+   [
+    "GDBR5 Index",
+    {
+     "$date": "2024-01-03"
+    },
+    1.943
+   ],
+   [
+    "GDBR5 Index",
+    {
+     "$date": "2024-01-04"
+    },
+    2.064
+   ],
+   [
+    "GDBR5 Index",
+    {
+     "$date": "2024-01-05"
+    },
+    2.102
+   ]
+  ]
+ }
+}

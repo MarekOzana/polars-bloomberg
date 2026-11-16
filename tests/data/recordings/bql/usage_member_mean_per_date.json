@@ -1,0 +1,131 @@
+{
+ "scenario": "bql/usage_member_mean_per_date",
+ "call": "bq.bql(\"let(#s=spread(spread_type=Z,dates=range(2024-01-02,2024-01-04)); #d=#s().DATE; #avg_z=avg(group(#s,by=#d));) get(#avg_z) for(members('I31415 Index'))\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "let(#s=spread(spread_type=Z,dates=range(2024-01-02,2024-01-04)); #d=#s().DATE; #avg_z=avg(group(#s,by=#d));) get(#avg_z) for(members('I31415 Index'))",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "#avg_z": {
+         "name": "#avg_z",
+         "offsets": [
+          0,
+          1,
+          2
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "2024-01-02T00-00-00Z",
+           "2024-01-03T00-00-00Z",
+           "2024-01-04T00-00-00Z"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           499.3100800427498,
+           526.8997019692499,
+           518.2522573791358
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-01-02T00:00:00Z",
+            "2024-01-03T00:00:00Z",
+            "2024-01-04T00:00:00Z"
+           ],
+           "defaultDate": true
+          },
+          {
+           "name": "ORIG_IDS",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            null,
+            null,
+            null
+           ]
+          },
+          {
+           "name": "#D",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-01-02T00:00:00Z",
+            "2024-01-03T00:00:00Z",
+            "2024-01-04T00:00:00Z"
+           ],
+           "defaultDate": false
+          }
+         ],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": false,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "#avg_z"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "#avg_z"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "#avg_z": "Float64",
+     "DATE": "Date",
+     "ORIG_IDS": "String",
+     "#D": "Date"
+    }
+   }
+  ]
+ }
+}

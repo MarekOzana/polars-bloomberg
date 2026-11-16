@@ -1,0 +1,100 @@
+{
+ "scenario": "bdh/usage_weekly_spreads",
+ "call": "bq.bdh(['I00423 Index'], ['BX218', 'BX326'], date(2024, 1, 1), date(2024, 1, 19), options={'periodicitySelection': 'WEEKLY'})",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "I00423 Index"
+   ],
+   "fields": [
+    "BX218",
+    "BX326"
+   ],
+   "periodicitySelection": "WEEKLY",
+   "startDate": "20240101",
+   "endDate": "20240119"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "I00423 Index",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-05"
+         },
+         "BX218": 358.3128,
+         "BX326": 382.7885
+        },
+        {
+         "date": {
+          "$date": "2024-01-12"
+         },
+         "BX218": 342.0305,
+         "BX326": 368.6753
+        },
+        {
+         "date": {
+          "$date": "2024-01-19"
+         },
+         "BX218": 343.6063,
+         "BX326": 367.5658
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "BX218": "Float64",
+   "BX326": "Float64"
+  },
+  "rows": [
+   [
+    "I00423 Index",
+    {
+     "$date": "2024-01-05"
+    },
+    358.3128,
+    382.7885
+   ],
+   [
+    "I00423 Index",
+    {
+     "$date": "2024-01-12"
+    },
+    342.0305,
+    368.6753
+   ],
+   [
+    "I00423 Index",
+    {
+     "$date": "2024-01-19"
+    },
+    343.6063,
+    367.5658
+   ]
+  ]
+ }
+}

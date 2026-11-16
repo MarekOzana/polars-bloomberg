@@ -1,0 +1,378 @@
+{
+ "scenario": "bql/usage_macro_surprise",
+ "call": "bq.bql(\"let(#actual=dropna(ACTUAL_RELEASE(dates=range(2024-01-01,2024-03-31))); #survey=dropna(BN_SURVEY_MEDIAN(dates=range(2024-01-01,2024-03-31))); #volat=dropna(FORECAST_STANDARD_DEVIATION(dates=range(2024-01-01,2024-03-31))); #surprise=(#actual - #survey) / #volat;) get(#actual,#survey,#volat,#surprise) for(['PCE CYOY Index'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "let(#actual=dropna(ACTUAL_RELEASE(dates=range(2024-01-01,2024-03-31))); #survey=dropna(BN_SURVEY_MEDIAN(dates=range(2024-01-01,2024-03-31))); #volat=dropna(FORECAST_STANDARD_DEVIATION(dates=range(2024-01-01,2024-03-31))); #surprise=(#actual - #survey) / #volat;) get(#actual,#survey,#volat,#surprise) for(['PCE CYOY Index'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "#actual": {
+         "name": "#actual",
+         "offsets": [
+          2
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "PCE CYOY Index",
+           "PCE CYOY Index",
+           "PCE CYOY Index"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           2.8,
+           2.8,
+           2.82045
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-01-31T00:00:00Z",
+            "2024-02-29T00:00:00Z",
+            "2024-03-31T00:00:00Z"
+           ],
+           "defaultDate": true
+          }
+         ],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "#survey": {
+         "name": "#survey",
+         "offsets": [
+          2
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "PCE CYOY Index",
+           "PCE CYOY Index",
+           "PCE CYOY Index"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           2.8,
+           2.8,
+           2.7
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-01-31T00:00:00Z",
+            "2024-02-29T00:00:00Z",
+            "2024-03-31T00:00:00Z"
+           ],
+           "defaultDate": true
+          }
+         ],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "#volat": {
+         "name": "#volat",
+         "offsets": [
+          2
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "PCE CYOY Index",
+           "PCE CYOY Index",
+           "PCE CYOY Index"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           0.066078,
+           0.043545,
+           0.066037
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-01-31T00:00:00Z",
+            "2024-02-29T00:00:00Z",
+            "2024-03-31T00:00:00Z"
+           ],
+           "defaultDate": true
+          }
+         ],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "#surprise": {
+         "name": "#surprise",
+         "offsets": [
+          2
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "PCE CYOY Index",
+           "PCE CYOY Index",
+           "PCE CYOY Index"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           0.0,
+           0.0,
+           1.8239774671774907
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-01-31T00:00:00Z",
+            "2024-02-29T00:00:00Z",
+            "2024-03-31T00:00:00Z"
+           ],
+           "defaultDate": true
+          }
+         ],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "#actual"
+        },
+        {
+         "requestIndex": 1,
+         "responseName": "#survey"
+        },
+        {
+         "requestIndex": 2,
+         "responseName": "#volat"
+        },
+        {
+         "requestIndex": 3,
+         "responseName": "#surprise"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "#actual",
+   "#survey",
+   "#volat",
+   "#surprise"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "#actual": "Float64",
+     "DATE": "Date"
+    },
+    "rows": [
+     [
+      "PCE CYOY Index",
+      2.8,
+      {
+       "$date": "2024-01-31"
+      }
+     ],
+     [
+      "PCE CYOY Index",
+      2.8,
+      {
+       "$date": "2024-02-29"
+      }
+     ],
+     [
+      "PCE CYOY Index",
+      2.82045,
+      {
+       "$date": "2024-03-31"
+      }
+     ]
+    ]
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "#survey": "Float64",
+     "DATE": "Date"
+    },
+    "rows": [
+     [
+      "PCE CYOY Index",
+      2.8,
+      {
+       "$date": "2024-01-31"
+      }
+     ],
+     [
+      "PCE CYOY Index",
+      2.8,
+      {
+       "$date": "2024-02-29"
+      }
+     ],
+     [
+      "PCE CYOY Index",
+      2.7,
+      {
+       "$date": "2024-03-31"
+      }
+     ]
+    ]
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "#volat": "Float64",
+     "DATE": "Date"
+    },
+    "rows": [
+     [
+      "PCE CYOY Index",
+      0.066078,
+      {
+       "$date": "2024-01-31"
+      }
+     ],
+     [
+      "PCE CYOY Index",
+      0.043545,
+      {
+       "$date": "2024-02-29"
+      }
+     ],
+     [
+      "PCE CYOY Index",
+      0.066037,
+      {
+       "$date": "2024-03-31"
+      }
+     ]
+    ]
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "#surprise": "Float64",
+     "DATE": "Date"
+    },
+    "rows": [
+     [
+      "PCE CYOY Index",
+      0.0,
+      {
+       "$date": "2024-01-31"
+      }
+     ],
+     [
+      "PCE CYOY Index",
+      0.0,
+      {
+       "$date": "2024-02-29"
+      }
+     ],
+     [
+      "PCE CYOY Index",
+      1.8239774671774907,
+      {
+       "$date": "2024-03-31"
+      }
+     ]
+    ]
+   }
+  ]
+ }
+}

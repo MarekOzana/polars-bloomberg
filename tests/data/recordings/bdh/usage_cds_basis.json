@@ -1,0 +1,114 @@
+{
+ "scenario": "bdh/usage_cds_basis",
+ "call": "bq.bdh(['ITRXEBE Index'], ['PX_LAST', 'CDS_INDEX_INTRINSIC_BASIS_VALUE'], date(2024, 1, 2), date(2024, 1, 5))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "ITRXEBE Index"
+   ],
+   "fields": [
+    "PX_LAST",
+    "CDS_INDEX_INTRINSIC_BASIS_VALUE"
+   ],
+   "startDate": "20240102",
+   "endDate": "20240105"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "ITRXEBE Index",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-02"
+         },
+         "PX_LAST": 61.4,
+         "CDS_INDEX_INTRINSIC_BASIS_VALUE": -3.53
+        },
+        {
+         "date": {
+          "$date": "2024-01-03"
+         },
+         "PX_LAST": 64.829,
+         "CDS_INDEX_INTRINSIC_BASIS_VALUE": -3.75
+        },
+        {
+         "date": {
+          "$date": "2024-01-04"
+         },
+         "PX_LAST": 63.651,
+         "CDS_INDEX_INTRINSIC_BASIS_VALUE": -4.83
+        },
+        {
+         "date": {
+          "$date": "2024-01-05"
+         },
+         "PX_LAST": 63.698,
+         "CDS_INDEX_INTRINSIC_BASIS_VALUE": -4.72
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "PX_LAST": "Float64",
+   "CDS_INDEX_INTRINSIC_BASIS_VALUE": "Float64"
+  },
+  "rows": [
+   [
+    "ITRXEBE Index",
+    {
+     "$date": "2024-01-02"
+    },
+    61.4,
+    -3.53
+   ],
+   [
+    "ITRXEBE Index",
+    {
+     "$date": "2024-01-03"
+    },
+    64.829,
+    -3.75
+   ],
+   [
+    "ITRXEBE Index",
+    {
+     "$date": "2024-01-04"
+    },
+    63.651,
+    -4.83
+   ],
+   [
+    "ITRXEBE Index",
+    {
+     "$date": "2024-01-05"
+    },
+    63.698,
+    -4.72
+   ]
+  ]
+ }
+}

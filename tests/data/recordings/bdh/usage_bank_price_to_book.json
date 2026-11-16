@@ -1,0 +1,104 @@
+{
+ "scenario": "bdh/usage_bank_price_to_book",
+ "call": "bq.bdh(['SX7E Index'], ['PX_TO_BOOK_RATIO'], date(2024, 1, 2), date(2024, 1, 5))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "SX7E Index"
+   ],
+   "fields": [
+    "PX_TO_BOOK_RATIO"
+   ],
+   "startDate": "20240102",
+   "endDate": "20240105"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "SX7E Index",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-02"
+         },
+         "PX_TO_BOOK_RATIO": 0.7303
+        },
+        {
+         "date": {
+          "$date": "2024-01-03"
+         },
+         "PX_TO_BOOK_RATIO": 0.7223
+        },
+        {
+         "date": {
+          "$date": "2024-01-04"
+         },
+         "PX_TO_BOOK_RATIO": 0.737
+        },
+        {
+         "date": {
+          "$date": "2024-01-05"
+         },
+         "PX_TO_BOOK_RATIO": 0.7424
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "PX_TO_BOOK_RATIO": "Float64"
+  },
+  "rows": [
+   [
+    "SX7E Index",
+    {
+     "$date": "2024-01-02"
+    },
+    0.7303
+   ],
+   [
+    "SX7E Index",
+    {
+     "$date": "2024-01-03"
+    },
+    0.7223
+   ],
+   [
+    "SX7E Index",
+    {
+     "$date": "2024-01-04"
+    },
+    0.737
+   ],
+   [
+    "SX7E Index",
+    {
+     "$date": "2024-01-05"
+    },
+    0.7424
+   ]
+  ]
+ }
+}

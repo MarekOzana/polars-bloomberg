@@ -31,6 +31,9 @@
       <element name="startDate" type="String" minOccurs="0" maxOccurs="1"/>
       <element name="endDate" type="String" minOccurs="0" maxOccurs="1"/>
       <element name="periodicitySelection" type="String" minOccurs="0" maxOccurs="1"/>
+      <element name="periodicityAdjustment" type="String" minOccurs="0" maxOccurs="1"/>
+      <element name="nonTradingDayFillOption" type="String" minOccurs="0" maxOccurs="1"/>
+      <element name="nonTradingDayFillMethod" type="String" minOccurs="0" maxOccurs="1"/>
       <element name="overrides" type="FieldOverride" minOccurs="0" maxOccurs="unbounded"/>
     </sequenceType>
     <sequenceType name="IntradayBarRequest">
