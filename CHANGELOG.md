@@ -111,3 +111,5 @@ All notable changes to polars-bloomberg are listed here.
   crashes the query.
 - `bsrch`: blank cells become null in a numeric column also when the column is
   missing from the first row.
+- `polars_bloomberg.__version__` said 0.5.4 while the package was 0.6.0. It is now
+  read from the installed package's metadata, so the two cannot disagree again.
