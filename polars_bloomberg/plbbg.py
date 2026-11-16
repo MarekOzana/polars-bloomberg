@@ -51,166 +51,6 @@ class BloombergError(ValueError):
     """Bloomberg rejected or failed a request."""
 
 
-# --- debug dump: one replayable JSON file per request ---
-
-_EVENT_NAMES = {
-    getattr(blpapi.Event, name): name
-    for name in ("PARTIAL_RESPONSE", "RESPONSE", "REQUEST_STATUS")
-}
-
-
-def _json_default(value: Any) -> Any:
-    """json.dump hook: write dates so that a dump can be replayed with its types."""
-    if isinstance(value, datetime):
-        return {"$datetime": value.isoformat()}
-    if isinstance(value, date):
-        return {"$date": value.isoformat()}
-    if isinstance(value, time):
-        return {"$time": value.isoformat()}
-    return str(value)
-
-
-def _write_debug_dump(directory: str, request: blpapi.Request, events: list) -> None:
-    """Write one request and the messages it received to a replayable JSON file."""
-    element = request.asElement()
-    dump = {
-        "format": 1,
-        "recorded": {
-            "date": date.today().isoformat(),
-            "blpapi": blpapi.__version__,
-            "polars": pl.__version__,
-        },
-        "request": {"operation": str(element.name()), "body": element.toPy()},
-        "events": [event for event in events if event["messages"]],
-    }
-    stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-    path = os.path.join(directory, f"{element.name()}_{stamp}.json")
-    try:
-        os.makedirs(directory, exist_ok=True)
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(dump, f, default=_json_default, indent=1, ensure_ascii=False)
-            f.write("\n")
-    except OSError as error:
-        logger.warning("Could not write debug dump %s: %s", path, error)
-
-
-# --- errors Bloomberg reports inside a bdp/bdh answer ---
-
-_MAX_LOGGED_ERRORS = 10
-
-
-def _item_errors(security_data: dict) -> list[str]:
-    """Describe the errors Bloomberg reported for one securityData element."""
-    name = security_data.get("security")
-    lines = []
-    if error := security_data.get("securityError"):
-        lines.append(f"{name}: {error.get('message')} ({error.get('category')})")
-    for exception in security_data.get("fieldExceptions") or []:
-        info = exception.get("errorInfo") or {}
-        lines.append(
-            f"{name} / {exception.get('fieldId')}: "
-            f"{info.get('message')} ({info.get('category')})"
-        )
-    return lines
-
-
-def _warn_item_errors(lines: list[str]) -> None:
-    """Log the errors of one call as a single warning, at most ten lines of them."""
-    if not lines:
-        return
-    shown = lines[:_MAX_LOGGED_ERRORS]
-    if len(lines) > _MAX_LOGGED_ERRORS:
-        shown.append(f"... and {len(lines) - _MAX_LOGGED_ERRORS} more")
-    logger.warning(
-        "Bloomberg reported %d error(s):\n  %s", len(lines), "\n  ".join(shown)
-    )
-
-
-# --- inputs ---
-
-
-def _as_list(value: str | Sequence[str]) -> list[str]:
-    """Accept one name or several."""
-    return [value] if isinstance(value, str) else list(value)
-
-
-def _override_items(overrides: Mapping[str, Any] | Sequence | None) -> list[tuple]:
-    """Return overrides as (name, value) pairs; accept a dict or a sequence of pairs."""
-    if not overrides:
-        return []
-    pairs = overrides.items() if isinstance(overrides, Mapping) else overrides
-    items = []
-    for pair in pairs:
-        if isinstance(pair, str) or len(pair) != 2:  # noqa: PLR2004
-            raise TypeError(
-                "overrides must be a dict or a sequence of (name, value) pairs"
-            )
-        name, value = pair
-        if value is None:
-            raise TypeError(f"override {name!r} has no value")
-        if isinstance(value, date):  # also covers datetime
-            value = value.strftime("%Y%m%d")
-        items.append((name, value))
-    return items
-
-
-def _format_date(value: date | str) -> str:
-    """Return a date as Bloomberg's YYYYMMDD; accept YYYYMMDD and ISO strings."""
-    if isinstance(value, str):
-        return value.replace("-", "")
-    return value.strftime("%Y%m%d")
-
-
-def _check_key_columns(fields: list[str], keys: tuple[str, ...]) -> None:
-    """Refuse a field that would overwrite one of the key columns of the result."""
-    if clash := [key for key in keys if key in fields]:
-        names = " and ".join(repr(key) for key in clash)
-        raise ValueError(f"{names} cannot be requested as fields")
-
-
-# --- bsrch ---
-
-
-def _unique_titles(titles: list[str]) -> list[str]:
-    """Give each repeat of an earlier title a suffix (Name, Name_1, ...) and log it."""
-    unique: list[str] = []
-    for title in titles:
-        candidate, n = title, 0
-        while candidate in unique:
-            n += 1
-            candidate = f"{title}_{n}"
-        if candidate != title:
-            logger.warning("BSRCH column %r repeated; renamed %r.", title, candidate)
-        unique.append(candidate)
-    return unique
-
-
-# --- BQL values ---
-
-
-def _convert_number(value: Any) -> Any:
-    """Turn BQL's text for NaN and infinity into None and float infinities."""
-    if isinstance(value, str):
-        lower_val = value.lower()
-        if lower_val == "nan":
-            return None
-        if lower_val in {"infinity", "inf"}:
-            return float("inf")
-        if lower_val in {"-infinity", "-inf"}:
-            return float("-inf")
-    return value
-
-
-def _convert_datetime(value: Any) -> datetime | None:
-    """Turn BQL's ISO text into a naive datetime holding UTC, like bdib's times."""
-    if not isinstance(value, str):
-        return None
-    parsed = datetime.fromisoformat(value)
-    if parsed.tzinfo is not None:
-        parsed = parsed.astimezone(UTC).replace(tzinfo=None)
-    return parsed
-
-
 @dataclass
 class SITable:
     """Holds data and schema for a Single Item response Table."""
@@ -488,6 +328,166 @@ class BqlResult:
         return iter(self.dataframes)
 
 
+# --- debug dump: one replayable JSON file per request ---
+
+_EVENT_NAMES = {
+    getattr(blpapi.Event, name): name
+    for name in ("PARTIAL_RESPONSE", "RESPONSE", "REQUEST_STATUS")
+}
+
+
+def _json_default(value: Any) -> Any:
+    """json.dump hook: write dates so that a dump can be replayed with its types."""
+    if isinstance(value, datetime):
+        return {"$datetime": value.isoformat()}
+    if isinstance(value, date):
+        return {"$date": value.isoformat()}
+    if isinstance(value, time):
+        return {"$time": value.isoformat()}
+    return str(value)
+
+
+def _write_debug_dump(directory: str, request: blpapi.Request, events: list) -> None:
+    """Write one request and the messages it received to a replayable JSON file."""
+    element = request.asElement()
+    dump = {
+        "format": 1,
+        "recorded": {
+            "date": date.today().isoformat(),
+            "blpapi": blpapi.__version__,
+            "polars": pl.__version__,
+        },
+        "request": {"operation": str(element.name()), "body": element.toPy()},
+        "events": [event for event in events if event["messages"]],
+    }
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    path = os.path.join(directory, f"{element.name()}_{stamp}.json")
+    try:
+        os.makedirs(directory, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(dump, f, default=_json_default, indent=1, ensure_ascii=False)
+            f.write("\n")
+    except OSError as error:
+        logger.warning("Could not write debug dump %s: %s", path, error)
+
+
+# --- errors Bloomberg reports inside a //blp/refdata answer ---
+
+_MAX_LOGGED_ERRORS = 10
+
+
+def _item_errors(security_data: dict) -> list[str]:
+    """Describe the errors Bloomberg reported for one securityData element."""
+    name = security_data.get("security")
+    lines = []
+    if error := security_data.get("securityError"):
+        lines.append(f"{name}: {error.get('message')} ({error.get('category')})")
+    for exception in security_data.get("fieldExceptions") or []:
+        info = exception.get("errorInfo") or {}
+        lines.append(
+            f"{name} / {exception.get('fieldId')}: "
+            f"{info.get('message')} ({info.get('category')})"
+        )
+    return lines
+
+
+def _warn_item_errors(lines: list[str]) -> None:
+    """Log the errors of one call as a single warning, at most ten lines of them."""
+    if not lines:
+        return
+    shown = lines[:_MAX_LOGGED_ERRORS]
+    if len(lines) > _MAX_LOGGED_ERRORS:
+        shown.append(f"... and {len(lines) - _MAX_LOGGED_ERRORS} more")
+    logger.warning(
+        "Bloomberg reported %d error(s):\n  %s", len(lines), "\n  ".join(shown)
+    )
+
+
+# --- inputs ---
+
+
+def _as_list(value: str | Sequence[str]) -> list[str]:
+    """Accept one name or several."""
+    return [value] if isinstance(value, str) else list(value)
+
+
+def _override_items(overrides: Mapping[str, Any] | Sequence | None) -> list[tuple]:
+    """Return overrides as (name, value) pairs; accept a dict or a sequence of pairs."""
+    if not overrides:
+        return []
+    pairs = overrides.items() if isinstance(overrides, Mapping) else overrides
+    items = []
+    for pair in pairs:
+        if isinstance(pair, str) or len(pair) != 2:  # noqa: PLR2004
+            raise TypeError(
+                "overrides must be a dict or a sequence of (name, value) pairs"
+            )
+        name, value = pair
+        if value is None:
+            raise TypeError(f"override {name!r} has no value")
+        if isinstance(value, date):  # also covers datetime
+            value = value.strftime("%Y%m%d")
+        items.append((name, value))
+    return items
+
+
+def _format_date(value: date | str) -> str:
+    """Return a date as Bloomberg's YYYYMMDD; accept YYYYMMDD and ISO strings."""
+    if isinstance(value, str):
+        return value.replace("-", "")
+    return value.strftime("%Y%m%d")
+
+
+def _check_key_columns(fields: list[str], keys: tuple[str, ...]) -> None:
+    """Refuse a field that would overwrite one of the key columns of the result."""
+    if clash := [key for key in keys if key in fields]:
+        names = " and ".join(repr(key) for key in clash)
+        raise ValueError(f"{names} cannot be requested as fields")
+
+
+# --- bsrch column titles ---
+
+
+def _unique_titles(titles: list[str]) -> list[str]:
+    """Give each repeat of an earlier title a suffix (Name, Name_1, ...) and log it."""
+    unique: list[str] = []
+    for title in titles:
+        candidate, n = title, 0
+        while candidate in unique:
+            n += 1
+            candidate = f"{title}_{n}"
+        if candidate != title:
+            logger.warning("BSRCH column %r repeated; renamed %r.", title, candidate)
+        unique.append(candidate)
+    return unique
+
+
+# --- BQL values ---
+
+
+def _convert_number(value: Any) -> Any:
+    """Turn BQL's text for NaN and infinity into None and float infinities."""
+    if isinstance(value, str):
+        lower_val = value.lower()
+        if lower_val == "nan":
+            return None
+        if lower_val in {"infinity", "inf"}:
+            return float("inf")
+        if lower_val in {"-infinity", "-inf"}:
+            return float("-inf")
+    return value
+
+
+def _convert_datetime(value: Any) -> datetime | None:
+    """Turn BQL's ISO text into a naive datetime holding UTC, like bdib's times."""
+    if not isinstance(value, str):
+        return None
+    parsed = datetime.fromisoformat(value)
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone(UTC).replace(tzinfo=None)
+    return parsed
+
+
 class BQuery:
     """Provides methods to query Bloomberg API and return data as Polars DataFrames.
 
@@ -628,6 +628,64 @@ class BQuery:
             self._open_services.add(name)
         return self.session.getService(name)
 
+    def _send_request(self, request: blpapi.Request) -> list[Any]:
+        """Send a request and return the payloads (``msg.toPy()``) of its responses."""
+        cid = self.session.sendRequest(request)
+        responses: list[Any] = []
+        events: list[dict] = []  # what the debug dump records
+        try:
+            finished = False
+            while not finished:
+                event = self.session.nextEvent(self.timeout)
+                if event.eventType() == blpapi.Event.TIMEOUT:
+                    raise TimeoutError(
+                        f"Request timed out after {self.timeout} milliseconds"
+                    )
+                received = {
+                    "type": _EVENT_NAMES.get(event.eventType(), "OTHER"),
+                    "messages": [],
+                }
+                events.append(received)
+                for msg in event:
+                    if msg.messageType() == blpapi.Names.SESSION_TERMINATED:
+                        raise ConnectionError("Bloomberg session terminated.")
+                    if cid not in msg.correlationIds():
+                        continue  # status message, or late answer to an old request
+                    payload = msg.toPy()
+                    received["messages"].append(
+                        {"type": str(msg.messageType()), "payload": payload}
+                    )
+                    if msg.messageType() == blpapi.Names.REQUEST_FAILURE:
+                        reason = payload.get("reason", {})
+                        raise BloombergError(
+                            f"Request failed: {reason.get('description')} "
+                            f"({reason.get('category')})"
+                        )
+                    if isinstance(payload, dict) and "responseError" in payload:
+                        error = payload["responseError"]
+                        raise BloombergError(
+                            f"Response error: {error.get('message')} "
+                            f"({error.get('category')})"
+                        )
+                    responses.append(payload)
+                    finished = event.eventType() == blpapi.Event.RESPONSE
+        except BaseException:
+            self._cancel_quietly(cid)
+            raise
+        finally:
+            if self._debug_dir:
+                _write_debug_dump(self._debug_dir, request, events)
+        return responses
+
+    def _cancel_quietly(self, cid: blpapi.CorrelationId) -> None:
+        """Tell Bloomberg to drop a request; never hide the error being raised."""
+        try:
+            self.session.cancel(cid)
+        except Exception:  # the session may already be gone
+            logger.debug("Could not cancel request %s", cid)
+
+    # --- bdp ---
+
     def bdp(
         self,
         securities: str | Sequence[str],
@@ -702,6 +760,63 @@ class BQuery:
         data = self._parse_bdp_responses(responses, fields)
         schema = {"security": pl.String, **dict.fromkeys(fields)}
         return pl.DataFrame(data, schema=schema, infer_schema_length=None)
+
+    def _create_request(
+        self,
+        request_type: str,
+        securities: list[str],
+        fields: list[str],
+        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
+        options: dict | None = None,
+    ) -> blpapi.Request:
+        """Create a Bloomberg request with support for overrides and options."""
+        service = self._get_service("//blp/refdata")
+        request = service.createRequest(request_type)
+
+        # Add securities
+        securities_element = request.getElement("securities")
+        for security in securities:
+            securities_element.appendValue(security)
+
+        # Add fields
+        fields_element = request.getElement("fields")
+        for field in fields:
+            fields_element.appendValue(field)
+
+        # Add overrides if provided
+        if overrides:
+            overrides_element = request.getElement("overrides")
+            for field_id, value in _override_items(overrides):
+                override_element = overrides_element.appendElement()
+                override_element.setElement("fieldId", field_id)
+                override_element.setElement("value", value)
+
+        # Add additional options if provided
+        if options:
+            for key, value in options.items():
+                request.set(key, value)
+
+        return request
+
+    def _parse_bdp_responses(
+        self, responses: list[dict], fields: list[str]
+    ) -> list[dict]:
+        data = []
+        errors = []
+        for response in responses:
+            security_data = response.get("securityData", [])
+            for sec in security_data:
+                errors.extend(_item_errors(sec))
+                security = sec.get("security")
+                field_data = sec.get("fieldData", {})
+                record = {"security": security}
+                for field in fields:
+                    record[field] = field_data.get(field)
+                data.append(record)
+        _warn_item_errors(errors)
+        return data
+
+    # --- bdh ---
 
     def bdh(
         self,
@@ -794,6 +909,26 @@ class BQuery:
             **dict.fromkeys(fields),
         }
         return pl.DataFrame(data, schema=schema, infer_schema_length=None)
+
+    def _parse_bdh_responses(
+        self, responses: list[dict], fields: list[str]
+    ) -> list[dict]:
+        data = []
+        errors = []
+        for response in responses:
+            security_data = response.get("securityData", {})
+            errors.extend(_item_errors(security_data))
+            security = security_data.get("security")
+            field_data_array = security_data.get("fieldData", [])
+            for entry in field_data_array:
+                record = {"security": security, "date": entry.get("date")}
+                for field in fields:
+                    record[field] = entry.get(field)
+                data.append(record)
+        _warn_item_errors(errors)
+        return data
+
+    # --- bdib ---
 
     def bdib(  # noqa: PLR0913
         self,
@@ -899,6 +1034,74 @@ class BQuery:
         df = pl.DataFrame(data, schema=schema, strict=False, infer_schema_length=None)
         return df.sort(["security", "time"]) if not df.is_empty() else df
 
+    def _create_intraday_bar_request(  # noqa: PLR0913
+        self,
+        security: str,
+        event_type: str,
+        interval: int,
+        start_datetime: datetime | date,
+        end_datetime: datetime | date,
+        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None,
+        options: dict | None,
+    ) -> blpapi.Request:
+        """Create an IntradayBarRequest with overrides and options support."""
+        service = self._get_service("//blp/refdata")
+        request = service.createRequest("IntradayBarRequest")
+        request.set("security", security)
+        request.set("eventType", event_type)
+        request.set("interval", interval)
+        request.set("startDateTime", self._format_datetime(start_datetime))
+        request.set("endDateTime", self._format_datetime(end_datetime))
+
+        if overrides:
+            overrides_element = request.getElement("overrides")
+            for field_id, value in _override_items(overrides):
+                override_element = overrides_element.appendElement()
+                override_element.setElement("fieldId", field_id)
+                override_element.setElement("value", value)
+
+        if options:
+            for key, value in options.items():
+                request.set(key, value)
+
+        return request
+
+    @staticmethod
+    def _format_datetime(value: datetime | date | str) -> str:
+        """Convert datetime objects to Bloomberg's ISO8601 string format."""
+        if isinstance(value, str):
+            return value
+        if not isinstance(value, datetime):  # a plain date means midnight
+            value = datetime.combine(value, time())
+        if value.tzinfo is None:
+            return value.strftime("%Y-%m-%dT%H:%M:%S")
+        return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    def _parse_bdib_responses(
+        self, responses: list[dict], fallback_security: str | None = None
+    ) -> list[dict]:
+        bars: list[dict[str, Any]] = []
+        for response in responses:
+            bar_data = response.get("barData", {})
+            security = bar_data.get("security") or fallback_security
+            entries = bar_data.get("barTickData", [])
+            for entry in entries:
+                record = {
+                    "security": security,
+                    "time": entry.get("time"),
+                    "open": entry.get("open"),
+                    "high": entry.get("high"),
+                    "low": entry.get("low"),
+                    "close": entry.get("close"),
+                    "volume": entry.get("volume"),
+                    "numEvents": entry.get("numEvents"),
+                    "value": entry.get("value"),
+                }
+                bars.append(record)
+        return bars
+
+    # --- bql ---
+
     def bql(self, expression: str) -> BqlResult:
         """Execute a Bloomberg Query Language (BQL) query.
 
@@ -999,160 +1202,6 @@ class BQuery:
         names = [table.name for table in tables]
         return BqlResult(dataframes, names, errors)
 
-    def bsrch(
-        self,
-        domain: str,
-        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
-        options: dict | None = None,
-    ) -> pl.DataFrame:
-        r"""Bloomberg SRCH (search) via ExcelGetGridRequest on //blp/exrsvc.
-
-        Args:
-            domain: Domain string, e.g. ``\"FI:SRCHEX.@COCO\"``.
-            overrides: Optional overrides as a dict (e.g. ``{\"LIMIT\": 20000}``)
-                or as (name, value) pairs.
-            options: Additional request options applied directly to the request.
-
-        Returns:
-            pl.DataFrame with one row per search record and columns from the grid.
-                A search without results keeps its columns. A repeated column title
-                gets a suffix (``Name``, ``Name_1``) and a warning is logged.
-
-        Raises:
-            BloombergError: When Bloomberg returns an error and no rows (a subclass
-                of ValueError). An error that comes with rows is logged instead.
-            TimeoutError/ConnectionError: As surfaced by the session helpers.
-
-        Example:
-            Fetch Contingent COnvertible bonds based on Example Search @COCO
-            For sake of example limit number of bonds to two
-
-            ```python
-            from polars_bloomberg import BQuery
-
-            with BQuery() as bq:
-                df = bq.bsrch("FI:SRCHEX.@COCO", {"LIMIT": 2})
-                print(df)
-            ```
-
-            Expected output:
-            ```python
-            BSRCH response reached internal limit; consider using LIMIT override.
-            shape: (2, 1)
-            ┌───────────────┐
-            │ id            │
-            │ ---           │
-            │ str           │
-            ╞═══════════════╡
-            │ DA785784 Corp │
-            │ DA773901 Corp │
-            └───────────────┘
-            ```
-
-        """
-        request = self._create_bsrch_request(domain, overrides, options)
-        responses = self._send_request(request)
-        limit_applied = any(name == "LIMIT" for name, _ in _override_items(overrides))
-        rows, columns = self._parse_bsrch_responses(
-            responses, limit_applied=limit_applied
-        )
-        return pl.DataFrame(
-            rows, schema=columns or None, infer_schema_length=None, strict=False
-        )
-
-    def _create_request(
-        self,
-        request_type: str,
-        securities: list[str],
-        fields: list[str],
-        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
-        options: dict | None = None,
-    ) -> blpapi.Request:
-        """Create a Bloomberg request with support for overrides and options."""
-        service = self._get_service("//blp/refdata")
-        request = service.createRequest(request_type)
-
-        # Add securities
-        securities_element = request.getElement("securities")
-        for security in securities:
-            securities_element.appendValue(security)
-
-        # Add fields
-        fields_element = request.getElement("fields")
-        for field in fields:
-            fields_element.appendValue(field)
-
-        # Add overrides if provided
-        if overrides:
-            overrides_element = request.getElement("overrides")
-            for field_id, value in _override_items(overrides):
-                override_element = overrides_element.appendElement()
-                override_element.setElement("fieldId", field_id)
-                override_element.setElement("value", value)
-
-        # Add additional options if provided
-        if options:
-            for key, value in options.items():
-                request.set(key, value)
-
-        return request
-
-    def _create_bsrch_request(
-        self,
-        domain: str,
-        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
-        options: dict | None = None,
-    ) -> blpapi.Request:
-        """Create an ExcelGetGridRequest for BSRCH on //blp/exrsvc."""
-        service = self._get_service("//blp/exrsvc")
-        request = service.createRequest("ExcelGetGridRequest")
-        request.set("Domain", domain)
-
-        if overrides:
-            overrides_element = request.getElement("Overrides")
-            for name, value in _override_items(overrides):
-                override = overrides_element.appendElement()
-                override.setElement("name", str(name))
-                override.setElement("value", str(value))
-
-        if options:
-            for key, value in options.items():
-                request.set(key, value)
-
-        return request
-
-    def _create_intraday_bar_request(  # noqa: PLR0913
-        self,
-        security: str,
-        event_type: str,
-        interval: int,
-        start_datetime: datetime | date,
-        end_datetime: datetime | date,
-        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None,
-        options: dict | None,
-    ) -> blpapi.Request:
-        """Create an IntradayBarRequest with overrides and options support."""
-        service = self._get_service("//blp/refdata")
-        request = service.createRequest("IntradayBarRequest")
-        request.set("security", security)
-        request.set("eventType", event_type)
-        request.set("interval", interval)
-        request.set("startDateTime", self._format_datetime(start_datetime))
-        request.set("endDateTime", self._format_datetime(end_datetime))
-
-        if overrides:
-            overrides_element = request.getElement("overrides")
-            for field_id, value in _override_items(overrides):
-                override_element = overrides_element.appendElement()
-                override_element.setElement("fieldId", field_id)
-                override_element.setElement("value", value)
-
-        if options:
-            for key, value in options.items():
-                request.set(key, value)
-
-        return request
-
     def _create_bql_request(self, expression: str) -> blpapi.Request:
         """Create a BQL request."""
         service = self._get_service("//blp/bqlsvc")
@@ -1169,210 +1218,6 @@ class BQuery:
 
         return request
 
-    def _send_request(self, request: blpapi.Request) -> list[Any]:
-        """Send a request and return the payloads (``msg.toPy()``) of its responses."""
-        cid = self.session.sendRequest(request)
-        responses: list[Any] = []
-        events: list[dict] = []  # what the debug dump records
-        try:
-            finished = False
-            while not finished:
-                event = self.session.nextEvent(self.timeout)
-                if event.eventType() == blpapi.Event.TIMEOUT:
-                    raise TimeoutError(
-                        f"Request timed out after {self.timeout} milliseconds"
-                    )
-                received = {
-                    "type": _EVENT_NAMES.get(event.eventType(), "OTHER"),
-                    "messages": [],
-                }
-                events.append(received)
-                for msg in event:
-                    if msg.messageType() == blpapi.Names.SESSION_TERMINATED:
-                        raise ConnectionError("Bloomberg session terminated.")
-                    if cid not in msg.correlationIds():
-                        continue  # status message, or late answer to an old request
-                    payload = msg.toPy()
-                    received["messages"].append(
-                        {"type": str(msg.messageType()), "payload": payload}
-                    )
-                    if msg.messageType() == blpapi.Names.REQUEST_FAILURE:
-                        reason = payload.get("reason", {})
-                        raise BloombergError(
-                            f"Request failed: {reason.get('description')} "
-                            f"({reason.get('category')})"
-                        )
-                    if isinstance(payload, dict) and "responseError" in payload:
-                        error = payload["responseError"]
-                        raise BloombergError(
-                            f"Response error: {error.get('message')} "
-                            f"({error.get('category')})"
-                        )
-                    responses.append(payload)
-                    finished = event.eventType() == blpapi.Event.RESPONSE
-        except BaseException:
-            self._cancel_quietly(cid)
-            raise
-        finally:
-            if self._debug_dir:
-                _write_debug_dump(self._debug_dir, request, events)
-        return responses
-
-    def _cancel_quietly(self, cid: blpapi.CorrelationId) -> None:
-        """Tell Bloomberg to drop a request; never hide the error being raised."""
-        try:
-            self.session.cancel(cid)
-        except Exception:  # the session may already be gone
-            logger.debug("Could not cancel request %s", cid)
-
-    def _parse_bdp_responses(
-        self, responses: list[dict], fields: list[str]
-    ) -> list[dict]:
-        data = []
-        errors = []
-        for response in responses:
-            security_data = response.get("securityData", [])
-            for sec in security_data:
-                errors.extend(_item_errors(sec))
-                security = sec.get("security")
-                field_data = sec.get("fieldData", {})
-                record = {"security": security}
-                for field in fields:
-                    record[field] = field_data.get(field)
-                data.append(record)
-        _warn_item_errors(errors)
-        return data
-
-    def _parse_bdh_responses(
-        self, responses: list[dict], fields: list[str]
-    ) -> list[dict]:
-        data = []
-        errors = []
-        for response in responses:
-            security_data = response.get("securityData", {})
-            errors.extend(_item_errors(security_data))
-            security = security_data.get("security")
-            field_data_array = security_data.get("fieldData", [])
-            for entry in field_data_array:
-                record = {"security": security, "date": entry.get("date")}
-                for field in fields:
-                    record[field] = entry.get(field)
-                data.append(record)
-        _warn_item_errors(errors)
-        return data
-
-    def _parse_bdib_responses(
-        self, responses: list[dict], fallback_security: str | None = None
-    ) -> list[dict]:
-        bars: list[dict[str, Any]] = []
-        for response in responses:
-            bar_data = response.get("barData", {})
-            security = bar_data.get("security") or fallback_security
-            entries = bar_data.get("barTickData", [])
-            for entry in entries:
-                record = {
-                    "security": security,
-                    "time": entry.get("time"),
-                    "open": entry.get("open"),
-                    "high": entry.get("high"),
-                    "low": entry.get("low"),
-                    "close": entry.get("close"),
-                    "volume": entry.get("volume"),
-                    "numEvents": entry.get("numEvents"),
-                    "value": entry.get("value"),
-                }
-                bars.append(record)
-        return bars
-
-    def _parse_bsrch_responses(
-        self, responses: list[dict], *, limit_applied: bool = False
-    ) -> tuple[list[dict], list[str]]:
-        """Parse the grids that ExcelGetGridRequest returns; one per message.
-
-        Each payload is the grid itself (live check L8): ColumnTitles, DataRecords,
-        ReachMax and, when the search fails, Error. Returns the rows and the column
-        names used: the titles, plus any col_<n> invented for an untitled field.
-        """
-        rows: list[dict[str, Any]] = []
-        titles: list[str] = []
-        errors: list[str] = []
-        reach_max = False
-
-        for grid in responses:
-            if not isinstance(grid, dict) or "DataRecords" not in grid:
-                continue  # not a grid
-            titles = _unique_titles(grid.get("ColumnTitles") or []) or titles
-            reach_max = reach_max or bool(grid.get("ReachMax"))
-            if grid.get("Error"):
-                errors.append(grid["Error"])
-            for record in grid["DataRecords"] or []:
-                fields = record.get("DataFields") or []
-                values = [self._extract_bsrch_field_value(field) for field in fields]
-                names = titles + [f"col_{i}" for i in range(len(titles), len(values))]
-                rows.append(dict(zip(names, values, strict=False)))
-
-        columns = list(dict.fromkeys([*titles, *(col for row in rows for col in row)]))
-        unknown_keys = {
-            key
-            for row in rows
-            for value in row.values()
-            if isinstance(value, dict)
-            for key in value
-        }
-        if errors and not rows:
-            raise BloombergError(f"BSRCH error: {errors[0]}")
-        if errors:
-            logger.warning("BSRCH returned rows and an error: %s", "; ".join(errors))
-        if unknown_keys:
-            logger.warning(
-                "BSRCH values with unknown keys %s are kept as they are.",
-                sorted(unknown_keys),
-            )
-        if reach_max and not limit_applied:
-            logger.warning(
-                "BSRCH response reached internal limit; consider using LIMIT override."
-            )
-
-        self._coerce_bsrch_numeric_columns(rows)
-        return rows, columns
-
-    @staticmethod
-    def _extract_bsrch_field_value(field: Any) -> Any:
-        """Return the value of a DataFields entry; return other entries unchanged.
-
-        Bloomberg sends {"StringValue": ...} or {"DoubleValue": ...} (live check L8).
-        """
-        if isinstance(field, dict):
-            for key in ("StringValue", "DoubleValue"):
-                if key in field:
-                    return field[key]
-        return field
-
-    @staticmethod
-    def _coerce_bsrch_numeric_columns(rows: list[dict[str, Any]]) -> None:
-        """Convert empty/whitespace strings to None to allow numeric inference."""
-        cols = dict.fromkeys(col for row in rows for col in row)  # in order of first use
-        for col in cols:
-            values = [row.get(col) for row in rows]
-            cleaned: list[Any] = []
-            numeric_candidate = True
-
-            for val in values:
-                if isinstance(val, str) and val.strip() == "":
-                    cleaned.append(None)
-                    continue
-                cleaned.append(val)
-                if val is None or isinstance(val, (int, float)):
-                    continue
-                numeric_candidate = False
-                # leave column untouched if any non-numeric string present
-                # other than whitespace
-                # Note: do not break early to align cleaned length
-
-            if numeric_candidate:
-                for idx, cleaned_val in enumerate(cleaned):
-                    rows[idx][col] = cleaned_val
-
     def _parse_bql_responses(
         self, responses: list[Any]
     ) -> tuple[list[SITable], list[str]]:
@@ -1383,20 +1228,6 @@ class BQuery:
         for result in results:
             tables.extend(self._parse_result(result))
         return [self._apply_schema(table) for table in tables], errors
-
-    def _apply_schema(self, table: SITable) -> SITable:
-        """Convert data based on the schema (e.g., str -> date, 'NaN' -> None)."""
-        for col, dtype in table.schema.items():
-            if dtype == pl.Date:
-                table.data[col] = [
-                    datetime.fromisoformat(v).date() if isinstance(v, str) else None
-                    for v in table.data[col]
-                ]
-            elif dtype == pl.Datetime:
-                table.data[col] = [_convert_datetime(v) for v in table.data[col]]
-            elif dtype in {pl.Float64, pl.Int64}:
-                table.data[col] = [_convert_number(x) for x in table.data[col]]
-        return table
 
     def _extract_results(self, responses: list[Any]) -> tuple[list[dict], list[str]]:
         """Return the 'results' sections of the responses and the BQL error messages.
@@ -1492,13 +1323,192 @@ class BQuery:
             schema[col] = mapping.get(name)
         return schema
 
+    def _apply_schema(self, table: SITable) -> SITable:
+        """Convert data based on the schema (e.g., str -> date, 'NaN' -> None)."""
+        for col, dtype in table.schema.items():
+            if dtype == pl.Date:
+                table.data[col] = [
+                    datetime.fromisoformat(v).date() if isinstance(v, str) else None
+                    for v in table.data[col]
+                ]
+            elif dtype == pl.Datetime:
+                table.data[col] = [_convert_datetime(v) for v in table.data[col]]
+            elif dtype in {pl.Float64, pl.Int64}:
+                table.data[col] = [_convert_number(x) for x in table.data[col]]
+        return table
+
+    # --- bsrch ---
+
+    def bsrch(
+        self,
+        domain: str,
+        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
+        options: dict | None = None,
+    ) -> pl.DataFrame:
+        r"""Bloomberg SRCH (search) via ExcelGetGridRequest on //blp/exrsvc.
+
+        Args:
+            domain: Domain string, e.g. ``\"FI:SRCHEX.@COCO\"``.
+            overrides: Optional overrides as a dict (e.g. ``{\"LIMIT\": 20000}``)
+                or as (name, value) pairs.
+            options: Additional request options applied directly to the request.
+
+        Returns:
+            pl.DataFrame with one row per search record and columns from the grid.
+                A search without results keeps its columns. A repeated column title
+                gets a suffix (``Name``, ``Name_1``) and a warning is logged.
+
+        Raises:
+            BloombergError: When Bloomberg returns an error and no rows (a subclass
+                of ValueError). An error that comes with rows is logged instead.
+            TimeoutError/ConnectionError: As surfaced by the session helpers.
+
+        Example:
+            Fetch Contingent COnvertible bonds based on Example Search @COCO
+            For sake of example limit number of bonds to two
+
+            ```python
+            from polars_bloomberg import BQuery
+
+            with BQuery() as bq:
+                df = bq.bsrch("FI:SRCHEX.@COCO", {"LIMIT": 2})
+                print(df)
+            ```
+
+            Expected output:
+            ```python
+            BSRCH response reached internal limit; consider using LIMIT override.
+            shape: (2, 1)
+            ┌───────────────┐
+            │ id            │
+            │ ---           │
+            │ str           │
+            ╞═══════════════╡
+            │ DA785784 Corp │
+            │ DA773901 Corp │
+            └───────────────┘
+            ```
+
+        """
+        request = self._create_bsrch_request(domain, overrides, options)
+        responses = self._send_request(request)
+        limit_applied = any(name == "LIMIT" for name, _ in _override_items(overrides))
+        rows, columns = self._parse_bsrch_responses(
+            responses, limit_applied=limit_applied
+        )
+        return pl.DataFrame(
+            rows, schema=columns or None, infer_schema_length=None, strict=False
+        )
+
+    def _create_bsrch_request(
+        self,
+        domain: str,
+        overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
+        options: dict | None = None,
+    ) -> blpapi.Request:
+        """Create an ExcelGetGridRequest for BSRCH on //blp/exrsvc."""
+        service = self._get_service("//blp/exrsvc")
+        request = service.createRequest("ExcelGetGridRequest")
+        request.set("Domain", domain)
+
+        if overrides:
+            overrides_element = request.getElement("Overrides")
+            for name, value in _override_items(overrides):
+                override = overrides_element.appendElement()
+                override.setElement("name", str(name))
+                override.setElement("value", str(value))
+
+        if options:
+            for key, value in options.items():
+                request.set(key, value)
+
+        return request
+
+    def _parse_bsrch_responses(
+        self, responses: list[dict], *, limit_applied: bool = False
+    ) -> tuple[list[dict], list[str]]:
+        """Parse the grids that ExcelGetGridRequest returns; one per message.
+
+        Each payload is the grid itself (live check L8): ColumnTitles, DataRecords,
+        ReachMax and, when the search fails, Error. Returns the rows and the column
+        names used: the titles, plus any col_<n> invented for an untitled field.
+        """
+        rows: list[dict[str, Any]] = []
+        titles: list[str] = []
+        errors: list[str] = []
+        reach_max = False
+
+        for grid in responses:
+            if not isinstance(grid, dict) or "DataRecords" not in grid:
+                continue  # not a grid
+            titles = _unique_titles(grid.get("ColumnTitles") or []) or titles
+            reach_max = reach_max or bool(grid.get("ReachMax"))
+            if grid.get("Error"):
+                errors.append(grid["Error"])
+            for record in grid["DataRecords"] or []:
+                fields = record.get("DataFields") or []
+                values = [self._extract_bsrch_field_value(field) for field in fields]
+                names = titles + [f"col_{i}" for i in range(len(titles), len(values))]
+                rows.append(dict(zip(names, values, strict=False)))
+
+        columns = list(dict.fromkeys([*titles, *(col for row in rows for col in row)]))
+        unknown_keys = {
+            key
+            for row in rows
+            for value in row.values()
+            if isinstance(value, dict)
+            for key in value
+        }
+        if errors and not rows:
+            raise BloombergError(f"BSRCH error: {errors[0]}")
+        if errors:
+            logger.warning("BSRCH returned rows and an error: %s", "; ".join(errors))
+        if unknown_keys:
+            logger.warning(
+                "BSRCH values with unknown keys %s are kept as they are.",
+                sorted(unknown_keys),
+            )
+        if reach_max and not limit_applied:
+            logger.warning(
+                "BSRCH response reached internal limit; consider using LIMIT override."
+            )
+
+        self._coerce_bsrch_numeric_columns(rows)
+        return rows, columns
+
     @staticmethod
-    def _format_datetime(value: datetime | date | str) -> str:
-        """Convert datetime objects to Bloomberg's ISO8601 string format."""
-        if isinstance(value, str):
-            return value
-        if not isinstance(value, datetime):  # a plain date means midnight
-            value = datetime.combine(value, time())
-        if value.tzinfo is None:
-            return value.strftime("%Y-%m-%dT%H:%M:%S")
-        return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    def _extract_bsrch_field_value(field: Any) -> Any:
+        """Return the value of a DataFields entry; return other entries unchanged.
+
+        Bloomberg sends {"StringValue": ...} or {"DoubleValue": ...} (live check L8).
+        """
+        if isinstance(field, dict):
+            for key in ("StringValue", "DoubleValue"):
+                if key in field:
+                    return field[key]
+        return field
+
+    @staticmethod
+    def _coerce_bsrch_numeric_columns(rows: list[dict[str, Any]]) -> None:
+        """Convert empty/whitespace strings to None to allow numeric inference."""
+        cols = dict.fromkeys(col for row in rows for col in row)  # in order of first use
+        for col in cols:
+            values = [row.get(col) for row in rows]
+            cleaned: list[Any] = []
+            numeric_candidate = True
+
+            for val in values:
+                if isinstance(val, str) and val.strip() == "":
+                    cleaned.append(None)
+                    continue
+                cleaned.append(val)
+                if val is None or isinstance(val, (int, float)):
+                    continue
+                numeric_candidate = False
+                # leave column untouched if any non-numeric string present
+                # other than whitespace
+                # Note: do not break early to align cleaned length
+
+            if numeric_candidate:
+                for idx, cleaned_val in enumerate(cleaned):
+                    rows[idx][col] = cleaned_val
