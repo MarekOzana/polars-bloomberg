@@ -40,3 +40,6 @@ answers cannot be recorded again; record.py leaves them alone.
 After an intended output change (no Terminal needed):
                                 python tests/record.py --refresh-expected
 Review `git diff tests/data/recordings` before committing.
+
+Turning a user's `BQuery(debug=True)` dump into a recording and a test, and the
+other developer recipes: docs/developer-guide.md

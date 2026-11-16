@@ -2,6 +2,22 @@
 
 All notable changes to polars-bloomberg are listed here.
 
+## Unreleased
+
+### Changed
+
+- `plbbg.py` is reorganized for readability, with no change in behavior: all
+  five methods follow the same five visible steps, the parsers are plain
+  functions grouped in one section per method, and the comments on Bloomberg's
+  quirks name the recording that shows each one.
+
+### Added
+
+- A developer guide, `docs/developer-guide.md`: the pipeline every call follows,
+  a map of `plbbg.py`, the Bloomberg quirks the code handles, and recipes for
+  fixing a bug, adding a feature and turning a `debug=True` dump into an offline
+  test.
+
 ## 0.7.1 - 2026-11-16
 
 ### Added

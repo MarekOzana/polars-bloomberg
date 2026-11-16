@@ -54,7 +54,8 @@ If you’re a quant financial analyst, data scientist, or quant developer workin
         - [Maturity Wall for US HY](#maturity-wall-for-us-hy-bonds)
         </details>
 6. [Errors, Warnings and Empty Results](#errors-warnings-and-empty-results)
-7. [Additional Documentation and Resources](#additional-documentation--resources)
+7. [Developing](#developing)
+8. [Additional Documentation and Resources](#additional-documentation--resources)
 
 ## Introduction
 Working with Bloomberg data in Python often feels more complicated than using their well-known Excel interface.
@@ -920,6 +921,14 @@ bq.stop()  # safe to call twice
 
 **Threads:** one `BQuery` must not be used from several threads at once. Give each
 thread its own `BQuery`.
+
+## Developing
+
+Want to fix a bug or add a feature? The
+[developer guide](https://github.com/MarekOzana/polars-bloomberg/blob/main/docs/developer-guide.md)
+shows how a call flows through the one source file, which Bloomberg quirks the code
+handles, and how to turn a failing case into an offline test. No Bloomberg Terminal
+is needed to run the tests.
 
 ## Additional Documentation & Resources
 

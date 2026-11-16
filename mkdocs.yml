@@ -71,3 +71,4 @@ nav:
     - Credits: examples/credit/index.md
     - Macro: examples/macro/index.md
   - API Reference: api.md
+  - Developer Guide: developer-guide.md
