@@ -7,38 +7,24 @@ import nox
 def tests(session):
     """Run the tests with pytest across supported Python versions.
 
-    This session performs the following steps:
-    1. Installs dependencies from requirements.txt.
-    2. Installs pytest and pytest-cov for running tests and generating code coverage.
-    3. Installs the package itself.
-    4. Runs pytest on the 'tests' directory.
+    Live tests are skipped; to run them too, use: `nox -s tests -- --bbg`
 
     Usage:
     - To run all versions, use: `nox -s tests`
     - To run a specific version, use: `nox -s tests-3.15`
     """
-    # Install dependencies from requirements.txt
     session.install("-r", "requirements.txt")
     session.install("pytest", "pytest-cov", "pyyaml")
-    # Install the package itself if needed
     session.install(".")
-
-    # Run pytest on the 'tests' directory
-    session.run("pytest", "tests")
+    session.run("pytest", *session.posargs)
 
 
 @nox.session(python="3.14")
 def ruff(session):
-    """Run ruff & black code formatter."""
-    # Install black, ruff and mypy
-    session.install("black", "ruff", "mypy")
-
-    # Run ruff linter
-    session.run("ruff", "check", "polars_bloomberg")
-    # Run black linter
-    session.run("black", "--check", "polars_bloomberg")
-    # Run mypy type checker
-    # session.run("mypy", "polars_bloomberg")
+    """Lint and check formatting with ruff, as CI does."""
+    session.install("ruff")
+    session.run("ruff", "check", ".")
+    session.run("ruff", "format", "--check", ".")
 
 
 @nox.session(python="3.14")

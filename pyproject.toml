@@ -64,7 +64,7 @@ addopts = ["--cov=polars_bloomberg", "--cov-report=term-missing"]
 [tool.ruff]
 line-length = 89
 lint.select = [
-  "C",   # mccabe (complexity)
+  "C",   # flake8-comprehensions (C4) and mccabe complexity (C90)
   "E",   # Pycodestyle errors
   "F",   # Pyflakes
   "I",   # isort
@@ -81,9 +81,9 @@ lint.select = [
   "D",   # Docstring conventions
   "Q", # Quote consistency
   # "S", # Security best practices
-  "A", # Assertion best practices
-  "R", # Refactor suggestions
-  "G", # General best practices
+  "A",   # flake8-builtins
+  "R",   # flake8-return (RET)
+  "G",   # flake8-logging-format
 ]
 lint.ignore = [
     "D211",
@@ -100,9 +100,6 @@ lint.ignore = [
 
 [tool.ruff.lint.pylint]
 max-args = 6
-
-[tool.black]
-line-length = 89
 
 [tool.mypy]
 ignore_missing_imports = true

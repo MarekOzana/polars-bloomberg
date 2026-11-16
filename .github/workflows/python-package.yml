@@ -38,6 +38,7 @@ jobs:
     - name: Lint with ruff
       run: |
         ruff check .
+        ruff format --check .
     - name: Test with pytest
       run: |
         pytest -m "no_bbg" tests
