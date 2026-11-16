@@ -30,6 +30,7 @@ with BQuery() as bq:
 :date: 2024-12
 """
 
+import dataclasses
 import json
 import logging
 import os
@@ -186,6 +187,9 @@ class BqlResult:
     Attributes:
         dataframes (list[pl.DataFrame]): List of query result dataframes.
         names (list[str]): List of data-item names corresponding to dataframes.
+        errors (list[str]): Error messages BQL returned with the answer; empty when
+            the query succeeded. A failed query has no dataframes and its message
+            here.
 
     Example:
         Execute a BQL query and combine the results:
@@ -240,6 +244,7 @@ class BqlResult:
 
     dataframes: list[pl.DataFrame]
     names: list[str]
+    errors: list[str] = dataclasses.field(default_factory=list)
 
     def combine(
         self,
@@ -317,6 +322,10 @@ class BqlResult:
 
         """  # noqa: E501
         if not self.dataframes:
+            if self.errors:
+                raise ValueError(
+                    "No DataFrames to combine. BQL error: " + "; ".join(self.errors)
+                )
             raise ValueError("No DataFrames to combine.")
 
         if on is not None:
@@ -861,7 +870,10 @@ class BQuery:
             BqlResult: An object containing:
                 - List of Polars DataFrames (one for each item in BQL get statement)
                 - Helper methods like combine() to merge DataFrames on common columns
-                Returns empty result if BQL syntax is invalid (error is logged).
+                - ``errors``: the messages BQL returned with the answer
+                Returns an empty result if the query fails, for example on invalid
+                BQL syntax; the message is logged and kept in ``errors``. Results
+                that BQL returns together with an error are kept.
 
         Raises:
             ConnectionError: If there is an issue with the Bloomberg session.
@@ -929,13 +941,13 @@ class BQuery:
         """  # noqa: E501
         request = self._create_bql_request(expression)
         responses = self._send_request(request)
-        tables = self._parse_bql_responses(responses)
+        tables, errors = self._parse_bql_responses(responses)
         dataframes = [
             pl.DataFrame(table.data, schema=table.schema, strict=True)
             for table in tables
         ]
         names = [table.name for table in tables]
-        return BqlResult(dataframes, names)
+        return BqlResult(dataframes, names, errors)
 
     def bsrch(
         self,
@@ -1339,14 +1351,16 @@ class BQuery:
                 for idx, cleaned_val in enumerate(cleaned):
                     rows[idx][col] = cleaned_val
 
-    def _parse_bql_responses(self, responses: list[Any]):
-        """Parse BQL responses into a list of SITable objects."""
+    def _parse_bql_responses(
+        self, responses: list[Any]
+    ) -> tuple[list[SITable], list[str]]:
+        """Parse BQL responses into SITable objects and the BQL error messages."""
         tables: list[SITable] = []
-        results: list[dict] = self._extract_results(responses)
+        results, errors = self._extract_results(responses)
 
         for result in results:
             tables.extend(self._parse_result(result))
-        return [self._apply_schema(table) for table in tables]
+        return [self._apply_schema(table) for table in tables], errors
 
     def _apply_schema(self, table: SITable) -> SITable:
         """Convert data based on the schema (e.g., str -> date, 'NaN' -> None)."""
@@ -1377,42 +1391,42 @@ class BQuery:
                 table.data[col] = [_convert_number(x) for x in table.data[col]]
         return table
 
-    def _extract_results(self, responses: list[Any]) -> list[dict]:
-        """Extract the 'results' section from each response, handling JSON strings.
+    def _extract_results(self, responses: list[Any]) -> tuple[list[dict], list[str]]:
+        """Return the 'results' sections of the responses and the BQL error messages.
 
-        Logs an error if responseExceptions are present (e.g., BQL syntax errors).
+        Results that arrive together with responseExceptions are kept. The error
+        messages (from responseExceptions, or a payload that is not valid JSON) are
+        logged as one error.
 
         """
         extracted = []
+        errors = []
         for response in responses:
             resp_dict = response
             if isinstance(response, str):
                 try:
                     resp_dict = json.loads(response)
                 except json.JSONDecodeError as e:
-                    logger.error("Failed to decode JSON: %s. Error: %s", response, e)
+                    errors.append(f"Failed to decode JSON: {e}")
                     continue
 
             # Skip non-dict responses (e.g., connection metadata)
             if not isinstance(resp_dict, dict):
                 continue
 
-            # Check for BQL errors in responseExceptions
-            exceptions = resp_dict.get("responseExceptions")
-            if exceptions:
-                error_messages = [
-                    exc.get("message") or exc.get("internalMessage") or "Unknown error"
-                    for exc in exceptions
-                    if isinstance(exc, dict)
-                ]
-                if error_messages:
-                    logger.error("BQL error: %s", "; ".join(error_messages))
-                    continue
+            # BQL errors (e.g. syntax errors) are in responseExceptions
+            errors.extend(
+                exc.get("message") or exc.get("internalMessage") or "Unknown error"
+                for exc in resp_dict.get("responseExceptions") or []
+                if isinstance(exc, dict)
+            )
 
             results = resp_dict.get("results")
             if results:
                 extracted.append(results)
-        return extracted
+        if errors:
+            logger.error("BQL error: %s", "; ".join(errors))
+        return extracted, errors
 
     def _parse_result(self, results: dict[str, Any]) -> list[SITable]:
         """Convert a single BQL results dictionary into a list[SITable]."""

@@ -21,9 +21,11 @@ def test_extract_results_with_bql_syntax_error(caplog):
         responses = json.load(f)
 
     with caplog.at_level(logging.ERROR):
-        result = bq._extract_results([responses[-1]])
+        result, errors = bq._extract_results([responses[-1]])
 
     assert result == []
+    assert len(errors) == 1
+    assert "Unable to parse request" in errors[0]
     assert "BQL error:" in caplog.text
     assert "Unable to parse request" in caplog.text
 
@@ -40,9 +42,10 @@ class TestExtractResultsBqlErrors:
             ],
         }
         with caplog.at_level(logging.ERROR):
-            result = bq._extract_results([response])
+            result, errors = bq._extract_results([response])
 
         assert result == []
+        assert errors == ["First error", "Second error", "Third error"]
         assert "BQL error: First error; Second error; Third error" in caplog.text
 
     def test_exception_with_missing_message_uses_internal_message(self, caplog):
@@ -54,9 +57,10 @@ class TestExtractResultsBqlErrors:
             ],
         }
         with caplog.at_level(logging.ERROR):
-            result = bq._extract_results([response])
+            result, errors = bq._extract_results([response])
 
         assert result == []
+        assert errors == ["Internal error details"]
         assert "BQL error: Internal error details" in caplog.text
 
     def test_exception_with_empty_message_uses_internal_message(self, caplog):
@@ -68,9 +72,10 @@ class TestExtractResultsBqlErrors:
             ],
         }
         with caplog.at_level(logging.ERROR):
-            result = bq._extract_results([response])
+            result, errors = bq._extract_results([response])
 
         assert result == []
+        assert errors == ["Fallback message"]
         assert "BQL error: Fallback message" in caplog.text
 
     def test_exception_with_no_message_fields_uses_unknown(self, caplog):
@@ -82,9 +87,10 @@ class TestExtractResultsBqlErrors:
             ],
         }
         with caplog.at_level(logging.ERROR):
-            result = bq._extract_results([response])
+            result, errors = bq._extract_results([response])
 
         assert result == []
+        assert errors == ["Unknown error"]
         assert "BQL error: Unknown error" in caplog.text
 
     def test_empty_exceptions_array_does_not_log(self, caplog):
@@ -94,9 +100,10 @@ class TestExtractResultsBqlErrors:
             "responseExceptions": [],
         }
         with caplog.at_level(logging.ERROR):
-            result = bq._extract_results([response])
+            result, errors = bq._extract_results([response])
 
         assert result == [{"data": "some_data"}]
+        assert errors == []
         assert "BQL error" not in caplog.text
 
     def test_non_dict_exception_items_are_skipped(self, caplog):
@@ -111,9 +118,10 @@ class TestExtractResultsBqlErrors:
             ],
         }
         with caplog.at_level(logging.ERROR):
-            result = bq._extract_results([response])
+            result, errors = bq._extract_results([response])
 
         assert result == []
+        assert errors == ["Valid error"]
         assert "BQL error: Valid error" in caplog.text
 
     def test_non_dict_response_is_skipped(self):
@@ -122,8 +130,10 @@ class TestExtractResultsBqlErrors:
             "not a json string",
             {"results": {"data": "valid_data"}},
         ]
-        result = bq._extract_results(responses)
+        result, errors = bq._extract_results(responses)
         assert result == [{"data": "valid_data"}]
+        assert len(errors) == 1
+        assert errors[0].startswith("Failed to decode JSON")
 
     def test_valid_results_extracted_when_no_exceptions(self):
         bq = BQuery()
@@ -132,14 +142,16 @@ class TestExtractResultsBqlErrors:
             {"results": {"field1": "value1"}},
             {"results": {"field2": "value2"}},
         ]
-        result = bq._extract_results(responses)
+        result, errors = bq._extract_results(responses)
         assert result == [{"field1": "value1"}, {"field2": "value2"}]
+        assert errors == []
 
     def test_json_string_response_is_parsed(self):
         bq = BQuery()
         json_response = '{"results": {"parsed": true}, "responseExceptions": null}'
-        result = bq._extract_results([json_response])
+        result, errors = bq._extract_results([json_response])
         assert result == [{"parsed": True}]
+        assert errors == []
 
     def test_json_string_with_exception_logs_error(self, caplog):
         bq = BQuery()
@@ -147,9 +159,10 @@ class TestExtractResultsBqlErrors:
             '{"results": null, "responseExceptions": [{"message": "Parse error"}]}'
         )
         with caplog.at_level(logging.ERROR):
-            result = bq._extract_results([json_response])
+            result, errors = bq._extract_results([json_response])
 
         assert result == []
+        assert errors == ["Parse error"]
         assert "BQL error: Parse error" in caplog.text
 
 
@@ -248,7 +261,8 @@ def test_parse_bql_responses():
         "CURRENCY": pl.String,
     }
 
-    tables: list[SITable] = bq._parse_bql_responses(mock_responses)
+    tables, errors = bq._parse_bql_responses(mock_responses)
+    assert errors == []
     assert len(tables) == 1
     tbl = tables[0]
     assert tbl.data == exp_data
@@ -270,7 +284,9 @@ def test_bql_calls_components():
         patch.object(bq, "_create_bql_request", return_value=mock_request)
         as create_mock,
         patch.object(bq, "_send_request", return_value=["raw"]) as send_mock,
-        patch.object(bq, "_parse_bql_responses", return_value=tables) as parse_mock,
+        patch.object(
+            bq, "_parse_bql_responses", return_value=(tables, [])
+        ) as parse_mock,
     ):
         result = bq.bql("get(px_last) for('IBM US Equity')")
 
@@ -331,7 +347,8 @@ def test__extract_results():
         json.dumps(payload),
     ]
 
-    results = bq._extract_results(responses=responses)
+    results, errors = bq._extract_results(responses=responses)
+    assert errors == []
     assert len(results) == 1
     assert results[0]["name"] == {
         "name": "name",
@@ -363,8 +380,10 @@ def test__extract_results():
 
 def test_extract_results_skips_non_dict():
     bq = BQuery()
-    results = bq._extract_results([["not", "a", "dict"], {"results": {"ok": True}}])
+    responses = [["not", "a", "dict"], {"results": {"ok": True}}]
+    results, errors = bq._extract_results(responses)
     assert results == [{"ok": True}]
+    assert errors == []
 
 
 @pytest.mark.parametrize(

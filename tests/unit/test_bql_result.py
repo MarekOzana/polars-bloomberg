@@ -4,6 +4,7 @@ from datetime import date
 import polars as pl
 import pytest
 from polars.testing import assert_frame_equal
+from support import replay
 
 from polars_bloomberg.plbbg import BqlResult
 
@@ -591,3 +592,14 @@ def test_combine_on_id_gives_one_row_per_security_with_null_keys():
     df = result.combine(on="ID")
 
     assert sorted(df["ID"].to_list()) == ["A", "B"]
+
+
+def test_combine_after_failed_query_reports_the_bql_error():
+    bq, _ = replay("bql/syntax_error")
+    result = bq.bql("get(px_last for(['IBM US Equity'])")
+
+    with pytest.raises(
+        ValueError,
+        match=re.escape("No DataFrames to combine. BQL error: Error: Unable to parse"),
+    ):
+        result.combine()

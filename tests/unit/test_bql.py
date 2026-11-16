@@ -8,7 +8,7 @@ import logging
 
 import polars as pl
 import pytest
-from support import DATA_DIR, answer, fake_bq
+from support import DATA_DIR, answer, fake_bq, replay
 
 pytestmark = pytest.mark.no_bbg
 
@@ -97,3 +97,34 @@ def test_bql_item_with_null_columns_does_not_crash():
     assert result.names == ["px_last"]
     assert result[0].columns == ["ID", "px_last"]
     assert result[0].height == 0
+
+
+def test_bql_response_with_results_and_exceptions_keeps_results(caplog):
+    items = {"px_last": bql_item(["IBM US Equity"], [150.0], "DOUBLE")}
+    payload = {"results": items, "responseExceptions": [{"message": "Partial failure"}]}
+    bq = fake_bq([answer(json.dumps(payload))])
+
+    with caplog.at_level(logging.ERROR):
+        result = bq.bql("get(px_last) for(['IBM US Equity'])")
+
+    assert result.names == ["px_last"]
+    assert result[0]["px_last"].to_list() == [150.0]
+    assert result.errors == ["Partial failure"]
+    assert "Partial failure" in caplog.text
+
+
+def test_bql_syntax_error_is_available_in_result_errors():
+    bq, _ = replay("bql/syntax_error")
+
+    result = bq.bql("get(px_last for(['IBM US Equity'])")
+
+    assert len(result) == 0
+    assert result.errors == ["Error: Unable to parse request at 'get(px_lastfor'."]
+
+
+def test_bql_valid_query_has_no_errors():
+    bq, _ = replay("bql/two_items")
+
+    result = bq.bql("get(name, px_last) for(['IBM US Equity'])")
+
+    assert result.errors == []
