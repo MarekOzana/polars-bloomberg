@@ -228,8 +228,14 @@ class BQuery:
     ) -> None:
         self.stop()
 
+    # --- what the five methods share: create a request (step 2), send it (step 3) ---
+
     def _create_request(self, service_name: str, operation: str) -> blpapi.Request:
-        """Return an empty request, opening its service the first time it is needed."""
+        """Return an empty request, opening its service the first time it is needed.
+
+        Opening on first use lets a user without access to one service, BQL for
+        example, still use the others.
+        """
         if self.session is None:
             raise ConnectionError(
                 "Bloomberg session is not started. "
@@ -242,13 +248,22 @@ class BQuery:
         return self.session.getService(service_name).createRequest(operation)
 
     def _send_request(self, request: blpapi.Request) -> list[Any]:
-        """Send a request and return the payloads (``msg.toPy()``) of its responses."""
-        cid = self.session.sendRequest(request)
-        responses: list[Any] = []
-        events: list[dict] = []  # what the debug dump records
+        """Send a request and return its answer, one payload per message.
+
+        Bloomberg delivers an answer as events: any number of PARTIAL_RESPONSE
+        events, then one RESPONSE event that ends it (recording
+        bdp/partial_responses has three events). An event holds messages, and a
+        payload is one message as plain Python (``msg.toPy()``).
+
+        Raises BloombergError when Bloomberg refuses the request, ConnectionError
+        when the session ends, and TimeoutError when no event arrives in time.
+        """
+        correlation_id = self.session.sendRequest(request)
+        payloads: list[Any] = []
+        events: list[dict] = []  # what was received, in the form the debug dump stores
         try:
-            finished = False
-            while not finished:
+            answer_complete = False
+            while not answer_complete:
                 event = self.session.nextEvent(self.timeout)
                 if event.eventType() == blpapi.Event.TIMEOUT:
                     raise TimeoutError(
@@ -259,16 +274,24 @@ class BQuery:
                     "messages": [],
                 }
                 events.append(received)
-                for msg in event:
-                    if msg.messageType() == blpapi.Names.SESSION_TERMINATED:
+                for message in event:
+                    if message.messageType() == blpapi.Names.SESSION_TERMINATED:
                         raise ConnectionError("Bloomberg session terminated.")
-                    if cid not in msg.correlationIds():
-                        continue  # status message, or late answer to an old request
-                    payload = msg.toPy()
+                    # The session also delivers messages that do not answer this
+                    # request: status messages, and the answer to an earlier request
+                    # that timed out and arrives only now. Taking that late answer
+                    # would hand one call the data of another, so a message counts
+                    # only if it carries the correlation ID of this request.
+                    if correlation_id not in message.correlationIds():
+                        continue
+                    payload = message.toPy()
                     received["messages"].append(
-                        {"type": str(msg.messageType()), "payload": payload}
+                        {"type": str(message.messageType()), "payload": payload}
                     )
-                    if msg.messageType() == blpapi.Names.REQUEST_FAILURE:
+                    # Bloomberg refuses a request in two ways: with a RequestFailure
+                    # message, or with an ordinary response that holds a
+                    # responseError (recording bdp/no_securities).
+                    if message.messageType() == blpapi.Names.REQUEST_FAILURE:
                         reason = payload.get("reason", {})
                         raise BloombergError(
                             f"Request failed: {reason.get('description')} "
@@ -280,22 +303,28 @@ class BQuery:
                             f"Response error: {error.get('message')} "
                             f"({error.get('category')})"
                         )
-                    responses.append(payload)
-                    finished = event.eventType() == blpapi.Event.RESPONSE
+                    payloads.append(payload)
+                    # Only a RESPONSE event that holds a message of this request
+                    # ends the wait; the late answer to another request does not.
+                    answer_complete = event.eventType() == blpapi.Event.RESPONSE
         except BaseException:
-            self._cancel_quietly(cid)
+            # Whatever stopped the wait, Ctrl-C included: tell Bloomberg to stop
+            # sending an answer that nobody will read.
+            self._cancel_quietly(correlation_id)
             raise
         finally:
-            if self._debug_dir:
+            if self._debug_dir:  # a failed request is dumped too
                 _write_debug_dump(self._debug_dir, request, events)
-        return responses
+        return payloads
 
-    def _cancel_quietly(self, cid: blpapi.CorrelationId) -> None:
+    def _cancel_quietly(self, correlation_id: blpapi.CorrelationId) -> None:
         """Tell Bloomberg to drop a request; never hide the error being raised."""
         try:
-            self.session.cancel(cid)
+            self.session.cancel(correlation_id)
         except Exception:  # the session may already be gone
-            logger.debug("Could not cancel request %s", cid)
+            logger.debug("Could not cancel request %s", correlation_id)
+
+    # --- the five methods, each in the five steps of the module docstring ---
 
     # --- bdp ---
 
@@ -364,16 +393,22 @@ class BQuery:
             ```
 
         """
+        # Step 1: check the inputs.
         securities = _as_list(securities)
         fields = _as_list(fields)
         _check_no_field_is_named(fields, "security")
 
+        # Step 2: build the request.
         request = self._create_request("//blp/refdata", "ReferenceDataRequest")
         _append_values(request, "securities", securities)
         _append_values(request, "fields", fields)
         _set_overrides(request, overrides)
         _set_options(request, options)
 
+        # Steps 3 to 5: send it, parse the answer, build the DataFrame. Only
+        # "security" is given a dtype; Polars infers the dtype of each field, and from
+        # all rows: by default it reads the first 100 and would lose a field whose
+        # first value comes later.
         payloads = self._send_request(request)
         rows = _parse_bdp(payloads, fields)
         schema = {"security": pl.String, **dict.fromkeys(fields)}
@@ -457,10 +492,12 @@ class BQuery:
             ```
 
         """
+        # Step 1: check the inputs.
         securities = _as_list(securities)
         fields = _as_list(fields)
         _check_no_field_is_named(fields, "security", "date")
 
+        # Step 2: build the request: the elements of bdp, and the two dates.
         request = self._create_request("//blp/refdata", "HistoricalDataRequest")
         _append_values(request, "securities", securities)
         _append_values(request, "fields", fields)
@@ -469,6 +506,8 @@ class BQuery:
         request.set("startDate", _yyyymmdd(start_date))
         request.set("endDate", _yyyymmdd(end_date))
 
+        # Steps 3 to 5: send it, parse the answer, build the DataFrame. The dtypes
+        # of the fields are inferred as in bdp.
         payloads = self._send_request(request)
         rows = _parse_bdh(payloads, fields)
         schema = {"security": pl.String, "date": pl.Date, **dict.fromkeys(fields)}
@@ -555,6 +594,10 @@ class BQuery:
             ```
 
         """  # noqa: E501
+        # Step 1: nothing to check. Bloomberg itself refuses an unknown security or
+        # a bad interval (recordings bdib/invalid_security, bdib/interval_out_of_range).
+
+        # Step 2: build the request. It takes one security, and times instead of dates.
         request = self._create_request("//blp/refdata", "IntradayBarRequest")
         request.set("security", security)
         request.set("eventType", event_type)
@@ -564,6 +607,8 @@ class BQuery:
         _set_overrides(request, overrides)
         _set_options(request, options)
 
+        # Steps 3 to 5: send it, parse the answer, build the DataFrame. The columns
+        # are always the same nine, so the schema is fixed.
         payloads = self._send_request(request)
         rows = _parse_bdib(payloads, requested_security=security)
         df = pl.DataFrame(
@@ -655,10 +700,17 @@ class BQuery:
             ```
 
         """  # noqa: E501
+        # Step 1: nothing to check. BQL reads the expression and reports what is
+        # wrong with it inside its answer (recording bql/syntax_error).
+
+        # Step 2: build the request.
         request = self._create_request("//blp/bqlsvc", "sendQuery")
         request.set("expression", expression)
         _set_bql_client_context(request)
 
+        # Steps 3 to 5: send it, parse the answer, build the DataFrames: one per
+        # item of the query, which is why bql() returns a BqlResult. A query that
+        # BQL could not run gives no items, and its message in `errors`.
         payloads = self._send_request(request)
         items, errors = _parse_bql(payloads)
         dataframes = [_bql_dataframe(item) for item in items]
@@ -672,11 +724,11 @@ class BQuery:
         overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
         options: dict | None = None,
     ) -> pl.DataFrame:
-        r"""Bloomberg SRCH (search) via ExcelGetGridRequest on //blp/exrsvc.
+        """Bloomberg SRCH (search) via ExcelGetGridRequest on //blp/exrsvc.
 
         Args:
-            domain: Domain string, e.g. ``\"FI:SRCHEX.@COCO\"``.
-            overrides: Optional overrides as a dict (e.g. ``{\"LIMIT\": 20000}``)
+            domain: Domain string, e.g. ``"FI:SRCHEX.@COCO"``.
+            overrides: Optional overrides as a dict (e.g. ``{"LIMIT": 20000}``)
                 or as (name, value) pairs.
             options: Additional request options applied directly to the request.
 
@@ -722,13 +774,19 @@ class BQuery:
             ```
 
         """
+        # Step 1: check the inputs. The overrides are read here, and not while the
+        # request is filled in, because step 4 also asks whether LIMIT is among them.
         overrides = _override_pairs(overrides)
 
+        # Step 2: build the request. This service spells its elements with a capital
+        # letter and takes overrides as text.
         request = self._create_request("//blp/exrsvc", "ExcelGetGridRequest")
         request.set("Domain", domain)
         _set_bsrch_overrides(request, overrides)
         _set_options(request, options)
 
+        # Steps 3 to 5: send it, parse the answer, build the DataFrame. The grid
+        # names its columns but not their types, so Polars infers every dtype.
         payloads = self._send_request(request)
         rows, columns = _parse_bsrch(payloads, limit_given="LIMIT" in dict(overrides))
         return pl.DataFrame(
@@ -770,7 +828,11 @@ def _append_values(request: blpapi.Request, name: str, values: list[str]) -> Non
 def _set_overrides(
     request: blpapi.Request, overrides: Mapping[str, Any] | Sequence | None
 ) -> None:
-    """Check the overrides and write them to a //blp/refdata request."""
+    """Check the overrides and write them to a //blp/refdata request.
+
+    Used by bdp, bdh and bdib. A user override replaces the value of a field that
+    Bloomberg would otherwise use in a calculation, e.g. REFERENCE_DATE.
+    """
     if not overrides:
         return
     overrides_element = request.getElement("overrides")
@@ -787,13 +849,17 @@ def _override_pairs(overrides: Mapping[str, Any] | Sequence | None) -> list[tupl
     pairs = overrides.items() if isinstance(overrides, Mapping) else overrides
     checked = []
     for pair in pairs:
+        # A two-character string would unpack like a pair: one pair passed without
+        # its enclosing list, ("AB", "CD"), would become the overrides A=B and C=D.
         if isinstance(pair, str) or len(pair) != 2:  # noqa: PLR2004
             raise TypeError(
                 "overrides must be a dict or a sequence of (name, value) pairs"
             )
         name, value = pair
-        if value is None:
+        if value is None:  # blpapi would send the text "None"
             raise TypeError(f"override {name!r} has no value")
+        # Bloomberg reads an override date as YYYYMMDD. blpapi would write a date
+        # as 2020-07-15, which Bloomberg ignores without an error.
         if isinstance(value, date):  # also covers datetime
             value = _yyyymmdd(value)
         checked.append((name, value))
@@ -801,7 +867,10 @@ def _override_pairs(overrides: Mapping[str, Any] | Sequence | None) -> list[tupl
 
 
 def _set_options(request: blpapi.Request, options: dict | None) -> None:
-    """Set each option as an element of the request, under Bloomberg's own name."""
+    """Set each option as an element of the request, under Bloomberg's own name.
+
+    For example ``{"periodicitySelection": "MONTHLY"}`` for bdh.
+    """
     for name, value in (options or {}).items():
         request.set(name, value)
 
@@ -812,7 +881,11 @@ def _set_options(request: blpapi.Request, options: dict | None) -> None:
 #
 # Both answers are built from "securityData" elements, and both report an unknown
 # security or field inside such an element instead of failing the request. They
-# differ in one way: a bdp payload lists many securities, a bdh payload holds one.
+# differ in shape: a bdp payload lists many securities, a bdh payload holds one.
+#
+# An unknown security comes back with empty fieldData. In bdp that is an empty dict,
+# which gives a row of nulls; in bdh it is an empty list, which gives no rows
+# (recordings bdp/invalid_security_mixed and bdh/invalid_security_mixed).
 
 
 def _parse_bdp(payloads: list[dict], fields: list[str]) -> list[dict]:
@@ -820,6 +893,8 @@ def _parse_bdp(payloads: list[dict], fields: list[str]) -> list[dict]:
 
     A ReferenceDataResponse payload lists several securities:
     ``{"securityData": [{"security": ..., "fieldData": {FIELD: value}}, ...]}``.
+    Bloomberg answers a large request in several payloads, and not in the order of
+    the request (recording bdp/partial_responses); the rows keep Bloomberg's order.
     """
     rows = []
     errors = []
@@ -909,7 +984,7 @@ def _iso_datetime(value: datetime | date | str) -> str:
         return value
     if not isinstance(value, datetime):  # a plain date means midnight
         value = datetime.combine(value, time())
-    if value.tzinfo is None:
+    if value.tzinfo is None:  # sent as it is: Bloomberg reads it as UTC
         return value.strftime("%Y-%m-%dT%H:%M:%S")
     return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -918,7 +993,7 @@ def _iso_datetime(value: datetime | date | str) -> str:
 # Bloomberg's barTickData, under Bloomberg's names.
 _BAR_SCHEMA = {
     "security": pl.String,
-    "time": pl.Datetime,
+    "time": pl.Datetime,  # start of the bar; naive, holding UTC
     "open": pl.Float64,
     "high": pl.Float64,
     "low": pl.Float64,
@@ -934,7 +1009,8 @@ def _parse_bdib(payloads: list[dict], requested_security: str) -> list[dict]:
 
     An IntradayBarResponse payload is ``{"barData": {"barTickData": [bar, ...]}}``.
     barData names no security (see recording bdib/trade_bars_60min), so each row
-    gets the security that was asked for.
+    gets the security that was asked for. Should Bloomberg ever name one, its name
+    is used.
     """
     rows = []
     for payload in payloads:
@@ -957,12 +1033,15 @@ def _parse_bdib(payloads: list[dict], requested_security: str) -> list[dict]:
 
 
 def _set_bql_client_context(request: blpapi.Request) -> None:
-    """Say that the query comes from Excel, as Bloomberg's own Excel add-in does."""
-    # BLPAPI requires setting sub-elements on the sequence element.
+    """Say that the query comes from Excel, as Bloomberg's own Excel add-in does.
+
+    Setting the application name fixed GitHub issue #12.
+    """
+    # appName is a sub-element: blpapi sets it on clientContext, not on the request.
     try:
         client_context = request.getElement("clientContext")
         client_context.setElement("appName", "EXCEL")
-    except blpapi.NotFoundException:
+    except blpapi.NotFoundException:  # then the query is sent without it
         logger.debug("BQL request has no 'clientContext' element in this SDK/schema.")
 
 
@@ -1017,7 +1096,7 @@ def _parse_bql(payloads: list[Any]) -> tuple[list[_BqlItem], list[str]]:
         if content is not None
     ]
     for item in items:
-        _read_text_values(item)
+        _read_text_values(item)  # dates, NaN and infinity arrive as text
     return items, errors
 
 
@@ -1110,7 +1189,7 @@ def _polars_dtype(bql_type: str, column: str) -> pl.DataType | None:
 
 
 # JSON has no dates, NaN or infinity, so BQL sends them as text. The three functions
-# below read that text; _read_text_values applies them by dtype.
+# below read that text; _read_text_values applies them to the columns of an item.
 
 
 def _bql_number(value: Any) -> Any:
@@ -1180,9 +1259,9 @@ def _bql_dataframe(item: _BqlItem) -> pl.DataFrame:
 # 6. bsrch: saved searches, answered as a grid
 # =====================================================================================
 #
-# bsrch asks the service behind Excel's BSRCH(). Its answer is a grid: column titles
-# and records of cells. Nothing in it says what type a column has, so the types
-# follow the cells Bloomberg sends.
+# bsrch runs a search that is saved on the Terminal. The answer is a grid: column
+# titles, and records of cells. Nothing in it says what type a column has, so the
+# types follow the cells: text stays text, also when it looks like a number.
 
 
 def _set_bsrch_overrides(request: blpapi.Request, overrides: list[tuple]) -> None:
@@ -1215,6 +1294,7 @@ def _parse_bsrch(
     for grid in payloads:
         if not isinstance(grid, dict) or "DataRecords" not in grid:
             continue  # not a grid
+        # A grid without titles keeps the titles of the grid before it.
         titles = _unique_titles(grid.get("ColumnTitles") or []) or titles
         reached_max = reached_max or bool(grid.get("ReachMax"))
         if grid.get("Error"):
@@ -1225,6 +1305,7 @@ def _parse_bsrch(
             rows.append(dict(zip(names, values, strict=False)))
 
     columns = list(dict.fromkeys([*titles, *(name for row in rows for name in row)]))
+    # A cell that _cell_value could not read is still a dict; its keys are reported.
     unknown_keys = {
         key
         for row in rows
@@ -1468,6 +1549,7 @@ class BqlResult:
                 on, how=how, allow_common_columns=allow_common_columns
             )
 
+        # Legacy mode, kept as it always was: join on every column the frames share.
         if how != "full":
             raise ValueError("The 'how' parameter requires explicit join keys via 'on'.")
         if not allow_common_columns:
@@ -1491,7 +1573,7 @@ class BqlResult:
         how: str,
         allow_common_columns: bool,
     ) -> pl.DataFrame:
-        """Combine dataframes using explicit join keys."""
+        """Join the dataframes on the given keys, left to right."""
         join_keys = [on] if isinstance(on, str) else list(on)
         if not join_keys:
             raise ValueError("At least one join column must be provided.")
@@ -1510,30 +1592,34 @@ class BqlResult:
         for idx, df in enumerate(self.dataframes):
             missing_cols = [col for col in join_keys if col not in df.columns]
             if missing_cols:
-                name = self.names[idx] if idx < len(self.names) else str(idx)
                 raise ValueError(
-                    f"Join columns not found in DataFrame {idx} ({name}): {missing_cols}"
+                    f"Join columns not found in DataFrame {idx} "
+                    f"({self._name_of(idx)}): {missing_cols}"
                 )
 
         result = self.dataframes[0]
-        join_key_set = set(join_keys)
         for idx, df in enumerate(self.dataframes[1:], start=1):
+            # Columns that both sides have and that are not keys, e.g. the DATE of
+            # two items: the right-hand one gets a suffix, or is refused.
             overlapping_cols = [
                 col
                 for col in df.columns
-                if col in result.columns and col not in join_key_set
+                if col in result.columns and col not in join_keys
             ]
             if overlapping_cols and not allow_common_columns:
-                name = self.names[idx] if idx < len(self.names) else str(idx)
                 raise ValueError(
-                    f"Overlapping non-key columns found in DataFrame {idx} ({name}): "
-                    f"{overlapping_cols}"
+                    f"Overlapping non-key columns found in DataFrame {idx} "
+                    f"({self._name_of(idx)}): {overlapping_cols}"
                 )
 
             right = self._rename_overlapping_columns(df, idx, result, overlapping_cols)
             result = result.join(right, on=join_keys, how=how, coalesce=True)
 
         return result
+
+    def _name_of(self, idx: int) -> str:
+        """Return the item name of a dataframe, or its position if it has none."""
+        return self.names[idx] if idx < len(self.names) else str(idx)
 
     def _rename_overlapping_columns(
         self,
@@ -1542,13 +1628,15 @@ class BqlResult:
         result: pl.DataFrame,
         overlapping_cols: Sequence[str],
     ) -> pl.DataFrame:
-        """Rename right-hand non-key overlaps before explicit-key joins."""
+        """Give the overlapping columns of the right-hand frame a suffix.
+
+        The suffix is the item name (DATE_px_volume). If that name is taken, it is
+        the position of the frame (DATE_1), then DATE_1_2, DATE_1_3, ...
+        """
         if not overlapping_cols:
             return df
 
-        label = (
-            self.names[idx] if idx < len(self.names) and self.names[idx] else str(idx)
-        )
+        label = self._name_of(idx) or str(idx)
         existing_cols = set(result.columns) | set(df.columns)
         rename_map: dict[str, str] = {}
         for col in overlapping_cols:
@@ -1589,27 +1677,37 @@ class BqlResult:
 # Changing the format here therefore means recording every scenario again.
 
 
+# The events an answer can arrive in, under the names a dump stores. A RequestFailure
+# arrives in a REQUEST_STATUS event; any other event is stored as "OTHER".
 _EVENT_NAMES = {
-    getattr(blpapi.Event, name): name
-    for name in ("PARTIAL_RESPONSE", "RESPONSE", "REQUEST_STATUS")
+    blpapi.Event.PARTIAL_RESPONSE: "PARTIAL_RESPONSE",
+    blpapi.Event.RESPONSE: "RESPONSE",
+    blpapi.Event.REQUEST_STATUS: "REQUEST_STATUS",
 }
 
 
 def _json_default(value: Any) -> Any:
-    """json.dump hook: write dates so that a dump can be replayed with its types."""
-    if isinstance(value, datetime):
+    """json.dump hook: write dates so that a dump can be replayed with its types.
+
+    `_decode` in tests/support.py reads the three markers back.
+    """
+    if isinstance(value, datetime):  # before date: a datetime is a date too
         return {"$datetime": value.isoformat()}
     if isinstance(value, date):
         return {"$date": value.isoformat()}
     if isinstance(value, time):
         return {"$time": value.isoformat()}
-    return str(value)
+    return str(value)  # e.g. a blpapi.Name
 
 
 def _write_debug_dump(
     directory: str | os.PathLike, request: blpapi.Request, events: list[dict]
 ) -> None:
-    """Write one request and the messages it received to a replayable JSON file."""
+    """Write one request and the messages it received to a replayable JSON file.
+
+    The file is named after the request and the time, for example
+    ``ReferenceDataRequest_20261116_101500_123456.json``.
+    """
     element = request.asElement()
     dump = {
         "format": 1,
@@ -1619,6 +1717,7 @@ def _write_debug_dump(
             "polars": pl.__version__,
         },
         "request": {"operation": str(element.name()), "body": element.toPy()},
+        # Events without a message of this request say nothing about its answer.
         "events": [event for event in events if event["messages"]],
     }
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
@@ -1628,5 +1727,5 @@ def _write_debug_dump(
         with open(path, "w", encoding="utf-8") as f:
             json.dump(dump, f, default=_json_default, indent=1, ensure_ascii=False)
             f.write("\n")
-    except OSError as error:
+    except OSError as error:  # a dump that cannot be written must not fail the call
         logger.warning("Could not write debug dump %s: %s", path, error)
