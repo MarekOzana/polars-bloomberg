@@ -1,30 +1,67 @@
-"""Polars interface to Bloomberg Open API.
+"""Polars interface to the Bloomberg Open API.
 
-polars-bloomberg is a Python library that fetches Bloomberg financial data directly into
-Polars DataFrames through five methods: `bdp()`, `bdh()`, `bdib()`, `bql()` and
-`bsrch()`, each one Bloomberg request in, one DataFrame (or `BqlResult`) out.
+polars-bloomberg fetches Bloomberg data into Polars DataFrames through the five
+methods of `BQuery`: `bdp()`, `bdh()`, `bdib()`, `bql()` and `bsrch()`. Each method
+sends one Bloomberg request and returns one DataFrame; `bql()` returns a `BqlResult`,
+which holds one DataFrame per item of the query.
 
-Usage
------
-```python
-from datetime import date
-from polars_bloomberg import BQuery
+    from datetime import date
+    from polars_bloomberg import BQuery
 
-with BQuery() as bq:
-    # Fetch reference data
-    df_ref = bq.bdp(['AAPL US Equity', 'MSFT US Equity'], ['PX_LAST'])
+    with BQuery() as bq:
+        df_ref = bq.bdp(["AAPL US Equity", "MSFT US Equity"], ["PX_LAST"])
+        df_hist = bq.bdh(
+            ["AAPL US Equity"], ["PX_LAST"], date(2020, 1, 1), date(2020, 1, 30)
+        )
+        result = bq.bql("get(px_last) for(['IBM US Equity', 'AAPL US Equity'])")
 
-    # Fetch historical data
-    df_hist = bq.bdh(
-        ['AAPL US Equity'],
-        ['PX_LAST'],
-        date(2020, 1, 1),
-        date(2020, 1, 30)
-    )
+The shape of every call
+-----------------------
+All five methods run the same five steps, in this order:
 
-    # Execute BQL query
-    df_lst = bq.bql("get(px_last) for(['IBM US Equity', 'AAPL US Equity'])")
-```
+    1. check the inputs       plain Python; nothing has been sent yet
+    2. build the request      self._create_request(service, operation), then the
+                              elements of the request, under Bloomberg's names
+    3. send it                payloads = self._send_request(request)
+    4. parse the answer       rows = _parse_bdp(payloads, fields)
+    5. build the DataFrame    pl.DataFrame(rows, schema=...)
+
+A payload is one message of Bloomberg's answer as plain Python (`msg.toPy()`):
+dicts, lists, numbers, strings and dates. Steps 4 and 5 work on such plain data
+only, so they run without a Bloomberg connection.
+
+    method   service         request                 answer parsed by
+    bdp      //blp/refdata   ReferenceDataRequest    _parse_bdp
+    bdh      //blp/refdata   HistoricalDataRequest   _parse_bdh
+    bdib     //blp/refdata   IntradayBarRequest      _parse_bdib
+    bql      //blp/bqlsvc    sendQuery               _parse_bql
+    bsrch    //blp/exrsvc    ExcelGetGridRequest     _parse_bsrch
+
+How this file is laid out
+-------------------------
+The class comes first and shows the five steps of each method. The sections after
+it hold what the steps call, in the order of the table above.
+
+    1. BloombergError, BQuery   connect, create a request, send it and collect the
+                                answer (the event loop); then the five methods
+    2. Inputs and requests      what steps 1 and 2 share: lists, dates, overrides,
+                                options
+    3. bdp and bdh              their parsers; errors per security and per field
+    4. bdib                     times in UTC, the bar columns, the parser
+    5. bql                      the JSON answer, its items and their value types
+    6. bsrch                    overrides as text, the grid parser
+    7. BqlResult                what bql() returns: the frames, and combine()
+    8. Debug dump               the JSON file that BQuery(debug=True) writes for
+                                each request
+
+Seeing what Bloomberg sent
+--------------------------
+`BQuery(debug=True)` writes every request and the raw messages of its answer to a
+JSON file in `debug_cases/`. The offline tests replay files of the same format from
+`tests/data/recordings/`. Where a comment below says "recording bql/empty_universe",
+it means `tests/data/recordings/bql/empty_universe.json`: open it to see the answer
+that the code next to the comment handles. `docs/developer-guide.md` explains how to
+turn a dump into a recording and a test.
 
 :author: Marek Ozana
 :date: 2024-12
@@ -46,432 +83,13 @@ import polars as pl
 logger = logging.getLogger(__name__)
 
 
+# =====================================================================================
+# 1. BloombergError and BQuery
+# =====================================================================================
+
+
 class BloombergError(ValueError):
     """Bloomberg rejected or failed a request."""
-
-
-@dataclass
-class BqlResult:
-    """Holds the result of a BQL query as a list of Polars DataFrames.
-
-    This class encapsulates the results of a Bloomberg Query Language (BQL) query,
-    providing methods to access and manipulate the data.
-
-    Attributes:
-        dataframes (list[pl.DataFrame]): List of query result dataframes.
-        names (list[str]): List of data-item names corresponding to dataframes.
-        errors (list[str]): Error messages BQL returned with the answer; empty when
-            the query succeeded. A failed query has no dataframes and its message
-            here.
-
-    Example:
-        Execute a BQL query and combine the results:
-
-        ```python
-        from polars_bloomberg import BQuery
-
-        with BQuery() as bq:
-            result = bq.bql("get(px_last) for(['IBM US Equity', 'MSFT US Equity'])")
-            df = result.combine(on="ID")
-            print(df)
-        ```
-
-        Expected output:
-        ```python
-        shape: (2, 4)
-        ┌────────────────┬─────────┬────────────┬──────────┐
-        │ ID             ┆ px_last ┆ DATE       ┆ CURRENCY │
-        │ ---            ┆ ---     ┆ ---        ┆ ---      │
-        │ str            ┆ f64     ┆ date       ┆ str      │
-        ╞════════════════╪═════════╪════════════╪══════════╡
-        │ IBM US Equity  ┆ 247.13  ┆ 2026-11-16 ┆ USD      │
-        │ MSFT US Equity ┆ 523.88  ┆ 2026-11-16 ┆ USD      │
-        └────────────────┴─────────┴────────────┴──────────┘
-        ```
-
-        Iterate over the list of DataFrames:
-
-        ```python
-        for df in result:
-            print(df)
-        ```
-
-        Access individual DataFrames by index:
-
-        ```python
-        first_df = result[0]
-        print(first_df)
-        ```
-
-        Get the number of DataFrames:
-
-        ```python
-        num_dfs = len(result)
-        print(f"Number of DataFrames: {num_dfs}")
-        ```
-
-    Methods:
-        combine: Combine all dataframes into one; ``combine(on="ID")`` gives one
-            row per security.
-
-    """
-
-    dataframes: list[pl.DataFrame]
-    names: list[str]
-    errors: list[str] = dataclasses.field(default_factory=list)
-
-    def combine(
-        self,
-        on: str | Sequence[str] | None = None,
-        *,
-        how: str = "full",
-        allow_common_columns: bool = True,
-    ) -> pl.DataFrame:
-        """Combine all dataframes into one.
-
-        With no arguments, this method preserves the legacy behavior exactly: it
-        merges all DataFrames by performing a full join on every column they share,
-        not only ``ID``. A row whose shared columns hold nulls matches nothing, so it
-        appears twice: once from each side. This happens, for example, when BQL has
-        no ``DATE`` for a security in two items. If no common columns are found, it
-        raises a ValueError.
-
-        Use ``combine(on="ID")`` for one row per security. When ``on`` is provided,
-        only those columns are used as join keys. Other overlapping columns are
-        preserved with a suffix unless ``allow_common_columns`` is false.
-
-        Args:
-            on: Explicit column or columns to join on. If omitted, legacy common-column
-                joining is used.
-            how: Polars join strategy to use when ``on`` is provided.
-            allow_common_columns: Whether overlapping non-key columns are allowed when
-                ``on`` is provided. If true, right-hand overlapping columns are suffixed
-                with the corresponding BQL item name.
-
-        Returns:
-            pl.DataFrame: Combined dataframe.
-
-        Raises:
-            ValueError: If no dataframes are present (the message includes the BQL
-                error, if any), if no common columns exist in legacy mode, if
-                explicit join keys are missing, or if overlapping non-key columns
-                are disallowed.
-
-        Example:
-            One row per security; the ``DATE`` of the second item gets a suffix:
-
-            ```python
-            from polars_bloomberg import BQuery
-
-            with BQuery() as bq:
-                result = bq.bql(
-                    "get(px_last, px_volume) "
-                    "for(['IBM US Equity', 'NOT A SECURITY Equity'])"
-                )
-            print(result.combine(on="ID"))
-            ```
-
-            Expected output:
-            ```python
-            shape: (2, 6)
-            ┌───────────────────────┬─────────┬────────────┬──────────┬───────────┬────────────────┐
-            │ ID                    ┆ px_last ┆ DATE       ┆ CURRENCY ┆ px_volume ┆ DATE_px_volume │
-            │ ---                   ┆ ---     ┆ ---        ┆ ---      ┆ ---       ┆ ---            │
-            │ str                   ┆ f64     ┆ date       ┆ str      ┆ f64       ┆ date           │
-            ╞═══════════════════════╪═════════╪════════════╪══════════╪═══════════╪════════════════╡
-            │ IBM US Equity         ┆ 247.13  ┆ 2026-11-16 ┆ USD      ┆ 4750.0    ┆ 2026-11-16     │
-            │ NOT A SECURITY Equity ┆ null    ┆ null       ┆ null     ┆ null      ┆ null           │
-            └───────────────────────┴─────────┴────────────┴──────────┴───────────┴────────────────┘
-            ```
-
-            Without ``on``, the join uses ``ID`` and ``DATE``; the security without
-            a ``DATE`` appears twice:
-
-            ```python
-            print(result.combine())
-            ```
-
-            Expected output:
-            ```python
-            shape: (3, 5)
-            ┌───────────────────────┬─────────┬────────────┬──────────┬───────────┐
-            │ ID                    ┆ px_last ┆ DATE       ┆ CURRENCY ┆ px_volume │
-            │ ---                   ┆ ---     ┆ ---        ┆ ---      ┆ ---       │
-            │ str                   ┆ f64     ┆ date       ┆ str      ┆ f64       │
-            ╞═══════════════════════╪═════════╪════════════╪══════════╪═══════════╡
-            │ IBM US Equity         ┆ 247.13  ┆ 2026-11-16 ┆ USD      ┆ 4750.0    │
-            │ NOT A SECURITY Equity ┆ null    ┆ null       ┆ null     ┆ null      │
-            │ NOT A SECURITY Equity ┆ null    ┆ null       ┆ null     ┆ null      │
-            └───────────────────────┴─────────┴────────────┴──────────┴───────────┘
-            ```
-
-        """  # noqa: E501
-        if not self.dataframes:
-            if self.errors:
-                raise ValueError(
-                    "No DataFrames to combine. BQL error: " + "; ".join(self.errors)
-                )
-            raise ValueError("No DataFrames to combine.")
-
-        if on is not None:
-            return self._combine_on(
-                on, how=how, allow_common_columns=allow_common_columns
-            )
-
-        if how != "full":
-            raise ValueError("The 'how' parameter requires explicit join keys via 'on'.")
-        if not allow_common_columns:
-            raise ValueError(
-                "The 'allow_common_columns' parameter requires explicit join keys "
-                "via 'on'."
-            )
-
-        result = self.dataframes[0]
-        for df in self.dataframes[1:]:
-            common_cols = [col for col in result.columns if col in df.columns]
-            if not common_cols:
-                raise ValueError("No common columns found to join on.")
-            result = result.join(df, on=common_cols, how="full", coalesce=True)
-        return result
-
-    def _combine_on(
-        self,
-        on: str | Sequence[str],
-        *,
-        how: str,
-        allow_common_columns: bool,
-    ) -> pl.DataFrame:
-        """Combine dataframes using explicit join keys."""
-        join_keys = [on] if isinstance(on, str) else list(on)
-        if not join_keys:
-            raise ValueError("At least one join column must be provided.")
-        if not all(isinstance(col, str) for col in join_keys):
-            raise ValueError("Join columns must be strings.")
-        if len(join_keys) != len(set(join_keys)):
-            raise ValueError("Join columns must be unique.")
-
-        allowed_join_strategies = {"full", "inner", "left", "right"}
-        if how not in allowed_join_strategies:
-            raise ValueError(
-                f"Unsupported join strategy {how!r}. Supported strategies are: "
-                f"{sorted(allowed_join_strategies)}."
-            )
-
-        for idx, df in enumerate(self.dataframes):
-            missing_cols = [col for col in join_keys if col not in df.columns]
-            if missing_cols:
-                name = self.names[idx] if idx < len(self.names) else str(idx)
-                raise ValueError(
-                    f"Join columns not found in DataFrame {idx} ({name}): {missing_cols}"
-                )
-
-        result = self.dataframes[0]
-        join_key_set = set(join_keys)
-        for idx, df in enumerate(self.dataframes[1:], start=1):
-            overlapping_cols = [
-                col
-                for col in df.columns
-                if col in result.columns and col not in join_key_set
-            ]
-            if overlapping_cols and not allow_common_columns:
-                name = self.names[idx] if idx < len(self.names) else str(idx)
-                raise ValueError(
-                    f"Overlapping non-key columns found in DataFrame {idx} ({name}): "
-                    f"{overlapping_cols}"
-                )
-
-            right = self._rename_overlapping_columns(df, idx, result, overlapping_cols)
-            result = result.join(right, on=join_keys, how=how, coalesce=True)
-
-        return result
-
-    def _rename_overlapping_columns(
-        self,
-        df: pl.DataFrame,
-        idx: int,
-        result: pl.DataFrame,
-        overlapping_cols: Sequence[str],
-    ) -> pl.DataFrame:
-        """Rename right-hand non-key overlaps before explicit-key joins."""
-        if not overlapping_cols:
-            return df
-
-        label = (
-            self.names[idx] if idx < len(self.names) and self.names[idx] else str(idx)
-        )
-        existing_cols = set(result.columns) | set(df.columns)
-        rename_map: dict[str, str] = {}
-        for col in overlapping_cols:
-            candidate = f"{col}_{label}"
-            if candidate in existing_cols:
-                candidate = f"{col}_{idx}"
-
-            counter = 2
-            while candidate in existing_cols:
-                candidate = f"{col}_{idx}_{counter}"
-                counter += 1
-
-            rename_map[col] = candidate
-            existing_cols.add(candidate)
-
-        return df.rename(rename_map)
-
-    def __getitem__(self, idx: int) -> pl.DataFrame:
-        """Access individual DataFrames by index."""
-        return self.dataframes[idx]
-
-    def __len__(self) -> int:
-        """Return the number of dataframes."""
-        return len(self.dataframes)
-
-    def __iter__(self) -> Iterator[pl.DataFrame]:
-        """Return an iterator over the dataframes."""
-        return iter(self.dataframes)
-
-
-# --- debug dump: one replayable JSON file per request ---
-
-_EVENT_NAMES = {
-    getattr(blpapi.Event, name): name
-    for name in ("PARTIAL_RESPONSE", "RESPONSE", "REQUEST_STATUS")
-}
-
-
-def _json_default(value: Any) -> Any:
-    """json.dump hook: write dates so that a dump can be replayed with its types."""
-    if isinstance(value, datetime):
-        return {"$datetime": value.isoformat()}
-    if isinstance(value, date):
-        return {"$date": value.isoformat()}
-    if isinstance(value, time):
-        return {"$time": value.isoformat()}
-    return str(value)
-
-
-def _write_debug_dump(
-    directory: str | os.PathLike, request: blpapi.Request, events: list[dict]
-) -> None:
-    """Write one request and the messages it received to a replayable JSON file."""
-    element = request.asElement()
-    dump = {
-        "format": 1,
-        "recorded": {
-            "date": date.today().isoformat(),
-            "blpapi": blpapi.__version__,
-            "polars": pl.__version__,
-        },
-        "request": {"operation": str(element.name()), "body": element.toPy()},
-        "events": [event for event in events if event["messages"]],
-    }
-    stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-    path = os.path.join(directory, f"{element.name()}_{stamp}.json")
-    try:
-        os.makedirs(directory, exist_ok=True)
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(dump, f, default=_json_default, indent=1, ensure_ascii=False)
-            f.write("\n")
-    except OSError as error:
-        logger.warning("Could not write debug dump %s: %s", path, error)
-
-
-# --- inputs ---
-
-
-def _as_list(value: str | Sequence[str]) -> list[str]:
-    """Accept one name or several."""
-    return [value] if isinstance(value, str) else list(value)
-
-
-def _yyyymmdd(value: date | str) -> str:
-    """Return a date as Bloomberg's YYYYMMDD; accept YYYYMMDD and ISO strings."""
-    if isinstance(value, str):
-        return value.replace("-", "")
-    return value.strftime("%Y%m%d")
-
-
-def _iso_datetime(value: datetime | date | str) -> str:
-    """Return Bloomberg's ISO 8601 text: a date is midnight, a str is sent as is."""
-    if isinstance(value, str):
-        return value
-    if not isinstance(value, datetime):  # a plain date means midnight
-        value = datetime.combine(value, time())
-    if value.tzinfo is None:
-        return value.strftime("%Y-%m-%dT%H:%M:%S")
-    return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def _override_pairs(overrides: Mapping[str, Any] | Sequence | None) -> list[tuple]:
-    """Return overrides as (name, value) pairs; accept a dict or a sequence of pairs."""
-    if not overrides:
-        return []
-    pairs = overrides.items() if isinstance(overrides, Mapping) else overrides
-    checked = []
-    for pair in pairs:
-        if isinstance(pair, str) or len(pair) != 2:  # noqa: PLR2004
-            raise TypeError(
-                "overrides must be a dict or a sequence of (name, value) pairs"
-            )
-        name, value = pair
-        if value is None:
-            raise TypeError(f"override {name!r} has no value")
-        if isinstance(value, date):  # also covers datetime
-            value = _yyyymmdd(value)
-        checked.append((name, value))
-    return checked
-
-
-def _append_values(request: blpapi.Request, name: str, values: list[str]) -> None:
-    """Append each value to an array element of the request, e.g. "securities"."""
-    element = request.getElement(name)
-    for value in values:
-        element.appendValue(value)
-
-
-def _set_overrides(
-    request: blpapi.Request, overrides: Mapping[str, Any] | Sequence | None
-) -> None:
-    """Check the overrides and write them to a //blp/refdata request."""
-    if not overrides:
-        return
-    overrides_element = request.getElement("overrides")
-    for field_id, value in _override_pairs(overrides):
-        override = overrides_element.appendElement()
-        override.setElement("fieldId", field_id)
-        override.setElement("value", value)
-
-
-def _set_options(request: blpapi.Request, options: dict | None) -> None:
-    """Set each option as an element of the request, under Bloomberg's own name."""
-    for name, value in (options or {}).items():
-        request.set(name, value)
-
-
-def _check_no_field_is_named(fields: list[str], *key_columns: str) -> None:
-    """Refuse a field that would overwrite one of the key columns of the result."""
-    if clash := [key for key in key_columns if key in fields]:
-        names = " and ".join(repr(key) for key in clash)
-        raise ValueError(f"{names} cannot be requested as fields")
-
-
-def _set_bql_client_context(request: blpapi.Request) -> None:
-    """Say that the query comes from Excel, as Bloomberg's own Excel add-in does."""
-    # BLPAPI requires setting sub-elements on the sequence element.
-    try:
-        client_context = request.getElement("clientContext")
-        client_context.setElement("appName", "EXCEL")
-    except blpapi.NotFoundException:
-        logger.debug("BQL request has no 'clientContext' element in this SDK/schema.")
-
-
-def _set_bsrch_overrides(request: blpapi.Request, overrides: list[tuple]) -> None:
-    """Write (name, value) pairs to an ExcelGetGridRequest, which takes them as text."""
-    if not overrides:
-        return
-    overrides_element = request.getElement("Overrides")
-    for name, value in overrides:
-        override = overrides_element.appendElement()
-        override.setElement("name", str(name))
-        override.setElement("value", str(value))
 
 
 class BQuery:
@@ -955,7 +573,7 @@ class BQuery:
 
     # --- bql ---
 
-    def bql(self, expression: str) -> BqlResult:
+    def bql(self, expression: str) -> "BqlResult":
         """Execute a Bloomberg Query Language (BQL) query.
 
         BQL is Bloomberg's domain-specific language for complex financial queries. It allows
@@ -1118,9 +736,83 @@ class BQuery:
         )
 
 
-# -------------------------------------------------------------------------------------
-# bdp and bdh: reference data and history
-# -------------------------------------------------------------------------------------
+# =====================================================================================
+# 2. Inputs and requests: what steps 1 and 2 of the methods share
+# =====================================================================================
+
+
+def _as_list(value: str | Sequence[str]) -> list[str]:
+    """Accept one name or several."""
+    return [value] if isinstance(value, str) else list(value)
+
+
+def _check_no_field_is_named(fields: list[str], *key_columns: str) -> None:
+    """Refuse a field that would overwrite one of the key columns of the result."""
+    if clash := [key for key in key_columns if key in fields]:
+        names = " and ".join(repr(key) for key in clash)
+        raise ValueError(f"{names} cannot be requested as fields")
+
+
+def _yyyymmdd(value: date | str) -> str:
+    """Return a date as Bloomberg's YYYYMMDD; accept YYYYMMDD and ISO strings."""
+    if isinstance(value, str):
+        return value.replace("-", "")
+    return value.strftime("%Y%m%d")
+
+
+def _append_values(request: blpapi.Request, name: str, values: list[str]) -> None:
+    """Append each value to an array element of the request, e.g. "securities"."""
+    element = request.getElement(name)
+    for value in values:
+        element.appendValue(value)
+
+
+def _set_overrides(
+    request: blpapi.Request, overrides: Mapping[str, Any] | Sequence | None
+) -> None:
+    """Check the overrides and write them to a //blp/refdata request."""
+    if not overrides:
+        return
+    overrides_element = request.getElement("overrides")
+    for field_id, value in _override_pairs(overrides):
+        override = overrides_element.appendElement()
+        override.setElement("fieldId", field_id)
+        override.setElement("value", value)
+
+
+def _override_pairs(overrides: Mapping[str, Any] | Sequence | None) -> list[tuple]:
+    """Return overrides as (name, value) pairs; accept a dict or a sequence of pairs."""
+    if not overrides:
+        return []
+    pairs = overrides.items() if isinstance(overrides, Mapping) else overrides
+    checked = []
+    for pair in pairs:
+        if isinstance(pair, str) or len(pair) != 2:  # noqa: PLR2004
+            raise TypeError(
+                "overrides must be a dict or a sequence of (name, value) pairs"
+            )
+        name, value = pair
+        if value is None:
+            raise TypeError(f"override {name!r} has no value")
+        if isinstance(value, date):  # also covers datetime
+            value = _yyyymmdd(value)
+        checked.append((name, value))
+    return checked
+
+
+def _set_options(request: blpapi.Request, options: dict | None) -> None:
+    """Set each option as an element of the request, under Bloomberg's own name."""
+    for name, value in (options or {}).items():
+        request.set(name, value)
+
+
+# =====================================================================================
+# 3. bdp and bdh: reference data and history
+# =====================================================================================
+#
+# Both answers are built from "securityData" elements, and both report an unknown
+# security or field inside such an element instead of failing the request. They
+# differ in one way: a bdp payload lists many securities, a bdh payload holds one.
 
 
 def _parse_bdp(payloads: list[dict], fields: list[str]) -> list[dict]:
@@ -1201,9 +893,26 @@ def _warn_security_errors(lines: list[str]) -> None:
     )
 
 
-# -------------------------------------------------------------------------------------
-# bdib: intraday bars
-# -------------------------------------------------------------------------------------
+# =====================================================================================
+# 4. bdib: intraday bars
+# =====================================================================================
+#
+# What is particular to bdib is time. Bloomberg reads the start and end of the
+# request as UTC, and the "time" of each bar it sends back is a naive datetime that
+# holds UTC: in recording bdib/trade_bars_60min the first bar of OMX Index is at
+# 08:00, which is the 09:00 opening in Stockholm.
+
+
+def _iso_datetime(value: datetime | date | str) -> str:
+    """Return Bloomberg's ISO 8601 text: a date is midnight, a str is sent as is."""
+    if isinstance(value, str):
+        return value
+    if not isinstance(value, datetime):  # a plain date means midnight
+        value = datetime.combine(value, time())
+    if value.tzinfo is None:
+        return value.strftime("%Y-%m-%dT%H:%M:%S")
+    return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
 
 # The columns of a bdib frame. All but "security" are the keys of one bar in
 # Bloomberg's barTickData, under Bloomberg's names.
@@ -1238,9 +947,23 @@ def _parse_bdib(payloads: list[dict], requested_security: str) -> list[dict]:
     return rows
 
 
-# -------------------------------------------------------------------------------------
-# bql: Bloomberg Query Language
-# -------------------------------------------------------------------------------------
+# =====================================================================================
+# 5. bql: Bloomberg Query Language
+# =====================================================================================
+#
+# BQL differs from the other four in what comes back. The answer is JSON text, not a
+# structure; one query returns several tables, one per item of its get(...) clause;
+# and a failed query is an answer too, with its reason inside the JSON.
+
+
+def _set_bql_client_context(request: blpapi.Request) -> None:
+    """Say that the query comes from Excel, as Bloomberg's own Excel add-in does."""
+    # BLPAPI requires setting sub-elements on the sequence element.
+    try:
+        client_context = request.getElement("clientContext")
+        client_context.setElement("appName", "EXCEL")
+    except blpapi.NotFoundException:
+        logger.debug("BQL request has no 'clientContext' element in this SDK/schema.")
 
 
 @dataclass
@@ -1354,6 +1077,15 @@ def _bql_item(name: str, content: dict) -> _BqlItem:
     return _BqlItem(name, columns, schema)
 
 
+def _unique_name(name: str, taken: Collection[str]) -> str:
+    """Return the name, or the first of name_1, name_2, ... that is not taken."""
+    candidate, n = name, 0
+    while candidate in taken:
+        n += 1
+        candidate = f"{name}_{n}"
+    return candidate
+
+
 _BQL_DTYPES = {
     "STRING": pl.String,
     "ENUM": pl.String,  # e.g. CPN_TYP of cpn(), the rating of bb_composite()
@@ -1444,9 +1176,24 @@ def _bql_dataframe(item: _BqlItem) -> pl.DataFrame:
         ) from error
 
 
-# -------------------------------------------------------------------------------------
-# bsrch: search grids
-# -------------------------------------------------------------------------------------
+# =====================================================================================
+# 6. bsrch: saved searches, answered as a grid
+# =====================================================================================
+#
+# bsrch asks the service behind Excel's BSRCH(). Its answer is a grid: column titles
+# and records of cells. Nothing in it says what type a column has, so the types
+# follow the cells Bloomberg sends.
+
+
+def _set_bsrch_overrides(request: blpapi.Request, overrides: list[tuple]) -> None:
+    """Write (name, value) pairs to an ExcelGetGridRequest, which takes them as text."""
+    if not overrides:
+        return
+    overrides_element = request.getElement("Overrides")
+    for name, value in overrides:
+        override = overrides_element.appendElement()
+        override.setElement("name", str(name))
+        override.setElement("value", str(value))
 
 
 def _parse_bsrch(
@@ -1548,15 +1295,338 @@ def _blank_strings_to_none(rows: list[dict[str, Any]], columns: list[str]) -> No
                     row[column] = None
 
 
-# -------------------------------------------------------------------------------------
-# Shared by the parsers
-# -------------------------------------------------------------------------------------
+# =====================================================================================
+# 7. BqlResult: what bql() returns
+# =====================================================================================
 
 
-def _unique_name(name: str, taken: Collection[str]) -> str:
-    """Return the name, or the first of name_1, name_2, ... that is not taken."""
-    candidate, n = name, 0
-    while candidate in taken:
-        n += 1
-        candidate = f"{name}_{n}"
-    return candidate
+@dataclass
+class BqlResult:
+    """Holds the result of a BQL query as a list of Polars DataFrames.
+
+    This class encapsulates the results of a Bloomberg Query Language (BQL) query,
+    providing methods to access and manipulate the data.
+
+    Attributes:
+        dataframes (list[pl.DataFrame]): List of query result dataframes.
+        names (list[str]): List of data-item names corresponding to dataframes.
+        errors (list[str]): Error messages BQL returned with the answer; empty when
+            the query succeeded. A failed query has no dataframes and its message
+            here.
+
+    Example:
+        Execute a BQL query and combine the results:
+
+        ```python
+        from polars_bloomberg import BQuery
+
+        with BQuery() as bq:
+            result = bq.bql("get(px_last) for(['IBM US Equity', 'MSFT US Equity'])")
+            df = result.combine(on="ID")
+            print(df)
+        ```
+
+        Expected output:
+        ```python
+        shape: (2, 4)
+        ┌────────────────┬─────────┬────────────┬──────────┐
+        │ ID             ┆ px_last ┆ DATE       ┆ CURRENCY │
+        │ ---            ┆ ---     ┆ ---        ┆ ---      │
+        │ str            ┆ f64     ┆ date       ┆ str      │
+        ╞════════════════╪═════════╪════════════╪══════════╡
+        │ IBM US Equity  ┆ 247.13  ┆ 2026-11-16 ┆ USD      │
+        │ MSFT US Equity ┆ 523.88  ┆ 2026-11-16 ┆ USD      │
+        └────────────────┴─────────┴────────────┴──────────┘
+        ```
+
+        Iterate over the list of DataFrames:
+
+        ```python
+        for df in result:
+            print(df)
+        ```
+
+        Access individual DataFrames by index:
+
+        ```python
+        first_df = result[0]
+        print(first_df)
+        ```
+
+        Get the number of DataFrames:
+
+        ```python
+        num_dfs = len(result)
+        print(f"Number of DataFrames: {num_dfs}")
+        ```
+
+    Methods:
+        combine: Combine all dataframes into one; ``combine(on="ID")`` gives one
+            row per security.
+
+    """
+
+    dataframes: list[pl.DataFrame]
+    names: list[str]
+    errors: list[str] = dataclasses.field(default_factory=list)
+
+    def combine(
+        self,
+        on: str | Sequence[str] | None = None,
+        *,
+        how: str = "full",
+        allow_common_columns: bool = True,
+    ) -> pl.DataFrame:
+        """Combine all dataframes into one.
+
+        With no arguments, this method preserves the legacy behavior exactly: it
+        merges all DataFrames by performing a full join on every column they share,
+        not only ``ID``. A row whose shared columns hold nulls matches nothing, so it
+        appears twice: once from each side. This happens, for example, when BQL has
+        no ``DATE`` for a security in two items. If no common columns are found, it
+        raises a ValueError.
+
+        Use ``combine(on="ID")`` for one row per security. When ``on`` is provided,
+        only those columns are used as join keys. Other overlapping columns are
+        preserved with a suffix unless ``allow_common_columns`` is false.
+
+        Args:
+            on: Explicit column or columns to join on. If omitted, legacy common-column
+                joining is used.
+            how: Polars join strategy to use when ``on`` is provided.
+            allow_common_columns: Whether overlapping non-key columns are allowed when
+                ``on`` is provided. If true, right-hand overlapping columns are suffixed
+                with the corresponding BQL item name.
+
+        Returns:
+            pl.DataFrame: Combined dataframe.
+
+        Raises:
+            ValueError: If no dataframes are present (the message includes the BQL
+                error, if any), if no common columns exist in legacy mode, if
+                explicit join keys are missing, or if overlapping non-key columns
+                are disallowed.
+
+        Example:
+            One row per security; the ``DATE`` of the second item gets a suffix:
+
+            ```python
+            from polars_bloomberg import BQuery
+
+            with BQuery() as bq:
+                result = bq.bql(
+                    "get(px_last, px_volume) "
+                    "for(['IBM US Equity', 'NOT A SECURITY Equity'])"
+                )
+            print(result.combine(on="ID"))
+            ```
+
+            Expected output:
+            ```python
+            shape: (2, 6)
+            ┌───────────────────────┬─────────┬────────────┬──────────┬───────────┬────────────────┐
+            │ ID                    ┆ px_last ┆ DATE       ┆ CURRENCY ┆ px_volume ┆ DATE_px_volume │
+            │ ---                   ┆ ---     ┆ ---        ┆ ---      ┆ ---       ┆ ---            │
+            │ str                   ┆ f64     ┆ date       ┆ str      ┆ f64       ┆ date           │
+            ╞═══════════════════════╪═════════╪════════════╪══════════╪═══════════╪════════════════╡
+            │ IBM US Equity         ┆ 247.13  ┆ 2026-11-16 ┆ USD      ┆ 4750.0    ┆ 2026-11-16     │
+            │ NOT A SECURITY Equity ┆ null    ┆ null       ┆ null     ┆ null      ┆ null           │
+            └───────────────────────┴─────────┴────────────┴──────────┴───────────┴────────────────┘
+            ```
+
+            Without ``on``, the join uses ``ID`` and ``DATE``; the security without
+            a ``DATE`` appears twice:
+
+            ```python
+            print(result.combine())
+            ```
+
+            Expected output:
+            ```python
+            shape: (3, 5)
+            ┌───────────────────────┬─────────┬────────────┬──────────┬───────────┐
+            │ ID                    ┆ px_last ┆ DATE       ┆ CURRENCY ┆ px_volume │
+            │ ---                   ┆ ---     ┆ ---        ┆ ---      ┆ ---       │
+            │ str                   ┆ f64     ┆ date       ┆ str      ┆ f64       │
+            ╞═══════════════════════╪═════════╪════════════╪══════════╪═══════════╡
+            │ IBM US Equity         ┆ 247.13  ┆ 2026-11-16 ┆ USD      ┆ 4750.0    │
+            │ NOT A SECURITY Equity ┆ null    ┆ null       ┆ null     ┆ null      │
+            │ NOT A SECURITY Equity ┆ null    ┆ null       ┆ null     ┆ null      │
+            └───────────────────────┴─────────┴────────────┴──────────┴───────────┘
+            ```
+
+        """  # noqa: E501
+        if not self.dataframes:
+            if self.errors:
+                raise ValueError(
+                    "No DataFrames to combine. BQL error: " + "; ".join(self.errors)
+                )
+            raise ValueError("No DataFrames to combine.")
+
+        if on is not None:
+            return self._combine_on(
+                on, how=how, allow_common_columns=allow_common_columns
+            )
+
+        if how != "full":
+            raise ValueError("The 'how' parameter requires explicit join keys via 'on'.")
+        if not allow_common_columns:
+            raise ValueError(
+                "The 'allow_common_columns' parameter requires explicit join keys "
+                "via 'on'."
+            )
+
+        result = self.dataframes[0]
+        for df in self.dataframes[1:]:
+            common_cols = [col for col in result.columns if col in df.columns]
+            if not common_cols:
+                raise ValueError("No common columns found to join on.")
+            result = result.join(df, on=common_cols, how="full", coalesce=True)
+        return result
+
+    def _combine_on(
+        self,
+        on: str | Sequence[str],
+        *,
+        how: str,
+        allow_common_columns: bool,
+    ) -> pl.DataFrame:
+        """Combine dataframes using explicit join keys."""
+        join_keys = [on] if isinstance(on, str) else list(on)
+        if not join_keys:
+            raise ValueError("At least one join column must be provided.")
+        if not all(isinstance(col, str) for col in join_keys):
+            raise ValueError("Join columns must be strings.")
+        if len(join_keys) != len(set(join_keys)):
+            raise ValueError("Join columns must be unique.")
+
+        allowed_join_strategies = {"full", "inner", "left", "right"}
+        if how not in allowed_join_strategies:
+            raise ValueError(
+                f"Unsupported join strategy {how!r}. Supported strategies are: "
+                f"{sorted(allowed_join_strategies)}."
+            )
+
+        for idx, df in enumerate(self.dataframes):
+            missing_cols = [col for col in join_keys if col not in df.columns]
+            if missing_cols:
+                name = self.names[idx] if idx < len(self.names) else str(idx)
+                raise ValueError(
+                    f"Join columns not found in DataFrame {idx} ({name}): {missing_cols}"
+                )
+
+        result = self.dataframes[0]
+        join_key_set = set(join_keys)
+        for idx, df in enumerate(self.dataframes[1:], start=1):
+            overlapping_cols = [
+                col
+                for col in df.columns
+                if col in result.columns and col not in join_key_set
+            ]
+            if overlapping_cols and not allow_common_columns:
+                name = self.names[idx] if idx < len(self.names) else str(idx)
+                raise ValueError(
+                    f"Overlapping non-key columns found in DataFrame {idx} ({name}): "
+                    f"{overlapping_cols}"
+                )
+
+            right = self._rename_overlapping_columns(df, idx, result, overlapping_cols)
+            result = result.join(right, on=join_keys, how=how, coalesce=True)
+
+        return result
+
+    def _rename_overlapping_columns(
+        self,
+        df: pl.DataFrame,
+        idx: int,
+        result: pl.DataFrame,
+        overlapping_cols: Sequence[str],
+    ) -> pl.DataFrame:
+        """Rename right-hand non-key overlaps before explicit-key joins."""
+        if not overlapping_cols:
+            return df
+
+        label = (
+            self.names[idx] if idx < len(self.names) and self.names[idx] else str(idx)
+        )
+        existing_cols = set(result.columns) | set(df.columns)
+        rename_map: dict[str, str] = {}
+        for col in overlapping_cols:
+            candidate = f"{col}_{label}"
+            if candidate in existing_cols:
+                candidate = f"{col}_{idx}"
+
+            counter = 2
+            while candidate in existing_cols:
+                candidate = f"{col}_{idx}_{counter}"
+                counter += 1
+
+            rename_map[col] = candidate
+            existing_cols.add(candidate)
+
+        return df.rename(rename_map)
+
+    def __getitem__(self, idx: int) -> pl.DataFrame:
+        """Access individual DataFrames by index."""
+        return self.dataframes[idx]
+
+    def __len__(self) -> int:
+        """Return the number of dataframes."""
+        return len(self.dataframes)
+
+    def __iter__(self) -> Iterator[pl.DataFrame]:
+        """Return an iterator over the dataframes."""
+        return iter(self.dataframes)
+
+
+# =====================================================================================
+# 8. Debug dump: one replayable JSON file per request
+# =====================================================================================
+#
+# _send_request calls _write_debug_dump when BQuery was created with debug=. The
+# recordings in tests/data/recordings/ are such dumps with the expected result added
+# (tests/record.py), and tests/support.py turns a dump back into scripted events.
+# Changing the format here therefore means recording every scenario again.
+
+
+_EVENT_NAMES = {
+    getattr(blpapi.Event, name): name
+    for name in ("PARTIAL_RESPONSE", "RESPONSE", "REQUEST_STATUS")
+}
+
+
+def _json_default(value: Any) -> Any:
+    """json.dump hook: write dates so that a dump can be replayed with its types."""
+    if isinstance(value, datetime):
+        return {"$datetime": value.isoformat()}
+    if isinstance(value, date):
+        return {"$date": value.isoformat()}
+    if isinstance(value, time):
+        return {"$time": value.isoformat()}
+    return str(value)
+
+
+def _write_debug_dump(
+    directory: str | os.PathLike, request: blpapi.Request, events: list[dict]
+) -> None:
+    """Write one request and the messages it received to a replayable JSON file."""
+    element = request.asElement()
+    dump = {
+        "format": 1,
+        "recorded": {
+            "date": date.today().isoformat(),
+            "blpapi": blpapi.__version__,
+            "polars": pl.__version__,
+        },
+        "request": {"operation": str(element.name()), "body": element.toPy()},
+        "events": [event for event in events if event["messages"]],
+    }
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    path = os.path.join(directory, f"{element.name()}_{stamp}.json")
+    try:
+        os.makedirs(directory, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(dump, f, default=_json_default, indent=1, ensure_ascii=False)
+            f.write("\n")
+    except OSError as error:
+        logger.warning("Could not write debug dump %s: %s", path, error)
