@@ -1,10 +1,13 @@
+"""BqlResult on its own: indexing, iteration and combine() on hand-made frames."""
+
 import re
 from datetime import date
 
 import polars as pl
 import pytest
+import yaml
 from polars.testing import assert_frame_equal
-from support import replay
+from support import DATA_DIR, replay
 
 from polars_bloomberg.plbbg import BqlResult
 
@@ -588,3 +591,238 @@ def test_combine_after_failed_query_reports_the_bql_error():
         match=re.escape("No DataFrames to combine. BQL error: Error: Unable to parse"),
     ):
         result.combine()
+
+
+@pytest.mark.parametrize(
+    "yaml_file, exp_df",
+    [
+        (
+            "df_lst_name_dur_zspread.yaml",
+            {
+                "ID": [
+                    "YV402592 Corp",
+                    "BW924993 Corp",
+                    "ZO703956 Corp",
+                    "ZO703315 Corp",
+                    "ZQ349286 Corp",
+                    "YU819930 Corp",
+                ],
+                "name()": [
+                    "SEB Float PERP",
+                    "SEB 6 ⅞ PERP",
+                    "SHBASS 4 ¾ PERP",
+                    "SHBASS 4 ⅜ PERP",
+                    "SEB 5 ⅛ PERP",
+                    "SEB 6 ¾ PERP",
+                ],
+                "#dur": [0.21, 2.23, 4.94, 1.95, 0.39, 5.37],
+                "DATE": [
+                    date(2024, 12, 14),
+                    date(2024, 12, 14),
+                    date(2024, 12, 14),
+                    date(2024, 12, 14),
+                    date(2024, 12, 14),
+                    date(2024, 12, 14),
+                ],
+                "#zsprd": [232.71, 211.55, 255.85, 213.35, 185.98, 308.81],
+            },
+        ),
+        (
+            "df_lst_name_ema20_ema200_rsi.yaml",
+            {
+                "ID": [
+                    "ERICB SS Equity",
+                    "SKFB SS Equity",
+                    "SEBA SS Equity",
+                    "ASSAB SS Equity",
+                    "SWEDA SS Equity",
+                ],
+                "name()": [
+                    "Telefonaktiebolaget LM Ericsso",
+                    "SKF AB",
+                    "Skandinaviska Enskilda Banken",
+                    "Assa Abloy AB",
+                    "Swedbank AB",
+                ],
+                "#ema20": [
+                    90.09,
+                    214.38,
+                    153.68,
+                    338.82,
+                    217.38,
+                ],
+                "CURRENCY": ["SEK", "SEK", "SEK", "SEK", "SEK"],
+                "DATE": [
+                    date(2024, 12, 14),
+                    date(2024, 12, 14),
+                    date(2024, 12, 14),
+                    date(2024, 12, 14),
+                    date(2024, 12, 14),
+                ],
+                "#ema200": [
+                    74.91,
+                    205.17,
+                    150.72,
+                    316.82,
+                    213.77,
+                ],
+                "#rsi": [
+                    57.45,
+                    58.40,
+                    57.69,
+                    55.46,
+                    56.30,
+                ],
+            },
+        ),
+        (
+            "df_lst_name_px_last.yaml",
+            {
+                "ID": ["IBM US Equity"],
+                "name": ["International Business Machine"],
+                "CURRENCY": ["USD"],
+                "DATE": [date(2024, 12, 14)],
+                "px_last": [230.82],
+            },
+        ),
+        (
+            "df_lst_name_rank_oas_nxtcall.yaml",
+            {
+                "ID": [
+                    "YX231113 Corp",
+                    "BS116983 Corp",
+                    "AV438089 Corp",
+                    "ZO860846 Corp",
+                    "LW375188 Corp",
+                ],
+                "name()": [
+                    "GTN 10 ½ 07/15/29",
+                    "GTN 5 ⅜ 11/15/31",
+                    "GTN 7 05/15/27",
+                    "GTN 4 ¾ 10/15/30",
+                    "GTN 5 ⅞ 07/15/26",
+                ],
+                "#rank": [
+                    "1st Lien Secured",
+                    "Sr Unsecured",
+                    "Sr Unsecured",
+                    "Sr Unsecured",
+                    "Sr Unsecured",
+                ],
+                "#nxt_call": [
+                    date(2026, 7, 15),
+                    date(2026, 11, 15),
+                    date(2024, 12, 23),
+                    date(2025, 10, 15),
+                    date(2025, 1, 12),
+                ],
+                "#oas": [597.32, 1192.83, 391.13, 1232.55, 171.7],
+                "DATE": [
+                    date(2024, 12, 14),
+                    date(2024, 12, 14),
+                    date(2024, 12, 14),
+                    date(2024, 12, 14),
+                    date(2024, 12, 14),
+                ],
+            },
+        ),
+        (
+            "df_lst_segment_revenue.yaml",
+            {
+                "#segment": [
+                    "Broadcasting",
+                    "Broadcasting",
+                    "Production Companies",
+                    "Production Companies",
+                    "Other ",
+                    "Other ",
+                    "Adjustment",
+                    "Adjustment",
+                ],
+                "AS_OF_DATE": [
+                    date(2024, 12, 15),
+                    date(2024, 12, 15),
+                    date(2024, 12, 15),
+                    date(2024, 12, 15),
+                    date(2024, 12, 15),
+                    date(2024, 12, 15),
+                    date(2024, 12, 15),
+                    date(2024, 12, 15),
+                ],
+                "FUNDAMENTAL_TICKER": [
+                    "GTN US Equity",
+                    "GTN US Equity",
+                    "GTN US Equity",
+                    "GTN US Equity",
+                    "GTN US Equity",
+                    "GTN US Equity",
+                    "GTN US Equity",
+                    "GTN US Equity",
+                ],
+                "ID": [
+                    "SEG0000524428 Segment",
+                    "SEG0000524428 Segment",
+                    "SEG0000524437 Segment",
+                    "SEG0000524437 Segment",
+                    "SEG0000795330 Segment",
+                    "SEG0000795330 Segment",
+                    "SEG8339225113 Segment",
+                    "SEG8339225113 Segment",
+                ],
+                "ID_DATE": [
+                    date(2024, 12, 15),
+                    date(2024, 12, 15),
+                    date(2024, 12, 15),
+                    date(2024, 12, 15),
+                    date(2024, 12, 15),
+                    date(2024, 12, 15),
+                    date(2024, 12, 15),
+                    date(2024, 12, 15),
+                ],
+                "ORDER": ["1", "1", "2", "2", "3", "3", "4", "4"],
+                "#revenue": [
+                    808000000.0,
+                    924000000.0,
+                    18000000.0,
+                    26000000.0,
+                    0.0,
+                    17000000.0,
+                    None,
+                    None,
+                ],
+                "CURRENCY": ["USD", "USD", "USD", "USD", "USD", "USD", "USD", "USD"],
+                "PERIOD_END_DATE": [
+                    date(2024, 6, 30),
+                    date(2024, 9, 30),
+                    date(2024, 6, 30),
+                    date(2024, 9, 30),
+                    date(2024, 6, 30),
+                    date(2024, 9, 30),
+                    date(2024, 6, 30),
+                    date(2024, 9, 30),
+                ],
+                "REVISION_DATE": [
+                    date(2024, 8, 8),
+                    date(2024, 11, 8),
+                    date(2024, 8, 8),
+                    date(2024, 11, 8),
+                    date(2024, 8, 8),
+                    date(2024, 11, 8),
+                    None,
+                    None,
+                ],
+            },
+        ),
+    ],
+)
+def test_combine_on_recorded_screens(yaml_file, exp_df):
+    # Frames that older bql() calls returned (tests/data/bql/*.yaml), with their
+    # combined form. They predate the recordings and cannot be recorded again.
+    with open(DATA_DIR / "bql" / yaml_file) as f:
+        d_lst = yaml.safe_load(f)
+    df_lst = [pl.DataFrame(dct) for dct in d_lst]
+    names = [str(x) for x in list(range(len(df_lst)))]
+    bql_result = BqlResult(df_lst, names=names)
+
+    df = bql_result.combine().to_dict(as_series=False)
+    assert df == exp_df

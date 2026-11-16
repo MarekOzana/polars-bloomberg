@@ -12,6 +12,18 @@ test is one call and shows what comes back:
   test_integration_bsrch.py     saved searches
   test_integration_usage.py     requests from real reports and bond screens
 
+Offline tests in tests/unit/, one file per concern:
+
+  test_bdp.py, test_bdh.py, test_bdib.py, test_bql.py, test_bsrch.py
+                                one public method each, end to end: a scripted
+                                Bloomberg answer goes in, a DataFrame comes out
+  test_requests.py              the requests the methods build before sending
+  test_send_request.py          the event loop: which messages are the answer
+  test_bquery_internals.py      start()/stop(), services, the debug dump
+  test_bql_result.py            BqlResult: indexing, iteration, combine()
+  test_recordings.py            every recording replays to its expected result
+  test_usage.py                 what consumer code relies on, on the recordings
+
 Offline tests replay recorded Bloomberg answers from tests/data/recordings/.
 One file is one scenario: the request, the raw messages, the expected result.
 tests/recordings.py lists the scenarios; tests/support.py holds the fake session.

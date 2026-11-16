@@ -2,6 +2,27 @@
 
 All notable changes to polars-bloomberg are listed here.
 
+## Unreleased
+
+### Added
+
+- `bdib` accepts its start and end also as ISO 8601 strings
+  (`"2024-01-02T08:00:00"`), which it already did without saying so.
+
+### Changed
+
+- A BQL date or datetime value that is not ISO text raises `BloombergError`
+  naming the item and column, instead of a bare `ValueError`.
+
+### Fixed
+
+- `start()` on a `BQuery` that is already started now does nothing. It used to
+  open a second session and leave the first one running, after which every call
+  failed with `//blp/refdata not open`.
+- A BQL screen that matches nothing (Bloomberg's "No results match ... Try
+  expanding criteria.") is logged as a warning, not an error. The message is
+  still kept in `result.errors`.
+
 ## 0.7.0 - 2026-11-16
 
 ### Added

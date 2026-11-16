@@ -857,6 +857,7 @@ shape: (5, 11)
 | Bloomberg sends nothing for `timeout` milliseconds | `TimeoutError` |
 | An invalid security or field in `bdp` or `bdh` | No exception. An invalid security is a row of nulls in `bdp` and has no rows in `bdh`; an invalid field is a column of nulls. One warning per call lists them. |
 | A BQL query that fails, for example on a syntax error | An empty `BqlResult`; the message is logged and kept in `result.errors`, and `combine()` raises `ValueError` with it. |
+| A BQL screen that matches nothing | The same empty `BqlResult`; Bloomberg's "No results match ..." is logged as a warning, not an error, and kept in `result.errors`. |
 | No data, for example `bdh` over a weekend | An empty DataFrame that still has its columns |
 
 Warnings go through Python's `logging` (logger `polars_bloomberg.plbbg`); with no

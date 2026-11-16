@@ -113,6 +113,44 @@ def test_bql_response_with_results_and_exceptions_keeps_results(caplog):
     assert "Partial failure" in caplog.text
 
 
+def test_bql_empty_screen_is_a_warning_not_an_error(caplog):
+    bq, _ = replay("bql/empty_universe")  # a BENIGN exception: "No results match ..."
+
+    with caplog.at_level(logging.WARNING):
+        result = bq.bql("get(name) for(filter(members('OMX Index'), px_last < 0))")
+
+    assert len(result) == 0
+    assert result.errors == [
+        "No results match filter(members('OMX Index'),px_last<0). "
+        "Try expanding criteria."
+    ]
+    assert [record.levelname for record in caplog.records] == ["WARNING"]
+
+
+def test_bql_answer_that_is_not_json_gives_an_empty_result_and_logs(caplog):
+    bq = fake_bq([answer("{not json")])
+
+    with caplog.at_level(logging.ERROR):
+        result = bq.bql("get(px_last) for(['IBM US Equity'])")
+
+    assert len(result) == 0
+    assert result.errors[0].startswith("Failed to decode JSON")
+    assert "BQL error: Failed to decode JSON" in caplog.text
+
+
+def test_bql_exception_without_message_falls_back_to_internal_message(caplog):
+    exceptions = [{"internalMessage": "Internal only"}, "not a dict", {}]
+    payload = {"results": None, "responseExceptions": exceptions}
+    bq = fake_bq([answer(json.dumps(payload))])
+
+    with caplog.at_level(logging.ERROR):
+        result = bq.bql("get(px_last) for(['IBM US Equity'])")
+
+    assert len(result) == 0
+    assert result.errors == ["Internal only", "Unknown error"]
+    assert "BQL error: Internal only; Unknown error" in caplog.text
+
+
 def test_bql_syntax_error_is_available_in_result_errors():
     bq, _ = replay("bql/syntax_error")
 
@@ -181,6 +219,14 @@ def test_bql_date_with_fractional_seconds_is_parsed():
     result = bq.bql("get(day) for(['A', 'B'])")
 
     assert result[0]["day"].to_list() == [date(2024, 1, 2), date(2024, 1, 3)]
+
+
+def test_bql_date_that_is_not_iso_text_names_the_item_and_column():
+    items = {"day": bql_item(["A"], ["yesterday"], "DATE")}
+    bq = fake_bq([bql_answer(items)])
+
+    with pytest.raises(BloombergError, match="BQL item 'day', column 'day'"):
+        bq.bql("get(day) for(['A'])")
 
 
 def test_bql_item_that_cannot_be_built_names_the_item():

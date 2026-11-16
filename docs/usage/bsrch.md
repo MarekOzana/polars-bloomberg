@@ -11,6 +11,7 @@ A failed search raises `BloombergError` (a `ValueError`), and a search without
 results gives an empty frame that keeps its columns.
 
 Key points:
+- Column types follow what Bloomberg sends (`StringValue` or `DoubleValue`): a number sent as text stays a string, and a blank cell in a numeric column becomes null.
 - Pass `overrides` as a dict or as (name, value) pairs; values are stringified. Common keys: `LIMIT` to raise the row cap (default ~5k), custom keys like `BIKEY` for BI templates, or domain-specific parameters.
 
 ## Example: two COCO bonds (LIMIT=2)

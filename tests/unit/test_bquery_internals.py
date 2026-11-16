@@ -1,6 +1,9 @@
+"""What every method shares: the session lifecycle and the debug dump."""
+
 import json
 import logging
 from datetime import date, datetime, time
+from importlib.metadata import version
 from unittest.mock import MagicMock, patch
 
 import blpapi
@@ -15,6 +18,7 @@ from support import (
     scripted_events,
 )
 
+import polars_bloomberg
 from polars_bloomberg import BQuery
 from polars_bloomberg.plbbg import _json_default
 
@@ -72,6 +76,16 @@ def test_stop_twice_is_safe(new_session):
     bq.stop()
 
     assert new_session.stopped
+
+
+def test_start_twice_keeps_one_session():
+    with patch("polars_bloomberg.plbbg.blpapi.Session", lambda options: FakeSession()):
+        bq = BQuery().start()
+        first = bq.session
+
+        bq.start()  # e.g. a notebook cell run twice
+
+    assert bq.session is first
 
 
 def test_bdp_opens_only_the_refdata_service():
@@ -200,3 +214,10 @@ def test_dump_writes_other_unknown_values_as_text():
     text = json.dumps({"name": blpapi.Name("NAME")}, default=_json_default)
 
     assert json.loads(text) == {"name": "NAME"}
+
+
+# --- package ---
+
+
+def test_version_matches_package_metadata():
+    assert polars_bloomberg.__version__ == version("polars-bloomberg")

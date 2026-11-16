@@ -1,3 +1,5 @@
+"""bsrch() end to end: a scripted grid goes in, a DataFrame comes out."""
+
 import logging
 from unittest.mock import MagicMock
 
@@ -5,7 +7,7 @@ import polars as pl
 import pytest
 from support import answer, fake_bq, replay
 
-from polars_bloomberg import BloombergError, BQuery
+from polars_bloomberg import BloombergError
 
 pytestmark = pytest.mark.no_bbg
 
@@ -23,152 +25,31 @@ def grid(titles, *records, **extra):
     }
 
 
-class TestBsrch:
-    def test_create_bsrch_request(self):
-        bq = BQuery()
-        session_mock = MagicMock()
-        service_mock = MagicMock()
-        request_mock = MagicMock()
-        overrides_element = MagicMock()
-        override_entry = MagicMock()
-
-        overrides_element.appendElement.return_value = override_entry
-
-        def request_get_element(name):
-            if name == "Overrides":
-                return overrides_element
-            return MagicMock()
-
-        request_mock.getElement.side_effect = request_get_element
-
-        service_mock.createRequest.return_value = request_mock
-        session_mock.getService.return_value = service_mock
-        bq.session = session_mock
-
-        bq._create_bsrch_request("FI:SRCHEX.@CLOSUB", overrides={"LIMIT": 20000})
-
-        session_mock.getService.assert_called_once_with("//blp/exrsvc")
-        service_mock.createRequest.assert_called_once_with("ExcelGetGridRequest")
-        request_mock.set.assert_any_call("Domain", "FI:SRCHEX.@CLOSUB")
-        overrides_element.appendElement.assert_called_once()
-        override_entry.setElement.assert_any_call("name", "LIMIT")
-        override_entry.setElement.assert_any_call("value", "20000")
-
-    def test_parse_bsrch_responses_success(self):
-        bq = BQuery()
-        responses = [
-            grid(
-                ["Ticker", "PX_LAST"],
-                [{"StringValue": "IBM US Equity"}, {"DoubleValue": 125.3}],
-                [{"StringValue": "MSFT US Equity"}, {"DoubleValue": 402.1}],
-            )
-        ]
-
-        rows, columns = bq._parse_bsrch_responses(responses)
-        assert rows == [
-            {"Ticker": "IBM US Equity", "PX_LAST": 125.3},
-            {"Ticker": "MSFT US Equity", "PX_LAST": 402.1},
-        ]
-        assert columns == ["Ticker", "PX_LAST"]
-
-    def test_parse_bsrch_responses_error(self):
-        bq = BQuery()
-        responses = [grid([], Error="Invalid domain")]
-
-        with pytest.raises(ValueError, match="BSRCH error: Invalid domain"):
-            bq._parse_bsrch_responses(responses)
-
-    def test_parse_bsrch_responses_reachmax(self, caplog):
-        bq = BQuery()
-        responses = [
-            grid(["Ticker"], [{"StringValue": "AAPL US Equity"}], ReachMax=True)
-        ]
-
-        with caplog.at_level("WARNING"):
-            rows, _ = bq._parse_bsrch_responses(responses)
-
-        assert rows == [{"Ticker": "AAPL US Equity"}]
-        assert any("reached internal limit" in rec.message for rec in caplog.records)
-
-    def test_parse_bsrch_responses_coerces_numeric_whitespace(self):
-        bq = BQuery()
-        responses = [
-            grid(
-                ["Ticker", "PX_LAST", "COUNT"],
-                [
-                    {"StringValue": "IBM US Equity"},
-                    {"DoubleValue": 125.3},
-                    {"StringValue": " "},
-                ],
-                [
-                    {"StringValue": "MSFT US Equity"},
-                    {"StringValue": ""},
-                    {"DoubleValue": 4.0},
-                ],
-            )
-        ]
-
-        rows, _ = bq._parse_bsrch_responses(responses)
-        df = pl.DataFrame(rows, infer_schema_length=None, strict=False)
-
-        assert df.schema["PX_LAST"] == pl.Float64
-        assert df.schema["COUNT"] == pl.Float64
-        assert df["PX_LAST"].to_list() == [125.3, None]
-        assert df["COUNT"].to_list() == [None, 4.0]
-
-    def test_create_bsrch_request_with_options(self):
-        bq = BQuery()
-        session_mock = MagicMock()
-        service_mock = MagicMock()
-        request_mock = MagicMock()
-
-        service_mock.createRequest.return_value = request_mock
-        session_mock.getService.return_value = service_mock
-        bq.session = session_mock
-
-        bq._create_bsrch_request("FI:SRCHEX.@CLOSUB", options={"Foo": "Bar"})
-
-        request_mock.set.assert_any_call("Domain", "FI:SRCHEX.@CLOSUB")
-        request_mock.set.assert_any_call("Foo", "Bar")
-
-    def test_parse_bsrch_skips_a_payload_that_is_not_a_grid(self):
-        bq = BQuery()
-        responses = [grid(["Ticker"], [{"StringValue": "AAPL US Equity"}]), {}]
-
-        rows, _ = bq._parse_bsrch_responses(responses)
-        assert rows == [{"Ticker": "AAPL US Equity"}]
-
-    def test_coerce_bsrch_numeric_columns_direct(self):
-        bq = BQuery()
-        rows = [
-            {"A": 1, "B": " "},
-            {"A": 2, "B": 2},
-            {"A": "", "B": 3},
-        ]
-        bq._coerce_bsrch_numeric_columns(rows)
-        assert rows == [
-            {"A": 1, "B": None},
-            {"A": 2, "B": 2},
-            {"A": None, "B": 3},
-        ]
-
-    def test_coerce_bsrch_numeric_columns_empty(self):
-        bq = BQuery()
-        rows: list[dict] = []
-        bq._coerce_bsrch_numeric_columns(rows)
-        assert rows == []
-
-    def test_extract_bsrch_field_value_reads_string_and_double_values(self):
-        bq = BQuery()
-
-        assert bq._extract_bsrch_field_value({"StringValue": "A Corp"}) == "A Corp"
-        assert bq._extract_bsrch_field_value({"DoubleValue": 1.5}) == 1.5
-        assert bq._extract_bsrch_field_value("raw") == "raw"
-        unknown = {"Unknown": "x"}
-        assert bq._extract_bsrch_field_value(unknown) == unknown
-
-
 # --- bsrch() end to end, through the fake session ---
+
+
+def test_bsrch_request_carries_domain_overrides_and_options():
+    bq = fake_bq([answer(grid(["id"]))])
+    service = MagicMock()  # no offline schema for //blp/exrsvc, so a stand-in
+    bq.session.getService = lambda name: service
+
+    bq.bsrch("FI:SRCHEX.@CLOSUB", overrides={"LIMIT": 20000}, options={"Foo": "Bar"})
+
+    service.createRequest.assert_called_once_with("ExcelGetGridRequest")
+    request = service.createRequest.return_value
+    request.set.assert_any_call("Domain", "FI:SRCHEX.@CLOSUB")
+    request.set.assert_any_call("Foo", "Bar")
+    override = request.getElement.return_value.appendElement.return_value
+    override.setElement.assert_any_call("name", "LIMIT")
+    override.setElement.assert_any_call("value", "20000")
+
+
+def test_bsrch_payload_that_is_not_a_grid_is_skipped():
+    bq = fake_bq([answer(grid(["Ticker"], [{"StringValue": "AAPL US Equity"}]), {})])
+
+    df = bq.bsrch("FI:SRCHEX.@COCO")
+
+    assert df["Ticker"].to_list() == ["AAPL US Equity"]
 
 
 def test_bsrch_blank_cells_in_numeric_column_become_null():
@@ -190,6 +71,16 @@ def test_bsrch_grid_error_raises_value_error():
 
     with pytest.raises(ValueError, match="Invalid domain"):
         bq.bsrch("FI:NOT_A_SEARCH")
+
+
+def test_bsrch_reached_limit_without_limit_override_warns(caplog):
+    payload = grid(["id"], [{"StringValue": "DS990344 Corp"}], ReachMax=True)
+    bq = fake_bq([answer(payload)])
+
+    with caplog.at_level(logging.WARNING):
+        bq.bsrch("FI:SRCHEX.@COCO")
+
+    assert "consider using LIMIT override" in caplog.text
 
 
 def test_bsrch_limit_given_as_pair_does_not_warn_about_the_limit(caplog):

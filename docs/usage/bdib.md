@@ -56,6 +56,8 @@ shape: (4, 9)
 
 - `start_datetime` and `end_datetime` can be naive or timezone-aware. Naive values
   are treated as UTC; aware values are converted to UTC before the request is sent.
+  A `date` means midnight, and an ISO 8601 string (`"2024-01-02T08:00:00"`) is
+  sent as it is.
 - Supported `event_type` values: `TRADE`, `BID`, `ASK`, `BEST_BID`, `BEST_ASK`.
 - Bloomberg enforces the interval range (1-1440 minutes). A request outside that
   range raises `BloombergError` with Bloomberg's unspecific message:

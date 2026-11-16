@@ -16,7 +16,9 @@ description: Execute Bloomberg BQL queries in Polars-Bloomberg to screen securit
 
 A query that BQL rejects, for example for a syntax error, does not raise: `bql()`
 returns an empty `BqlResult`, logs the message and keeps it in `result.errors`;
-`combine()` on it raises `ValueError` with that message.
+`combine()` on it raises `ValueError` with that message. A screen that matches
+nothing gives the same empty result; its message ("No results match ...") is
+logged as a warning, not an error.
 
 ## Basic Example
 ```python

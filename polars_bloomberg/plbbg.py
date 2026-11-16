@@ -1,8 +1,8 @@
 """Polars interface to Bloomberg Open API.
 
 polars-bloomberg is a Python library that fetches Bloomberg financial data directly into
-Polars DataFrames. It offers user-friendly methods such as `bdp()`, `bdh()`, and `bql()`
-for efficient data retrieval and analysis.
+Polars DataFrames through five methods: `bdp()`, `bdh()`, `bdib()`, `bql()` and
+`bsrch()`, each one Bloomberg request in, one DataFrame (or `BqlResult`) out.
 
 Usage
 -----
@@ -43,8 +43,6 @@ from typing import Any
 import blpapi
 import polars as pl
 
-# Configure logging
-# logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -237,12 +235,12 @@ class BqlResult:
                 "via 'on'."
             )
 
-        result = self.dataframes[0]  # Initialize with the first DataFrame
+        result = self.dataframes[0]
         for df in self.dataframes[1:]:
-            common_cols = set(result.columns) & set(df.columns)
+            common_cols = [col for col in result.columns if col in df.columns]
             if not common_cols:
                 raise ValueError("No common columns found to join on.")
-            result = result.join(df, on=list(common_cols), how="full", coalesce=True)
+            result = result.join(df, on=common_cols, how="full", coalesce=True)
         return result
 
     def _combine_on(
@@ -492,6 +490,11 @@ def _convert_number(value: Any) -> Any:
     return value
 
 
+def _convert_date(value: Any) -> date | None:
+    """Turn BQL's ISO text (2024-01-02T00:00:00Z) into a date."""
+    return datetime.fromisoformat(value).date() if isinstance(value, str) else None
+
+
 def _convert_datetime(value: Any) -> datetime | None:
     """Turn BQL's ISO text into a naive datetime holding UTC, like bdib's times."""
     if not isinstance(value, str):
@@ -574,6 +577,8 @@ class BQuery:
         Use ``start()`` and ``stop()`` where a ``with`` block does not fit, for
         example when one connection is kept for a whole notebook. Services
         (reference data, BQL, search) are opened when a method first needs them.
+        On an instance that is already started, ``start()`` does nothing; call
+        ``stop()`` first to reconnect.
 
         Returns:
             BQuery: This instance, so that ``bq = BQuery().start()`` works.
@@ -591,6 +596,8 @@ class BQuery:
             ```
 
         """
+        if self.session is not None:
+            return self  # already started: a second session would leak
         options = blpapi.SessionOptions()
         options.setServerHost(self.host)
         options.setServerPort(self.port)
@@ -789,21 +796,21 @@ class BQuery:
         overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
         options: dict | None = None,
     ) -> blpapi.Request:
-        """Create a Bloomberg request with support for overrides and options."""
+        """Create a ReferenceDataRequest (bdp) or HistoricalDataRequest (bdh).
+
+        Both take securities, fields, overrides and options the same way.
+        """
         service = self._get_service("//blp/refdata")
         request = service.createRequest(request_type)
 
-        # Add securities
         securities_element = request.getElement("securities")
         for security in securities:
             securities_element.appendValue(security)
 
-        # Add fields
         fields_element = request.getElement("fields")
         for field in fields:
             fields_element.appendValue(field)
 
-        # Add overrides if provided
         if overrides:
             overrides_element = request.getElement("overrides")
             for field_id, value in _override_items(overrides):
@@ -811,7 +818,6 @@ class BQuery:
                 override_element.setElement("fieldId", field_id)
                 override_element.setElement("value", value)
 
-        # Add additional options if provided
         if options:
             for key, value in options.items():
                 request.set(key, value)
@@ -821,6 +827,7 @@ class BQuery:
     def _parse_bdp_responses(
         self, responses: list[dict], fields: list[str]
     ) -> list[dict]:
+        """One row per securityData element: the security and its fieldData values."""
         data = []
         errors = []
         for response in responses:
@@ -934,14 +941,14 @@ class BQuery:
     def _parse_bdh_responses(
         self, responses: list[dict], fields: list[str]
     ) -> list[dict]:
+        """One row per date: each response holds one security and its fieldData list."""
         data = []
         errors = []
         for response in responses:
             security_data = response.get("securityData", {})
             errors.extend(_item_errors(security_data))
             security = security_data.get("security")
-            field_data_array = security_data.get("fieldData", [])
-            for entry in field_data_array:
+            for entry in security_data.get("fieldData", []):
                 record = {"security": security, "date": entry.get("date")}
                 for field in fields:
                     record[field] = entry.get(field)
@@ -956,8 +963,8 @@ class BQuery:
         security: str,
         event_type: str,
         interval: int,
-        start_datetime: datetime | date,
-        end_datetime: datetime | date,
+        start_datetime: datetime | date | str,
+        end_datetime: datetime | date | str,
         overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
         options: dict | None = None,
     ) -> pl.DataFrame:
@@ -967,11 +974,12 @@ class BQuery:
             security (str): Instrument identifier (for example 'AAPL US Equity').
             event_type (str): One of TRADE, BID, ASK, BEST_BID, BEST_ASK.
             interval (int): Bar length in minutes (1-1440).
-            start_datetime (datetime | date): First bar timestamp; naive values are
-                treated as UTC, tz-aware values are converted to UTC before the
-                request is sent, and a ``date`` means midnight.
-            end_datetime (datetime | date): Last bar timestamp; handled same way as
-                start_datetime.
+            start_datetime (datetime | date | str): First bar timestamp; naive
+                values are treated as UTC, tz-aware values are converted to UTC
+                before the request is sent, a ``date`` means midnight, and an ISO
+                8601 string (``"2024-01-02T08:00:00"``) is sent as it is.
+            end_datetime (datetime | date | str): Last bar timestamp; handled the
+                same way as start_datetime.
             overrides (dict | Sequence[tuple], optional): Field overrides as a dict
                 (``{"REFERENCE_DATE": date(2020, 7, 15)}``) or as (name, value)
                 pairs. A ``date`` value is sent as ``YYYYMMDD``; ``None`` is not
@@ -1059,8 +1067,8 @@ class BQuery:
         security: str,
         event_type: str,
         interval: int,
-        start_datetime: datetime | date,
-        end_datetime: datetime | date,
+        start_datetime: datetime | date | str,
+        end_datetime: datetime | date | str,
         overrides: Mapping[str, Any] | Sequence[tuple[str, Any]] | None,
         options: dict | None,
     ) -> blpapi.Request:
@@ -1088,7 +1096,7 @@ class BQuery:
 
     @staticmethod
     def _format_datetime(value: datetime | date | str) -> str:
-        """Convert datetime objects to Bloomberg's ISO8601 string format."""
+        """Return Bloomberg's ISO 8601 text: a date is midnight, a str is sent as is."""
         if isinstance(value, str):
             return value
         if not isinstance(value, datetime):  # a plain date means midnight
@@ -1100,12 +1108,15 @@ class BQuery:
     def _parse_bdib_responses(
         self, responses: list[dict], fallback_security: str | None = None
     ) -> list[dict]:
+        """One row per bar of barTickData, under the requested security.
+
+        barData itself names no security (none of the bdib recordings has the key).
+        """
         bars: list[dict[str, Any]] = []
         for response in responses:
             bar_data = response.get("barData", {})
             security = bar_data.get("security") or fallback_security
-            entries = bar_data.get("barTickData", [])
-            for entry in entries:
+            for entry in bar_data.get("barTickData", []):
                 record = {
                     "security": security,
                     "time": entry.get("time"),
@@ -1138,13 +1149,15 @@ class BQuery:
                 - Helper methods like combine() to merge DataFrames on common columns
                 - ``errors``: the messages BQL returned with the answer
                 Returns an empty result if the query fails, for example on invalid
-                BQL syntax; the message is logged and kept in ``errors``. Results
-                that BQL returns together with an error are kept.
+                BQL syntax; the message is logged and kept in ``errors``. A screen
+                that matches nothing is also empty; its message ("No results
+                match ...") is logged as a warning. Results that BQL returns
+                together with an error are kept.
 
         Raises:
             BloombergError: If Bloomberg rejects or fails the request, or an item
-                of the answer cannot be turned into a DataFrame; the message names
-                the item.
+                of the answer cannot be turned into a DataFrame (for example a
+                date that is not ISO text); the message names the item.
             ConnectionError: If the session is not started or is lost.
             TimeoutError: If Bloomberg sends nothing for ``timeout`` milliseconds.
 
@@ -1249,11 +1262,14 @@ class BQuery:
 
         Results that arrive together with responseExceptions are kept. The error
         messages (from responseExceptions, or a payload that is not valid JSON) are
-        logged as one error.
+        logged as one error. A screen that matches nothing is not a failure: Bloomberg
+        sends it as an exception of type BENIGN ("No results match ...", live check
+        L4), which is logged as a warning.
 
         """
         extracted = []
         errors = []
+        exceptions = []  # BQL's responseExceptions entries, as sent
         # Bloomberg splits a large BQL answer over several messages, each a fragment
         # of one JSON text (live check L7), so the strings are joined before parsing.
         payloads = [response for response in responses if not isinstance(response, str)]
@@ -1266,16 +1282,23 @@ class BQuery:
 
         for resp_dict in payloads:
             # BQL errors (e.g. syntax errors) are in responseExceptions
-            errors.extend(
-                exc.get("message") or exc.get("internalMessage") or "Unknown error"
+            exceptions += [
+                exc
                 for exc in resp_dict.get("responseExceptions") or []
                 if isinstance(exc, dict)
-            )
-
+            ]
             results = resp_dict.get("results")
             if results:
                 extracted.append(results)
-        if errors:
+
+        benign = not errors and all(exc.get("type") == "BENIGN" for exc in exceptions)
+        errors += [
+            exc.get("message") or exc.get("internalMessage") or "Unknown error"
+            for exc in exceptions
+        ]
+        if errors and benign:
+            logger.warning("BQL returned no results: %s", "; ".join(errors))
+        elif errors:
             logger.error("BQL error: %s", "; ".join(errors))
         return extracted, errors
 
@@ -1339,17 +1362,19 @@ class BQuery:
         return schema
 
     def _apply_schema(self, table: SITable) -> SITable:
-        """Convert data based on the schema (e.g., str -> date, 'NaN' -> None)."""
+        """Turn the text BQL sends into the schema's types: dates, NaN, infinity."""
         for col, dtype in table.schema.items():
-            if dtype == pl.Date:
-                table.data[col] = [
-                    datetime.fromisoformat(v).date() if isinstance(v, str) else None
-                    for v in table.data[col]
-                ]
-            elif dtype == pl.Datetime:
-                table.data[col] = [_convert_datetime(v) for v in table.data[col]]
-            elif dtype in {pl.Float64, pl.Int64}:
-                table.data[col] = [_convert_number(x) for x in table.data[col]]
+            try:
+                if dtype == pl.Date:
+                    table.data[col] = [_convert_date(v) for v in table.data[col]]
+                elif dtype == pl.Datetime:
+                    table.data[col] = [_convert_datetime(v) for v in table.data[col]]
+                elif dtype in {pl.Float64, pl.Int64}:
+                    table.data[col] = [_convert_number(v) for v in table.data[col]]
+            except ValueError as error:  # a date that is not ISO text
+                raise BloombergError(
+                    f"BQL item {table.name!r}, column {col!r}: {error}"
+                ) from error
         return table
 
     # --- bsrch ---
@@ -1370,8 +1395,11 @@ class BQuery:
 
         Returns:
             pl.DataFrame with one row per search record and columns from the grid.
-                A search without results keeps its columns. A repeated column title
-                gets a suffix (``Name``, ``Name_1``) and a warning is logged.
+                Column types follow what Bloomberg sends (``StringValue`` or
+                ``DoubleValue``): a number sent as text stays a string, and a blank
+                cell in a numeric column becomes null. A search without results
+                keeps its columns. A repeated column title gets a suffix (``Name``,
+                ``Name_1``) and a warning is logged.
 
         Raises:
             BloombergError: When Bloomberg rejects the request, or the search
@@ -1407,11 +1435,11 @@ class BQuery:
             ```
 
         """
+        overrides = _override_items(overrides)  # (name, value) pairs
         request = self._create_bsrch_request(domain, overrides, options)
         responses = self._send_request(request)
-        limit_applied = any(name == "LIMIT" for name, _ in _override_items(overrides))
         rows, columns = self._parse_bsrch_responses(
-            responses, limit_applied=limit_applied
+            responses, limit_applied="LIMIT" in dict(overrides)
         )
         return pl.DataFrame(
             rows, schema=columns or None, infer_schema_length=None, strict=False
@@ -1490,7 +1518,7 @@ class BQuery:
                 "BSRCH response reached internal limit; consider using LIMIT override."
             )
 
-        self._coerce_bsrch_numeric_columns(rows)
+        self._blank_strings_to_none(rows)
         return rows, columns
 
     @staticmethod
@@ -1506,26 +1534,22 @@ class BQuery:
         return field
 
     @staticmethod
-    def _coerce_bsrch_numeric_columns(rows: list[dict[str, Any]]) -> None:
-        """Convert empty/whitespace strings to None to allow numeric inference."""
-        cols = dict.fromkeys(col for row in rows for col in row)  # in order of first use
-        for col in cols:
-            values = [row.get(col) for row in rows]
-            cleaned: list[Any] = []
-            numeric_candidate = True
+    def _blank_strings_to_none(rows: list[dict[str, Any]]) -> None:
+        """In columns that hold only numbers and blanks, make the blanks None.
 
-            for val in values:
-                if isinstance(val, str) and val.strip() == "":
-                    cleaned.append(None)
-                    continue
-                cleaned.append(val)
-                if val is None or isinstance(val, (int, float)):
-                    continue
-                numeric_candidate = False
-                # leave column untouched if any non-numeric string present
-                # other than whitespace
-                # Note: do not break early to align cleaned length
+        Bloomberg sends an empty numeric cell as a blank StringValue; left as is, it
+        would make Polars read the whole column as strings. Columns with other text
+        are not touched: no string is ever parsed into a number here.
+        """
 
-            if numeric_candidate:
-                for idx, cleaned_val in enumerate(cleaned):
-                    rows[idx][col] = cleaned_val
+        def number_or_blank(value: Any) -> bool:
+            if isinstance(value, str):
+                return value.strip() == ""
+            return value is None or isinstance(value, (int, float))
+
+        columns = dict.fromkeys(col for row in rows for col in row)  # first-use order
+        for col in columns:
+            if all(number_or_blank(row.get(col)) for row in rows):
+                for row in rows:
+                    if isinstance(row.get(col), str):
+                        row[col] = None

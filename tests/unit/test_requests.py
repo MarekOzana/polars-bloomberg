@@ -177,6 +177,17 @@ def test_bdib_accepts_a_date():
     assert request["endDateTime"] == datetime(2024, 1, 2, 12, 0)
 
 
+def test_bdib_accepts_iso_datetime_strings():
+    request = request_sent_by(
+        lambda bq: bq.bdib(
+            "OMX Index", "TRADE", 60, "2024-01-02T08:00:00", "2024-01-02T12:00:00"
+        )
+    )
+
+    assert request["startDateTime"] == datetime(2024, 1, 2, 8, 0)
+    assert request["endDateTime"] == datetime(2024, 1, 2, 12, 0)
+
+
 def test_bdib_request_with_naive_datetimes_sends_them_unchanged():
     request = request_sent_by(
         lambda bq: bq.bdib(

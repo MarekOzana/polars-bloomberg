@@ -1,3 +1,5 @@
+"""bdib() end to end: scripted bars go in, a DataFrame comes out."""
+
 from datetime import datetime
 
 import pytest
