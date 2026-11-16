@@ -80,10 +80,12 @@
   "frames": [
    {
     "schema": {
-     "ID": "String"
+     "ID": "String",
+     "ID_1": "String"
     },
     "rows": [
      [
+      "IBM US Equity",
       "IBM US Equity"
      ]
     ]

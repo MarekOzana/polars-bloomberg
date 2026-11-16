@@ -162,3 +162,28 @@ def test_bql_item_that_cannot_be_built_names_the_item():
 
     with pytest.raises(BloombergError, match="BQL item 'px_last'"):
         bq.bql("get(px_last) for(['A', 'B'])")
+
+
+def test_bql_item_named_like_secondary_column_keeps_both_columns(caplog):
+    item = bql_item(["IBM US Equity"], [161.5], "DOUBLE")
+    item["secondaryColumns"] = [
+        {"name": "DATE", "type": "DATE", "values": ["2024-01-02T00:00:00Z"]}
+    ]
+    bq = fake_bq([bql_answer({"DATE": item})])
+
+    with caplog.at_level(logging.WARNING):
+        result = bq.bql("let(DATE = px_last(dates=2024-01-02);) get(DATE) for(...)")
+
+    assert result[0].columns == ["ID", "DATE", "DATE_1"]
+    assert result[0]["DATE"].to_list() == [161.5]
+    assert result[0]["DATE_1"].to_list() == [date(2024, 1, 2)]
+    assert "DATE_1" in caplog.text
+
+
+def test_bql_item_named_id_keeps_the_id_column():
+    bq, _ = replay("bql/item_named_id")
+
+    result = bq.bql("get(ID) for(['IBM US Equity'])")
+
+    assert result[0].columns == ["ID", "ID_1"]
+    assert result[0].row(0) == ("IBM US Equity", "IBM US Equity")

@@ -1440,22 +1440,31 @@ class BQuery:
         for field, content in results.items():
             if content is None:
                 continue
-            id_column = content.get("idColumn") or {}
-            values_column = content.get("valuesColumn") or {}
-            data = {
-                "ID": id_column.get("values") or [],
-                field: values_column.get("values") or [],
-            }
-            schema_str = {
-                "ID": id_column.get("type") or "STRING",
-                field: values_column.get("type") or "STRING",
-            }
-
-            # Process secondary columns
-            for sec_col in content.get("secondaryColumns") or []:
-                name = sec_col.get("name", "")
-                data[name] = sec_col.get("values") or []
-                schema_str[name] = sec_col.get("type") or "STRING"
+            columns = [
+                ("ID", content.get("idColumn") or {}),
+                (field, content.get("valuesColumn") or {}),
+            ]
+            columns += [
+                (sec_col.get("name", ""), sec_col)
+                for sec_col in content.get("secondaryColumns") or []
+            ]
+            data = {}
+            schema_str = {}
+            for name, column in columns:
+                unique, n = name, 0
+                while unique in data:  # e.g. an item named ID, or like a column
+                    n += 1
+                    unique = f"{name}_{n}"
+                if unique != name:
+                    logger.warning(
+                        "BQL item %r has two columns named %r; the second one is "
+                        "renamed %r.",
+                        field,
+                        name,
+                        unique,
+                    )
+                data[unique] = column.get("values") or []
+                schema_str[unique] = column.get("type") or "STRING"
             schema = self._map_types(schema_str)
             tables.append(SITable(name=field, data=data, schema=schema))
 
