@@ -34,9 +34,10 @@ import dataclasses
 import json
 import logging
 import os
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time
+from types import TracebackType
 from typing import Any
 
 import blpapi
@@ -57,7 +58,7 @@ class SITable:
 
     name: str  # data item name
     data: dict[str, list[Any]]  # column_name -> list of values
-    schema: dict[str, pl.DataType]  # column_name -> Polars datatype
+    schema: dict[str, pl.DataType | None]  # column_name -> Polars datatype or infer
 
 
 @dataclass
@@ -323,7 +324,7 @@ class BqlResult:
         """Return the number of dataframes."""
         return len(self.dataframes)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[pl.DataFrame]:
         """Return an iterator over the dataframes."""
         return iter(self.dataframes)
 
@@ -347,7 +348,9 @@ def _json_default(value: Any) -> Any:
     return str(value)
 
 
-def _write_debug_dump(directory: str, request: blpapi.Request, events: list) -> None:
+def _write_debug_dump(
+    directory: str | os.PathLike, request: blpapi.Request, events: list[dict]
+) -> None:
     """Write one request and the messages it received to a replayable JSON file."""
     element = request.asElement()
     dump = {
@@ -612,7 +615,12 @@ class BQuery:
     def __enter__(self) -> "BQuery":  # noqa: D105
         return self.start()
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:  # noqa: D105
+    def __exit__(  # noqa: D105
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         self.stop()
 
     def _get_service(self, name: str) -> blpapi.Service:
