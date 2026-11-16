@@ -201,6 +201,16 @@ def _convert_number(value: Any) -> Any:
     return value
 
 
+def _convert_datetime(value: Any) -> datetime | None:
+    """Turn BQL's ISO text into a naive datetime holding UTC, like bdib's times."""
+    if not isinstance(value, str):
+        return None
+    parsed = datetime.fromisoformat(value)
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone(UTC).replace(tzinfo=None)
+    return parsed
+
+
 @dataclass
 class SITable:
     """Holds data and schema for a Single Item response Table."""
@@ -1383,6 +1393,8 @@ class BQuery:
                     datetime.fromisoformat(v).date() if isinstance(v, str) else None
                     for v in table.data[col]
                 ]
+            elif dtype == pl.Datetime:
+                table.data[col] = [_convert_datetime(v) for v in table.data[col]]
             elif dtype in {pl.Float64, pl.Int64}:
                 table.data[col] = [_convert_number(x) for x in table.data[col]]
         return table
@@ -1466,9 +1478,11 @@ class BQuery:
         """Map BQL type names to Polars data types; None (infer) for unknown names."""
         mapping = {
             "STRING": pl.Utf8,
+            "ENUM": pl.Utf8,  # e.g. CPN_TYP of cpn(), the rating of bb_composite()
             "DOUBLE": pl.Float64,
             "INT": pl.Int64,
             "DATE": pl.Date,
+            "DATETIME": pl.Datetime,  # e.g. the quote times of axes()
             "BOOLEAN": pl.Boolean,
         }
         schema = {}

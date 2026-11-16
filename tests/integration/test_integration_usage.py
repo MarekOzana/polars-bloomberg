@@ -5,6 +5,7 @@ The checks in tests/usage_checks.py also run offline on the recorded answers
 specific to the account, so their answers are not recorded.
 """
 
+import polars as pl
 import pytest
 from recordings import SCENARIOS
 from usage_checks import BANK_BOND, CHECKS
@@ -39,7 +40,9 @@ def test_live_dealer_axes_keep_one_row_per_dealer_quote(live_bq):
     df = result.combine(on="ID", how="left")
 
     quote_columns = {"ASK_DEALER", "BID_DEALER", "ASK_PRICE", "BID_PRICE"}
-    assert quote_columns | {"ASK_TIMESTAMP", "BID_TIMESTAMP"} <= set(axes.columns)
+    assert quote_columns <= set(axes.columns)
+    assert axes.schema["ASK_TIMESTAMP"] == pl.Datetime  # BQL type DATETIME
+    assert axes.schema["BID_TIMESTAMP"] == pl.Datetime
     assert axes["ID"].unique().to_list() == [BANK_BOND]  # repeated, once per quote
     assert df.height == axes.height
     assert df["security_des"].null_count() == 0

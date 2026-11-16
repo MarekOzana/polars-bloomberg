@@ -65,6 +65,10 @@ All notable changes to polars-bloomberg are listed here.
 
 - BQL: a value type the library does not know is no longer read as text; Polars
   infers its dtype and a warning names the type.
+- BQL: the value types `ENUM` (for example `CPN_TYP` of `cpn()` or the rating of
+  `bb_composite()`) and `DATETIME` (the quote times of `axes()`) are known: `ENUM`
+  becomes `String`, also when a column has no values, and `DATETIME` a naive
+  `Datetime` holding UTC, like the `time` of `bdib`. Neither logs a warning.
 - BQL: when two columns of one item have the same name (an item named `ID`, or named
   like one of its secondary columns), the second gets a suffix (`ID_1`) and a
   warning is logged. It used to replace the first column silently.

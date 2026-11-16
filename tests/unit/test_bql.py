@@ -5,7 +5,7 @@ Bloomberg sends a BQL answer as one JSON string; `bql_answer` builds that string
 
 import json
 import logging
-from datetime import date
+from datetime import date, datetime
 
 import blpapi
 import polars as pl
@@ -144,6 +144,36 @@ def test_bql_unknown_value_type_is_inferred(caplog):
     assert result[0].schema["px_last"] == pl.Float64
     assert result[0]["px_last"].to_list() == [1.5, 2.5]
     assert "DECIMAL" in caplog.text
+
+
+def test_bql_enum_value_type_is_string_without_warning(caplog):
+    # cpn() and bb_composite() describe their metadata columns as ENUM.
+    item = bql_item(["A", "B"], [6.875, 4.75], "DOUBLE")
+    no_values = [None, None]
+    item["secondaryColumns"] = [{"name": "CPN_TYP", "type": "ENUM", "values": no_values}]
+    bq = fake_bq([bql_answer({"cpn": item})])
+
+    with caplog.at_level(logging.WARNING):
+        result = bq.bql("get(cpn) for(['A', 'B'])")
+
+    assert result[0].schema["CPN_TYP"] == pl.String
+    assert caplog.records == []
+
+
+def test_bql_datetime_value_type_becomes_naive_utc_datetime():
+    # axes() at dealer grain sends its quote times as DATETIME.
+    times = ["2026-11-16T08:27:06Z", "2026-11-16T10:31:12.5+01:00", None]
+    items = {"ASK_TIMESTAMP": bql_item(["A", "B", "C"], times, "DATETIME")}
+    bq = fake_bq([bql_answer(items)])
+
+    result = bq.bql("get(ASK_TIMESTAMP) for(['A', 'B', 'C'])")
+
+    assert result[0].schema["ASK_TIMESTAMP"] == pl.Datetime
+    assert result[0]["ASK_TIMESTAMP"].to_list() == [
+        datetime(2026, 11, 16, 8, 27, 6),
+        datetime(2026, 11, 16, 9, 31, 12, 500000),
+        None,
+    ]
 
 
 def test_bql_date_with_fractional_seconds_is_parsed():
