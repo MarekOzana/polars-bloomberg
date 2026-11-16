@@ -1,0 +1,172 @@
+{
+ "scenario": "bql/two_items",
+ "call": "bq.bql(\"get(name, px_last(dates=2024-01-02)) for(['IBM US Equity'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "get(name, px_last(dates=2024-01-02)) for(['IBM US Equity'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "name": {
+         "name": "name",
+         "offsets": [
+          0
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "IBM US Equity"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "International Business Machine"
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "px_last(dates=2024-01-02)": {
+         "name": "px_last(dates=2024-01-02)",
+         "offsets": [
+          0
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "CR",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "IBM US Equity"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           161.5
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-01-02T00:00:00Z"
+           ],
+           "defaultDate": true
+          },
+          {
+           "name": "CURRENCY",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            "USD"
+           ]
+          }
+         ],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "name"
+        },
+        {
+         "requestIndex": 1,
+         "responseName": "px_last(dates=2024-01-02)"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "name",
+   "px_last(dates=2024-01-02)"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "name": "String"
+    },
+    "rows": [
+     [
+      "IBM US Equity",
+      "International Business Machine"
+     ]
+    ]
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "px_last(dates=2024-01-02)": "Float64",
+     "DATE": "Date",
+     "CURRENCY": "String"
+    },
+    "rows": [
+     [
+      "IBM US Equity",
+      161.5,
+      {
+       "$date": "2024-01-02"
+      },
+      "USD"
+     ]
+    ]
+   }
+  ]
+ }
+}

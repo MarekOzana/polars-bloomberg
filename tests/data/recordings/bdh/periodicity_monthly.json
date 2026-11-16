@@ -1,0 +1,92 @@
+{
+ "scenario": "bdh/periodicity_monthly",
+ "call": "bq.bdh(['OMX Index'], ['PX_LAST'], date(2024, 1, 1), date(2024, 3, 31), options={'periodicitySelection': 'MONTHLY'})",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "OMX Index"
+   ],
+   "fields": [
+    "PX_LAST"
+   ],
+   "periodicitySelection": "MONTHLY",
+   "startDate": "20240101",
+   "endDate": "20240331"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "OMX Index",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-31"
+         },
+         "PX_LAST": 2356.601
+        },
+        {
+         "date": {
+          "$date": "2024-02-29"
+         },
+         "PX_LAST": 2452.805
+        },
+        {
+         "date": {
+          "$date": "2024-03-29"
+         },
+         "PX_LAST": 2518.275
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "PX_LAST": "Float64"
+  },
+  "rows": [
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-31"
+    },
+    2356.601
+   ],
+   [
+    "OMX Index",
+    {
+     "$date": "2024-02-29"
+    },
+    2452.805
+   ],
+   [
+    "OMX Index",
+    {
+     "$date": "2024-03-29"
+    },
+    2518.275
+   ]
+  ]
+ }
+}

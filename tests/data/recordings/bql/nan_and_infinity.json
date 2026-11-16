@@ -1,0 +1,193 @@
+{
+ "scenario": "bql/nan_and_infinity",
+ "call": "bq.bql(\"let(#p = 1 / 0; #m = -1 / 0; #n = 0 / 0;) get(#p, #m, #n) for('OMX Index')\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "let(#p = 1 / 0; #m = -1 / 0; #n = 0 / 0;) get(#p, #m, #n) for('OMX Index')",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "#p": {
+         "name": "#p",
+         "offsets": [
+          0
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "OMX Index"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           "Infinity"
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "#m": {
+         "name": "#m",
+         "offsets": [
+          0
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "OMX Index"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           "-Infinity"
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "#n": {
+         "name": "#n",
+         "offsets": [
+          0
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "OMX Index"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           "NaN"
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "#p"
+        },
+        {
+         "requestIndex": 1,
+         "responseName": "#m"
+        },
+        {
+         "requestIndex": 2,
+         "responseName": "#n"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "#p",
+   "#m",
+   "#n"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "#p": "Float64"
+    },
+    "rows": [
+     [
+      "OMX Index",
+      Infinity
+     ]
+    ]
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "#m": "Float64"
+    },
+    "rows": [
+     [
+      "OMX Index",
+      -Infinity
+     ]
+    ]
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "#n": "Float64"
+    },
+    "rows": [
+     [
+      "OMX Index",
+      null
+     ]
+    ]
+   }
+  ]
+ }
+}

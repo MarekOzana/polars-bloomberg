@@ -1,0 +1,62 @@
+{
+ "scenario": "bsrch/coco_limit_2",
+ "call": "bq.bsrch('FI:SRCHEX.@COCO', {'LIMIT': 2})",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "ExcelGetGridRequest",
+  "body": {
+   "Domain": "FI:SRCHEX.@COCO",
+   "Overrides": [
+    {
+     "name": "LIMIT",
+     "value": "2"
+    }
+   ]
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "GridResponse",
+     "payload": {
+      "NumOfFields": 0,
+      "NumOfRecords": 1022,
+      "ColumnTitles": [
+       "id"
+      ],
+      "DataRecords": [
+       {
+        "DataFields": [
+         {
+          "StringValue": "DS990344 Corp"
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "DS914142 Corp"
+         }
+        ]
+       }
+      ],
+      "ReachMax": true,
+      "SequenceNumber": 0
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "id": "String"
+  }
+ }
+}

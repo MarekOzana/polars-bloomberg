@@ -1,0 +1,121 @@
+{
+ "scenario": "bql/item_named_date",
+ "call": "bq.bql(\"let(#DATE = px_last(dates=2024-01-02);) get(#DATE) for(['IBM US Equity'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "let(#DATE = px_last(dates=2024-01-02);) get(#DATE) for(['IBM US Equity'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "#DATE": {
+         "name": "#DATE",
+         "offsets": [
+          0
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "CR",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "IBM US Equity"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DOUBLE",
+          "rank": 0,
+          "values": [
+           161.5
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-01-02T00:00:00Z"
+           ],
+           "defaultDate": true
+          },
+          {
+           "name": "CURRENCY",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            "USD"
+           ]
+          }
+         ],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "#DATE"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "#DATE"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "#DATE": "Float64",
+     "DATE": "Date",
+     "CURRENCY": "String"
+    },
+    "rows": [
+     [
+      "IBM US Equity",
+      161.5,
+      {
+       "$date": "2024-01-02"
+      },
+      "USD"
+     ]
+    ]
+   }
+  ]
+ }
+}

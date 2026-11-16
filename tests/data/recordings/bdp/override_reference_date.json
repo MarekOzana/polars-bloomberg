@@ -1,0 +1,66 @@
+{
+ "scenario": "bdp/override_reference_date",
+ "call": "bq.bdp(['USDSEK Curncy'], ['SETTLE_DT'], overrides=[('REFERENCE_DATE', '20200715')])",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "ReferenceDataRequest",
+  "body": {
+   "securities": [
+    "USDSEK Curncy"
+   ],
+   "fields": [
+    "SETTLE_DT"
+   ],
+   "overrides": [
+    {
+     "fieldId": "REFERENCE_DATE",
+     "value": "20200715"
+    }
+   ]
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "ReferenceDataResponse",
+     "payload": {
+      "securityData": [
+       {
+        "security": "USDSEK Curncy",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 0,
+        "fieldData": {
+         "SETTLE_DT": {
+          "$date": "2020-07-17"
+         }
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "SETTLE_DT": "Date"
+  },
+  "rows": [
+   [
+    "USDSEK Curncy",
+    {
+     "$date": "2020-07-17"
+    }
+   ]
+  ]
+ }
+}

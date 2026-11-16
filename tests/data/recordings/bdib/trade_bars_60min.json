@@ -1,0 +1,102 @@
+{
+ "scenario": "bdib/trade_bars_60min",
+ "call": "bq.bdib('OMX Index', 'TRADE', 60, at(D, 8), at(D, 12))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "IntradayBarRequest",
+  "body": {
+   "security": "OMX Index",
+   "eventType": "TRADE",
+   "interval": 60,
+   "startDateTime": {
+    "$datetime": "2026-11-13T08:00:00"
+   },
+   "endDateTime": {
+    "$datetime": "2026-11-13T12:00:00"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "IntradayBarResponse",
+     "payload": {
+      "barData": {
+       "eidData": [],
+       "barTickData": [
+        {
+         "time": {
+          "$datetime": "2026-11-13T08:00:00"
+         },
+         "open": 3351.464,
+         "high": 3353.647,
+         "low": 3348.248,
+         "close": 3350.421,
+         "volume": 0,
+         "numEvents": 3591,
+         "value": 0.0
+        },
+        {
+         "time": {
+          "$datetime": "2026-11-13T09:00:00"
+         },
+         "open": 3350.322,
+         "high": 3359.014,
+         "low": 3349.838,
+         "close": 3358.95,
+         "volume": 0,
+         "numEvents": 3600,
+         "value": 0.0
+        },
+        {
+         "time": {
+          "$datetime": "2026-11-13T10:00:00"
+         },
+         "open": 3358.95,
+         "high": 3366.616,
+         "low": 3358.757,
+         "close": 3365.006,
+         "volume": 0,
+         "numEvents": 3600,
+         "value": 0.0
+        },
+        {
+         "time": {
+          "$datetime": "2026-11-13T11:00:00"
+         },
+         "open": 3365.006,
+         "high": 3365.888,
+         "low": 3360.112,
+         "close": 3362.596,
+         "volume": 0,
+         "numEvents": 3600,
+         "value": 0.0
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "time": "Datetime(time_unit='us', time_zone=None)",
+   "open": "Float64",
+   "high": "Float64",
+   "low": "Float64",
+   "close": "Float64",
+   "volume": "Int64",
+   "numEvents": "Int64",
+   "value": "Float64"
+  }
+ }
+}

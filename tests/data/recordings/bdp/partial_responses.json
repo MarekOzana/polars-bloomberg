@@ -1,0 +1,314 @@
+{
+ "scenario": "bdp/partial_responses",
+ "call": "bq.bdp([ticker + ' US Equity' for ticker in US_LARGE_CAPS], ['CRNCY'])",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "ReferenceDataRequest",
+  "body": {
+   "securities": [
+    "AAPL US Equity",
+    "MSFT US Equity",
+    "AMZN US Equity",
+    "GOOGL US Equity",
+    "META US Equity",
+    "NVDA US Equity",
+    "TSLA US Equity",
+    "JPM US Equity",
+    "V US Equity",
+    "JNJ US Equity",
+    "WMT US Equity",
+    "PG US Equity",
+    "MA US Equity",
+    "HD US Equity",
+    "XOM US Equity",
+    "CVX US Equity",
+    "KO US Equity",
+    "PEP US Equity",
+    "BAC US Equity",
+    "PFE US Equity",
+    "CSCO US Equity",
+    "ORCL US Equity",
+    "INTC US Equity",
+    "IBM US Equity",
+    "DIS US Equity"
+   ],
+   "fields": [
+    "CRNCY"
+   ]
+  }
+ },
+ "events": [
+  {
+   "type": "PARTIAL_RESPONSE",
+   "messages": [
+    {
+     "type": "ReferenceDataResponse",
+     "payload": {
+      "securityData": [
+       {
+        "security": "WMT US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 10,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "PG US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 11,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "MA US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 12,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "HD US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 13,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "XOM US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 14,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "CVX US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 15,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "KO US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 16,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "PEP US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 17,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "BAC US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 18,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "PFE US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 19,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "type": "PARTIAL_RESPONSE",
+   "messages": [
+    {
+     "type": "ReferenceDataResponse",
+     "payload": {
+      "securityData": [
+       {
+        "security": "CSCO US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 20,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "ORCL US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 21,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "INTC US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 22,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "IBM US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 23,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "DIS US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 24,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "ReferenceDataResponse",
+     "payload": {
+      "securityData": [
+       {
+        "security": "AAPL US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 0,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "MSFT US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 1,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "AMZN US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 2,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "GOOGL US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 3,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "META US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 4,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "NVDA US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 5,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "TSLA US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 6,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "JPM US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 7,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "V US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 8,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       },
+       {
+        "security": "JNJ US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 9,
+        "fieldData": {
+         "CRNCY": "USD"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "CRNCY": "String"
+  }
+ }
+}

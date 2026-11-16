@@ -1,0 +1,46 @@
+{
+ "scenario": "bdh/start_after_end",
+ "call": "bq.bdh(['OMX Index'], ['PX_LAST'], date(2024, 1, 5), date(2024, 1, 2))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "OMX Index"
+   ],
+   "fields": [
+    "PX_LAST"
+   ],
+   "startDate": "20240105",
+   "endDate": "20240102"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "responseError": {
+       "source": "<server>",
+       "code": 30,
+       "category": "BAD_ARGS",
+       "message": "Invalid start date specified [nid:<server>] ",
+       "subcategory": "INVALID_START_DATE"
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "raises": "BloombergError",
+  "message": "Response error: Invalid start date specified [nid:<server>]  (BAD_ARGS)"
+ }
+}

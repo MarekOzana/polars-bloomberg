@@ -1,0 +1,414 @@
+{
+ "scenario": "bsrch/bi_template_limit_3",
+ "call": "bq.bsrch('BI:TPD', {'BIKEY': 'DKOCVGXJVU8II8M90W8JSQEKR', 'LIMIT': 3})",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "ExcelGetGridRequest",
+  "body": {
+   "Domain": "BI:TPD",
+   "Overrides": [
+    {
+     "name": "BIKEY",
+     "value": "DKOCVGXJVU8II8M90W8JSQEKR"
+    },
+    {
+     "name": "LIMIT",
+     "value": "3"
+    }
+   ]
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "GridResponse",
+     "payload": {
+      "NumOfFields": 6,
+      "NumOfRecords": 16,
+      "ColumnTitles": [
+       "Main_Category_Custom_Name",
+       "Bclass3_Fin_Nonfin",
+       "Category",
+       "06/30/2025",
+       "03/31/2025",
+       "12/31/2024"
+      ],
+      "DataRecords": [
+       {
+        "DataFields": [
+         {
+          "StringValue": "Leverage Non-Financial by Rating"
+         },
+         {
+          "StringValue": "Non-Financial"
+         },
+         {
+          "StringValue": "B"
+         },
+         {
+          "DoubleValue": 4.284769711664779
+         },
+         {
+          "DoubleValue": 4.225245741806796
+         },
+         {
+          "DoubleValue": 4.291967438262333
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Leverage Non-Financial by Rating"
+         },
+         {
+          "StringValue": "Non-Financial"
+         },
+         {
+          "StringValue": "BB"
+         },
+         {
+          "DoubleValue": 2.833443017904
+         },
+         {
+          "DoubleValue": 2.8570416749585474
+         },
+         {
+          "DoubleValue": 2.9849849957519554
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Leverage Non-Financial by Rating"
+         },
+         {
+          "StringValue": "Non-Financial"
+         },
+         {
+          "StringValue": "CCC"
+         },
+         {
+          "DoubleValue": 7.05443618083181
+         },
+         {
+          "DoubleValue": 7.6698296213546655
+         },
+         {
+          "DoubleValue": 6.793574834935892
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Leverage by Sector"
+         },
+         {
+          "StringValue": "Financial"
+         },
+         {
+          "StringValue": "Banking"
+         },
+         {
+          "DoubleValue": 16.09327633254376
+         },
+         {
+          "DoubleValue": 13.157287608369886
+         },
+         {
+          "DoubleValue": 15.513990185867648
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Leverage by Sector"
+         },
+         {
+          "StringValue": "Financial"
+         },
+         {
+          "StringValue": "Other Financial"
+         },
+         {
+          "DoubleValue": 14.060532300547989
+         },
+         {
+          "DoubleValue": 15.62581938041847
+         },
+         {
+          "DoubleValue": 18.43585816842189
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Leverage by Sector"
+         },
+         {
+          "StringValue": "Non-Financial"
+         },
+         {
+          "StringValue": "Basic Industry"
+         },
+         {
+          "DoubleValue": 4.507087358223556
+         },
+         {
+          "DoubleValue": 4.2719611179045565
+         },
+         {
+          "DoubleValue": 4.201044687053275
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Leverage by Sector"
+         },
+         {
+          "StringValue": "Non-Financial"
+         },
+         {
+          "StringValue": "Capital Goods"
+         },
+         {
+          "DoubleValue": 3.148405014741837
+         },
+         {
+          "DoubleValue": 3.065503077504306
+         },
+         {
+          "DoubleValue": 3.1310809879432258
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Leverage by Sector"
+         },
+         {
+          "StringValue": "Non-Financial"
+         },
+         {
+          "StringValue": "Communications"
+         },
+         {
+          "DoubleValue": 3.5572249291207947
+         },
+         {
+          "DoubleValue": 3.529124205326189
+         },
+         {
+          "DoubleValue": 3.858499689103333
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Leverage by Sector"
+         },
+         {
+          "StringValue": "Non-Financial"
+         },
+         {
+          "StringValue": "Consumer Cyclical"
+         },
+         {
+          "DoubleValue": 2.623745485132432
+         },
+         {
+          "DoubleValue": 2.8003696613341336
+         },
+         {
+          "DoubleValue": 2.83798821424994
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Leverage by Sector"
+         },
+         {
+          "StringValue": "Non-Financial"
+         },
+         {
+          "StringValue": "Consumer Non-Cyclical"
+         },
+         {
+          "DoubleValue": 3.691443050526041
+         },
+         {
+          "DoubleValue": 4.099086509043876
+         },
+         {
+          "DoubleValue": 3.877022101599767
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Leverage by Sector Type"
+         },
+         {
+          "StringValue": "Financial vs Non-Financial"
+         },
+         {
+          "StringValue": "Financial"
+         },
+         {
+          "DoubleValue": 15.871354544926332
+         },
+         {
+          "DoubleValue": 15.470609413688372
+         },
+         {
+          "DoubleValue": 18.06868482945559
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Leverage by Sector Type"
+         },
+         {
+          "StringValue": "Financial vs Non-Financial"
+         },
+         {
+          "StringValue": "Non-Financial"
+         },
+         {
+          "DoubleValue": 3.3579763892707883
+         },
+         {
+          "DoubleValue": 3.3586862078720943
+         },
+         {
+          "DoubleValue": 3.343418301454154
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Spread Per Turn Non-Financial Leverage (SPTL)"
+         },
+         {
+          "StringValue": "By Rating and Non-Financial"
+         },
+         {
+          "StringValue": "B"
+         },
+         {
+          "DoubleValue": 77.91111832479211
+         },
+         {
+          "DoubleValue": 86.61422846461606
+         },
+         {
+          "DoubleValue": 76.3614134343691
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Spread Per Turn Non-Financial Leverage (SPTL)"
+         },
+         {
+          "StringValue": "By Rating and Non-Financial"
+         },
+         {
+          "StringValue": "BB"
+         },
+         {
+          "DoubleValue": 73.65396045775388
+         },
+         {
+          "DoubleValue": 75.60579248573056
+         },
+         {
+          "DoubleValue": 68.54315860588056
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Spread Per Turn Non-Financial Leverage (SPTL)"
+         },
+         {
+          "StringValue": "By Rating and Non-Financial"
+         },
+         {
+          "StringValue": "CCC"
+         },
+         {
+          "DoubleValue": 165.03970978765287
+         },
+         {
+          "DoubleValue": 140.2850197616203
+         },
+         {
+          "DoubleValue": 160.12934668883582
+         }
+        ]
+       },
+       {
+        "DataFields": [
+         {
+          "StringValue": "Spread Per Turn Non-Financial Leverage (SPTL)"
+         },
+         {
+          "StringValue": "By Rating and Non-Financial"
+         },
+         {
+          "StringValue": "Non-Financial"
+         },
+         {
+          "DoubleValue": 94.79485949248308
+         },
+         {
+          "DoubleValue": 103.39399947100527
+         },
+         {
+          "DoubleValue": 94.84463845342994
+         }
+        ]
+       }
+      ],
+      "ReachMax": true,
+      "SequenceNumber": 0
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "Main_Category_Custom_Name": "String",
+   "Bclass3_Fin_Nonfin": "String",
+   "Category": "String",
+   "06/30/2025": "Float64",
+   "03/31/2025": "Float64",
+   "12/31/2024": "Float64"
+  }
+ }
+}

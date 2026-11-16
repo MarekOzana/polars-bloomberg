@@ -8,6 +8,8 @@ from unittest.mock import MagicMock
 
 import blpapi
 import blpapi.test
+import polars as pl
+from polars.testing import assert_frame_equal
 
 from polars_bloomberg import BQuery
 
@@ -171,14 +173,66 @@ def load_recording(name):
     return json.loads(path.read_text(encoding="utf-8"), object_hook=_decode)
 
 
-def replay(name, **bquery_kwargs):
-    """Return (bq, recording); bq answers its next request with the recording."""
-    recording = load_recording(name)
-    events = [
+def scripted_events(dump):
+    """Turn the events of a debug dump or recording back into scripted FakeEvents."""
+    return [
         FakeEvent(
             getattr(blpapi.Event, event["type"]),
             [FakeMessage(m["payload"], m["type"]) for m in event["messages"]],
         )
-        for event in recording["events"]
+        for event in dump["events"]
     ]
-    return fake_bq(events, **bquery_kwargs), recording
+
+
+def replay(name, **bquery_kwargs):
+    """Return (bq, recording); bq answers its next request with the recording."""
+    recording = load_recording(name)
+    return fake_bq(scripted_events(recording), **bquery_kwargs), recording
+
+
+def run(call, bq):
+    """Return what `call(bq)` returns, or the exception it raises."""
+    try:
+        return call(bq)
+    except Exception as error:  # an exception is a recorded outcome too
+        return error
+
+
+def assert_result_matches(result, expected):
+    """Assert that a result (DataFrame, BqlResult or exception) is the recorded one."""
+    if "raises" in expected:
+        assert isinstance(result, Exception), f"expected {expected['raises']}"
+        assert {"raises": type(result).__name__, "message": str(result)} == expected
+        return
+    assert not isinstance(result, Exception), f"unexpected {result!r}"
+    if "names" in expected:  # a BqlResult
+        assert result.names == expected["names"]
+        for df, frame in zip(result, expected["frames"], strict=True):
+            _assert_frame_matches(df, frame)
+    else:
+        _assert_frame_matches(result, expected)
+
+
+def _assert_frame_matches(df, expected):
+    schema = {column: str(dtype) for column, dtype in df.schema.items()}
+    assert schema == expected["schema"]
+    if "rows" in expected:  # volatile scenarios store the schema only
+        rows = pl.DataFrame(expected["rows"], schema=df.schema, orient="row")
+        assert_frame_equal(df, rows)
+
+
+# --- contract tests (live): has Bloomberg changed the format of an answer? ---------
+
+
+def shape(value):
+    """The structure of a payload without its data.
+
+    Every value becomes its type name; every list becomes the sorted list of the
+    distinct shapes of its elements, so the number of rows does not matter.
+    """
+    if isinstance(value, dict):
+        return {key: shape(item) for key, item in value.items()}
+    if isinstance(value, list):
+        distinct = {json.dumps(shape(item), sort_keys=True) for item in value}
+        return [json.loads(text) for text in sorted(distinct)]
+    return type(value).__name__

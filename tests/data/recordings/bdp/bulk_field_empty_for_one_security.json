@@ -1,0 +1,227 @@
+{
+ "scenario": "bdp/bulk_field_empty_for_one_security",
+ "call": "bq.bdp(['IBM US Equity', 'BRK/A US Equity'], ['DVD_HIST'], overrides=DVD_2024)",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "ReferenceDataRequest",
+  "body": {
+   "securities": [
+    "IBM US Equity",
+    "BRK/A US Equity"
+   ],
+   "fields": [
+    "DVD_HIST"
+   ],
+   "overrides": [
+    {
+     "fieldId": "DVD_START_DT",
+     "value": "20240101"
+    },
+    {
+     "fieldId": "DVD_END_DT",
+     "value": "20241231"
+    }
+   ]
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "ReferenceDataResponse",
+     "payload": {
+      "securityData": [
+       {
+        "security": "IBM US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 0,
+        "fieldData": {
+         "DVD_HIST": [
+          {
+           "Declared Date": {
+            "$date": "2024-10-30"
+           },
+           "Ex-Date": {
+            "$date": "2024-11-12"
+           },
+           "Record Date": {
+            "$date": "2024-11-12"
+           },
+           "Payable Date": {
+            "$date": "2024-12-10"
+           },
+           "Dividend Amount": 1.67,
+           "Dividend Frequency": "Quarter",
+           "Dividend Type": "Regular Cash"
+          },
+          {
+           "Declared Date": {
+            "$date": "2024-07-29"
+           },
+           "Ex-Date": {
+            "$date": "2024-08-09"
+           },
+           "Record Date": {
+            "$date": "2024-08-09"
+           },
+           "Payable Date": {
+            "$date": "2024-09-10"
+           },
+           "Dividend Amount": 1.67,
+           "Dividend Frequency": "Quarter",
+           "Dividend Type": "Regular Cash"
+          },
+          {
+           "Declared Date": {
+            "$date": "2024-04-30"
+           },
+           "Ex-Date": {
+            "$date": "2024-05-09"
+           },
+           "Record Date": {
+            "$date": "2024-05-10"
+           },
+           "Payable Date": {
+            "$date": "2024-06-10"
+           },
+           "Dividend Amount": 1.67,
+           "Dividend Frequency": "Quarter",
+           "Dividend Type": "Regular Cash"
+          },
+          {
+           "Declared Date": {
+            "$date": "2024-01-30"
+           },
+           "Ex-Date": {
+            "$date": "2024-02-08"
+           },
+           "Record Date": {
+            "$date": "2024-02-09"
+           },
+           "Payable Date": {
+            "$date": "2024-03-09"
+           },
+           "Dividend Amount": 1.66,
+           "Dividend Frequency": "Quarter",
+           "Dividend Type": "Regular Cash"
+          }
+         ]
+        }
+       },
+       {
+        "security": "BRK/A US Equity",
+        "eidData": [],
+        "fieldExceptions": [
+         {
+          "fieldId": "DVD_HIST",
+          "errorInfo": {
+           "source": "<server>",
+           "code": 9,
+           "category": "BAD_FLD",
+           "message": "Field not applicable to security",
+           "subcategory": "NOT_APPLICABLE_TO_REF_DATA"
+          }
+         }
+        ],
+        "sequenceNumber": 1,
+        "fieldData": {}
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "DVD_HIST": "List(Struct({'Declared Date': Date, 'Ex-Date': Date, 'Record Date': Date, 'Payable Date': Date, 'Dividend Amount': Float64, 'Dividend Frequency': String, 'Dividend Type': String}))"
+  },
+  "rows": [
+   [
+    "IBM US Equity",
+    [
+     {
+      "Declared Date": {
+       "$date": "2024-10-30"
+      },
+      "Ex-Date": {
+       "$date": "2024-11-12"
+      },
+      "Record Date": {
+       "$date": "2024-11-12"
+      },
+      "Payable Date": {
+       "$date": "2024-12-10"
+      },
+      "Dividend Amount": 1.67,
+      "Dividend Frequency": "Quarter",
+      "Dividend Type": "Regular Cash"
+     },
+     {
+      "Declared Date": {
+       "$date": "2024-07-29"
+      },
+      "Ex-Date": {
+       "$date": "2024-08-09"
+      },
+      "Record Date": {
+       "$date": "2024-08-09"
+      },
+      "Payable Date": {
+       "$date": "2024-09-10"
+      },
+      "Dividend Amount": 1.67,
+      "Dividend Frequency": "Quarter",
+      "Dividend Type": "Regular Cash"
+     },
+     {
+      "Declared Date": {
+       "$date": "2024-04-30"
+      },
+      "Ex-Date": {
+       "$date": "2024-05-09"
+      },
+      "Record Date": {
+       "$date": "2024-05-10"
+      },
+      "Payable Date": {
+       "$date": "2024-06-10"
+      },
+      "Dividend Amount": 1.67,
+      "Dividend Frequency": "Quarter",
+      "Dividend Type": "Regular Cash"
+     },
+     {
+      "Declared Date": {
+       "$date": "2024-01-30"
+      },
+      "Ex-Date": {
+       "$date": "2024-02-08"
+      },
+      "Record Date": {
+       "$date": "2024-02-09"
+      },
+      "Payable Date": {
+       "$date": "2024-03-09"
+      },
+      "Dividend Amount": 1.66,
+      "Dividend Frequency": "Quarter",
+      "Dividend Type": "Regular Cash"
+     }
+    ]
+   ],
+   [
+    "BRK/A US Equity",
+    null
+   ]
+  ]
+ }
+}

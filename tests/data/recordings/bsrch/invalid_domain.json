@@ -1,0 +1,39 @@
+{
+ "scenario": "bsrch/invalid_domain",
+ "call": "bq.bsrch('FI:NOT_A_SEARCH')",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "ExcelGetGridRequest",
+  "body": {
+   "Domain": "FI:NOT_A_SEARCH"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "GridResponse",
+     "payload": {
+      "NumOfFields": 0,
+      "NumOfRecords": 0,
+      "ColumnTitles": [],
+      "DataRecords": [],
+      "ReachMax": false,
+      "Error": "Failed to build query, probably because of empty criteriaArray. Check logs. || TraceId : <trace>",
+      "SequenceNumber": 0
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "raises": "ValueError",
+  "message": "BSRCH error: Failed to build query, probably because of empty criteriaArray. Check logs. || TraceId : <trace>"
+ }
+}

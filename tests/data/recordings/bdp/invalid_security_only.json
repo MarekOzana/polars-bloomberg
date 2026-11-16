@@ -1,0 +1,61 @@
+{
+ "scenario": "bdp/invalid_security_only",
+ "call": "bq.bdp(['NOT A SECURITY Equity'], ['NAME'])",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "ReferenceDataRequest",
+  "body": {
+   "securities": [
+    "NOT A SECURITY Equity"
+   ],
+   "fields": [
+    "NAME"
+   ]
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "ReferenceDataResponse",
+     "payload": {
+      "securityData": [
+       {
+        "security": "NOT A SECURITY Equity",
+        "eidData": [],
+        "securityError": {
+         "source": "<server>",
+         "code": 43,
+         "category": "BAD_SEC",
+         "message": "Unknown/Invalid Security  [nid:<server>]",
+         "subcategory": "INVALID_SECURITY"
+        },
+        "fieldExceptions": [],
+        "sequenceNumber": 0,
+        "fieldData": {}
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "NAME": "Null"
+  },
+  "rows": [
+   [
+    "NOT A SECURITY Equity",
+    null
+   ]
+  ]
+ }
+}

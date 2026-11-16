@@ -1,0 +1,54 @@
+{
+ "scenario": "bql/invalid_item",
+ "call": "bq.bql(\"get(not_a_real_field) for(['IBM US Equity'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "get(not_a_real_field) for(['IBM US Equity'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": null,
+       "ordering": null,
+       "responseExceptions": [
+        {
+         "message": "Error: Undefined item: not_a_real_field.",
+         "type": "PARTIAL",
+         "internalMessage": "Error, scalar node found as child of get: not_a_real_field",
+         "messageCategory": "BQL_SYNTAX_ERROR",
+         "messageSubcategory": "INVALID_PREDICATE",
+         "level": 0,
+         "nodeName": "get(not_a_real_field)",
+         "uniqueException": false,
+         "messageKey": "VALIDATION_NO_METADATA"
+        }
+       ],
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [],
+  "frames": []
+ }
+}

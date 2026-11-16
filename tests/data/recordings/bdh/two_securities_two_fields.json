@@ -1,0 +1,193 @@
+{
+ "scenario": "bdh/two_securities_two_fields",
+ "call": "bq.bdh(['OMX Index', 'SPX Index'], ['PX_LAST', 'PX_VOLUME'], date(2024, 1, 2), date(2024, 1, 5))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "OMX Index",
+    "SPX Index"
+   ],
+   "fields": [
+    "PX_LAST",
+    "PX_VOLUME"
+   ],
+   "startDate": "20240102",
+   "endDate": "20240105"
+  }
+ },
+ "events": [
+  {
+   "type": "PARTIAL_RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "OMX Index",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-02"
+         },
+         "PX_LAST": 2394.929,
+         "PX_VOLUME": 92026171.0
+        },
+        {
+         "date": {
+          "$date": "2024-01-03"
+         },
+         "PX_LAST": 2356.639,
+         "PX_VOLUME": 100011646.0
+        },
+        {
+         "date": {
+          "$date": "2024-01-04"
+         },
+         "PX_LAST": 2361.899,
+         "PX_VOLUME": 115471756.0
+        },
+        {
+         "date": {
+          "$date": "2024-01-05"
+         },
+         "PX_LAST": 2337.864,
+         "PX_VOLUME": 58157796.0
+        }
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "SPX Index",
+       "eidData": [],
+       "sequenceNumber": 1,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-02"
+         },
+         "PX_LAST": 4742.83,
+         "PX_VOLUME": 707023582.0
+        },
+        {
+         "date": {
+          "$date": "2024-01-03"
+         },
+         "PX_LAST": 4704.81,
+         "PX_VOLUME": 696024599.0
+        },
+        {
+         "date": {
+          "$date": "2024-01-04"
+         },
+         "PX_LAST": 4688.68,
+         "PX_VOLUME": 693014905.0
+        },
+        {
+         "date": {
+          "$date": "2024-01-05"
+         },
+         "PX_LAST": 4697.24,
+         "PX_VOLUME": 650594292.0
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "PX_LAST": "Float64",
+   "PX_VOLUME": "Float64"
+  },
+  "rows": [
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-02"
+    },
+    2394.929,
+    92026171.0
+   ],
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-03"
+    },
+    2356.639,
+    100011646.0
+   ],
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-04"
+    },
+    2361.899,
+    115471756.0
+   ],
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-05"
+    },
+    2337.864,
+    58157796.0
+   ],
+   [
+    "SPX Index",
+    {
+     "$date": "2024-01-02"
+    },
+    4742.83,
+    707023582.0
+   ],
+   [
+    "SPX Index",
+    {
+     "$date": "2024-01-03"
+    },
+    4704.81,
+    696024599.0
+   ],
+   [
+    "SPX Index",
+    {
+     "$date": "2024-01-04"
+    },
+    4688.68,
+    693014905.0
+   ],
+   [
+    "SPX Index",
+    {
+     "$date": "2024-01-05"
+    },
+    4697.24,
+    650594292.0
+   ]
+  ]
+ }
+}

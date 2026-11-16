@@ -1,0 +1,85 @@
+{
+ "scenario": "bdp/static_fields_two_securities",
+ "call": "bq.bdp(['IBM US Equity', 'SEBA SS Equity'], ['NAME', 'CRNCY', 'EQY_INIT_PO_DT'])",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "ReferenceDataRequest",
+  "body": {
+   "securities": [
+    "IBM US Equity",
+    "SEBA SS Equity"
+   ],
+   "fields": [
+    "NAME",
+    "CRNCY",
+    "EQY_INIT_PO_DT"
+   ]
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "ReferenceDataResponse",
+     "payload": {
+      "securityData": [
+       {
+        "security": "IBM US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 0,
+        "fieldData": {
+         "NAME": "INTL BUSINESS MACHINES CORP",
+         "CRNCY": "USD",
+         "EQY_INIT_PO_DT": {
+          "$date": "1915-11-11"
+         }
+        }
+       },
+       {
+        "security": "SEBA SS Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 1,
+        "fieldData": {
+         "NAME": "SKANDINAVISKA ENSKILDA BAN-A",
+         "CRNCY": "SEK"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "NAME": "String",
+   "CRNCY": "String",
+   "EQY_INIT_PO_DT": "Date"
+  },
+  "rows": [
+   [
+    "IBM US Equity",
+    "INTL BUSINESS MACHINES CORP",
+    "USD",
+    {
+     "$date": "1915-11-11"
+    }
+   ],
+   [
+    "SEBA SS Equity",
+    "SKANDINAVISKA ENSKILDA BAN-A",
+    "SEK",
+    null
+   ]
+  ]
+ }
+}

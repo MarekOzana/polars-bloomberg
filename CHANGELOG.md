@@ -12,7 +12,16 @@ All notable changes to polars-bloomberg are listed here.
 - `BQuery.start()` and `BQuery.stop()`, for use without a `with` block:
   `bq = BQuery().start()` ... `bq.stop()`. `stop()` is safe to call twice.
 
+- `debug=` also accepts a directory: `BQuery(debug="dumps")`. `debug=True` still
+  writes to `debug_cases/` in the working directory.
+
 ### Changed
+
+- New debug dump format: one JSON file per request, named after the request type,
+  with the request, every message Bloomberg sent back, and the library and Polars
+  versions. Dates keep their type, so a dump can be replayed. The dump is also
+  written when the request fails, and a dump that cannot be written no longer fails
+  the request. The separate BQL-only dump (`bql_parse_results_*.json`) is gone.
 
 - Services (reference data, BQL, search) open when a method first needs them, not
   all at once when the session starts. A user without access to one service can now

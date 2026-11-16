@@ -1,0 +1,97 @@
+{
+ "scenario": "bql/apostrophe_in_value",
+ "call": "bq.bql(\"get(name) for(['BFOR US Equity'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "get(name) for(['BFOR US Equity'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "name": {
+         "name": "name",
+         "offsets": [
+          0
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "BFOR US Equity"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "Barron's 400 ETF"
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "name"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "name"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "name": "String"
+    },
+    "rows": [
+     [
+      "BFOR US Equity",
+      "Barron's 400 ETF"
+     ]
+    ]
+   }
+  ]
+ }
+}

@@ -35,7 +35,7 @@ import logging
 import os
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, time
 from typing import Any
 
 import blpapi
@@ -48,6 +48,49 @@ logger = logging.getLogger(__name__)
 
 class BloombergError(ValueError):
     """Bloomberg rejected or failed a request."""
+
+
+# --- debug dump: one replayable JSON file per request ---
+
+_EVENT_NAMES = {
+    getattr(blpapi.Event, name): name
+    for name in ("PARTIAL_RESPONSE", "RESPONSE", "REQUEST_STATUS")
+}
+
+
+def _json_default(value: Any) -> Any:
+    """json.dump hook: write dates so that a dump can be replayed with its types."""
+    if isinstance(value, datetime):
+        return {"$datetime": value.isoformat()}
+    if isinstance(value, date):
+        return {"$date": value.isoformat()}
+    if isinstance(value, time):
+        return {"$time": value.isoformat()}
+    return str(value)
+
+
+def _write_debug_dump(directory: str, request: blpapi.Request, events: list) -> None:
+    """Write one request and the messages it received to a replayable JSON file."""
+    element = request.asElement()
+    dump = {
+        "format": 1,
+        "recorded": {
+            "date": date.today().isoformat(),
+            "blpapi": blpapi.__version__,
+            "polars": pl.__version__,
+        },
+        "request": {"operation": str(element.name()), "body": element.toPy()},
+        "events": [event for event in events if event["messages"]],
+    }
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    path = os.path.join(directory, f"{element.name()}_{stamp}.json")
+    try:
+        os.makedirs(directory, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(dump, f, default=_json_default, indent=1, ensure_ascii=False)
+            f.write("\n")
+    except OSError as error:
+        logger.warning("Could not write debug dump %s: %s", path, error)
 
 
 @dataclass
@@ -352,7 +395,7 @@ class BQuery:
         host: str = "localhost",
         port: int = 8194,
         timeout: int = 32_000,
-        debug: bool = False,
+        debug: bool | str | os.PathLike = False,
     ) -> None:
         """Initialize a BQuery instance with connection parameters.
 
@@ -368,15 +411,20 @@ class BQuery:
                 Bloomberg; it is not a limit on the whole request. ``0`` waits
                 forever. Slow BQL queries may need more than the default.
                 Defaults to 32000.
-            debug (bool, optional):
-                Enable debug logging/saving of intermediate results.
-                Defaults to False.
+            debug (bool | str | os.PathLike, optional):
+                Write every request and the raw messages Bloomberg sent back to
+                a JSON file, also when the request fails. ``True`` writes to
+                ``debug_cases/`` in the working directory; a path writes to that
+                directory. Defaults to False.
 
         """
         self.host = host
         self.port = port
         self.timeout = timeout
         self.debug = debug
+        self._debug_dir: str | os.PathLike | None = (
+            "debug_cases" if debug is True else debug or None
+        )
         self.session: blpapi.Session | None = None
         self._open_services: set[str] = set()
 
@@ -935,6 +983,7 @@ class BQuery:
         """Send a request and return the payloads (``msg.toPy()``) of its responses."""
         cid = self.session.sendRequest(request)
         responses: list[Any] = []
+        events: list[dict] = []  # what the debug dump records
         try:
             finished = False
             while not finished:
@@ -943,12 +992,20 @@ class BQuery:
                     raise TimeoutError(
                         f"Request timed out after {self.timeout} milliseconds"
                     )
+                received = {
+                    "type": _EVENT_NAMES.get(event.eventType(), "OTHER"),
+                    "messages": [],
+                }
+                events.append(received)
                 for msg in event:
                     if msg.messageType() == blpapi.Names.SESSION_TERMINATED:
                         raise ConnectionError("Bloomberg session terminated.")
                     if cid not in msg.correlationIds():
                         continue  # status message, or late answer to an old request
                     payload = msg.toPy()
+                    received["messages"].append(
+                        {"type": str(msg.messageType()), "payload": payload}
+                    )
                     if msg.messageType() == blpapi.Names.REQUEST_FAILURE:
                         reason = payload.get("reason", {})
                         raise BloombergError(
@@ -966,14 +1023,9 @@ class BQuery:
         except BaseException:
             self._cancel_quietly(cid)
             raise
-
-        if getattr(self, "debug", False):
-            os.makedirs("debug_cases", exist_ok=True)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-            with open(
-                f"debug_cases/responses_{timestamp}.json", "w", encoding="utf-8"
-            ) as f:
-                json.dump(responses, f, default=str, indent=2)
+        finally:
+            if self._debug_dir:
+                _write_debug_dump(self._debug_dir, request, events)
         return responses
 
     def _cancel_quietly(self, cid: blpapi.CorrelationId) -> None:
@@ -1256,10 +1308,6 @@ class BQuery:
             schema = self._map_types(schema_str)
             tables.append(SITable(name=field, data=data, schema=schema))
 
-        # If debug mode is on, save the input and output for reproducibility
-        if self.debug:
-            self._save_debug_case(results, tables)
-
         return tables
 
     def _map_types(self, type_map: dict[str, str]) -> dict[str, pl.DataType]:
@@ -1281,30 +1329,3 @@ class BQuery:
         if value.tzinfo is None:
             return value.strftime("%Y-%m-%dT%H:%M:%S")
         return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-    def _save_debug_case(self, in_results: dict, tables: list[SITable]):
-        """Save input and output to a JSON file for debugging and test generation."""
-        # Create a directory for debug cases if it doesn't exist
-        os.makedirs("debug_cases", exist_ok=True)
-
-        # Create a unique filename with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"debug_cases/bql_parse_results_{timestamp}.json"
-
-        # Prepare serializable data
-        out_tables = []
-        for t in tables:
-            out_tables.append(
-                {
-                    "name": t.name,
-                    "data": t.data,
-                    "schema": {col: str(dtype) for col, dtype in t.schema.items()},
-                }
-            )
-
-        to_save = {"in_results": in_results, "out_tables": out_tables}
-
-        with open(filename, "w", encoding="utf-8") as f:
-            json.dump(to_save, f, indent=2)
-
-        logger.debug("Saved debug case to %s", filename)

@@ -1,9 +1,22 @@
+import json
+import logging
+from datetime import date, datetime, time
 from unittest.mock import MagicMock, patch
 
+import blpapi
 import pytest
-from support import FakeSession, answer, fake_bq
+from polars.testing import assert_frame_equal
+from support import (
+    FakeSession,
+    _decode,
+    answer,
+    fake_bq,
+    response_event,
+    scripted_events,
+)
 
 from polars_bloomberg import BQuery
+from polars_bloomberg.plbbg import _json_default
 
 pytestmark = pytest.mark.no_bbg
 
@@ -95,31 +108,95 @@ def test_session_is_stopped_when_a_call_fails_inside_a_with_block(new_session):
     assert new_session.stopped
 
 
-# --- debug ---
+# --- debug dump: one replayable JSON file per request ---
 
 
-def test_send_request_writes_debug_file(tmp_path, monkeypatch):
-    bq = fake_bq([answer({"securityData": []})], debug=True)
-    monkeypatch.chdir(tmp_path)
+def test_debug_dump_contains_request_and_events(tmp_path):
+    payload = {"securityData": [{"security": "IBM US Equity", "fieldData": {}}]}
+    bq = fake_bq([answer(payload)], debug=tmp_path)
 
     bq.bdp(["IBM US Equity"], ["NAME"])
 
-    saved = list((tmp_path / "debug_cases").glob("responses_*.json"))
-    assert len(saved) == 1
+    (dump_file,) = tmp_path.glob("ReferenceDataRequest_*.json")
+    dump = json.loads(dump_file.read_text(encoding="utf-8"))
+    assert dump["request"] == {
+        "operation": "ReferenceDataRequest",
+        "body": {"securities": ["IBM US Equity"], "fields": ["NAME"]},
+    }
+    assert dump["events"] == [
+        {"type": "RESPONSE", "messages": [{"type": "Response", "payload": payload}]}
+    ]
 
 
-def test_parse_result_saves_debug_case():
-    bq = BQuery(debug=True)
-    bq._save_debug_case = MagicMock()
+def test_debug_dump_is_written_when_the_request_fails(tmp_path):
+    bq = fake_bq(debug=tmp_path)  # nothing scripted: the call times out
 
-    results = {
-        "px_last": {
-            "idColumn": {"values": ["IBM US Equity"], "type": "STRING"},
-            "valuesColumn": {"values": [123.4], "type": "DOUBLE"},
-            "secondaryColumns": [],
+    with pytest.raises(TimeoutError):
+        bq.bdp(["IBM US Equity"], ["NAME"])
+
+    (dump_file,) = tmp_path.glob("ReferenceDataRequest_*.json")
+    assert json.loads(dump_file.read_text(encoding="utf-8"))["events"] == []
+
+
+def test_debug_dump_replays_to_the_same_frame(tmp_path):
+    payload = {
+        "securityData": {
+            "security": "OMX Index",
+            "fieldData": [
+                {"date": "2024-01-02", "PX_LAST": 2400.5},
+                {"date": "2024-01-03", "PX_LAST": 2410.0},
+            ],
         }
     }
 
-    tables = bq._parse_result(results)
-    assert tables
-    bq._save_debug_case.assert_called_once_with(results, tables)
+    def omx_prices(bq):
+        return bq.bdh(["OMX Index"], ["PX_LAST"], date(2024, 1, 2), date(2024, 1, 3))
+
+    df = omx_prices(
+        fake_bq([response_event("HistoricalDataRequest", payload)], debug=tmp_path)
+    )
+
+    (dump_file,) = tmp_path.glob("HistoricalDataRequest_*.json")
+    dump = json.loads(dump_file.read_text(encoding="utf-8"), object_hook=_decode)
+    df_replayed = omx_prices(fake_bq(scripted_events(dump)))
+
+    assert_frame_equal(df_replayed, df)
+
+
+def test_unwritable_debug_directory_does_not_fail_the_request(tmp_path, caplog):
+    not_a_directory = tmp_path / "file.txt"
+    not_a_directory.write_text("occupied")
+    payload = {"securityData": [{"security": "IBM US Equity", "fieldData": {}}]}
+    bq = fake_bq([answer(payload)], debug=not_a_directory)
+
+    with caplog.at_level(logging.WARNING):
+        df = bq.bdp(["IBM US Equity"], ["NAME"])
+
+    assert df["security"].to_list() == ["IBM US Equity"]
+    assert "Could not write debug dump" in caplog.text
+
+
+def test_debug_true_writes_to_debug_cases_in_working_directory(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    bq = fake_bq([answer({"securityData": []})], debug=True)
+
+    bq.bdp(["IBM US Equity"], ["NAME"])
+
+    assert len(list((tmp_path / "debug_cases").glob("*.json"))) == 1
+
+
+@pytest.mark.parametrize(
+    "value",
+    [date(2024, 1, 2), datetime(2024, 1, 2, 9, 30, 15, 250), time(9, 30)],
+    ids=["date", "datetime", "time"],
+)
+def test_dump_dates_and_times_read_back_with_their_types(value):
+    text = json.dumps({"value": value}, default=_json_default)
+
+    assert json.loads(text, object_hook=_decode) == {"value": value}
+
+
+def test_dump_writes_other_unknown_values_as_text():
+    text = json.dumps({"name": blpapi.Name("NAME")}, default=_json_default)
+
+    assert json.loads(text) == {"name": "NAME"}

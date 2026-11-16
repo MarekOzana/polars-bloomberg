@@ -1,0 +1,106 @@
+{
+ "scenario": "bql/int_value",
+ "call": "bq.bql(\"get(count(group(id))) for(['IBM US Equity', 'SEBA SS Equity'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "get(count(group(id))) for(['IBM US Equity', 'SEBA SS Equity'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "count(group(id))": {
+         "name": "count(group(id))",
+         "offsets": [
+          0
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "IdentityGroup"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "INT",
+          "rank": 0,
+          "values": [
+           2
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "ORIG_IDS",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            null
+           ]
+          }
+         ],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": false,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "count(group(id))"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "count(group(id))"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "count(group(id))": "Int64",
+     "ORIG_IDS": "String"
+    },
+    "rows": [
+     [
+      "IdentityGroup",
+      2,
+      null
+     ]
+    ]
+   }
+  ]
+ }
+}

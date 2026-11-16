@@ -1,0 +1,70 @@
+{
+ "scenario": "bdp/field_not_applicable",
+ "call": "bq.bdp(['IBM US Equity'], ['NAME', 'YAS_ZSPREAD'])",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "ReferenceDataRequest",
+  "body": {
+   "securities": [
+    "IBM US Equity"
+   ],
+   "fields": [
+    "NAME",
+    "YAS_ZSPREAD"
+   ]
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "ReferenceDataResponse",
+     "payload": {
+      "securityData": [
+       {
+        "security": "IBM US Equity",
+        "eidData": [],
+        "fieldExceptions": [
+         {
+          "fieldId": "YAS_ZSPREAD",
+          "errorInfo": {
+           "source": "<server>",
+           "code": 9,
+           "category": "BAD_FLD",
+           "message": "Field not applicable to security",
+           "subcategory": "NOT_APPLICABLE_TO_REF_DATA"
+          }
+         }
+        ],
+        "sequenceNumber": 0,
+        "fieldData": {
+         "NAME": "INTL BUSINESS MACHINES CORP"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "NAME": "String",
+   "YAS_ZSPREAD": "Null"
+  },
+  "rows": [
+   [
+    "IBM US Equity",
+    "INTL BUSINESS MACHINES CORP",
+    null
+   ]
+  ]
+ }
+}

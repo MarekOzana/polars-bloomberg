@@ -1,0 +1,121 @@
+{
+ "scenario": "bdh/invalid_field_mixed",
+ "call": "bq.bdh(['OMX Index'], ['PX_LAST', 'NOT_A_FIELD'], date(2024, 1, 2), date(2024, 1, 5))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "OMX Index"
+   ],
+   "fields": [
+    "PX_LAST",
+    "NOT_A_FIELD"
+   ],
+   "startDate": "20240102",
+   "endDate": "20240105"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "OMX Index",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [
+        {
+         "fieldId": "NOT_A_FIELD",
+         "errorInfo": {
+          "source": "<server>",
+          "code": 1,
+          "category": "BAD_FLD",
+          "message": "Invalid field",
+          "subcategory": "NOT_APPLICABLE_TO_HIST_DATA"
+         }
+        }
+       ],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-02"
+         },
+         "PX_LAST": 2394.929
+        },
+        {
+         "date": {
+          "$date": "2024-01-03"
+         },
+         "PX_LAST": 2356.639
+        },
+        {
+         "date": {
+          "$date": "2024-01-04"
+         },
+         "PX_LAST": 2361.899
+        },
+        {
+         "date": {
+          "$date": "2024-01-05"
+         },
+         "PX_LAST": 2337.864
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "PX_LAST": "Float64",
+   "NOT_A_FIELD": "Null"
+  },
+  "rows": [
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-02"
+    },
+    2394.929,
+    null
+   ],
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-03"
+    },
+    2356.639,
+    null
+   ],
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-04"
+    },
+    2361.899,
+    null
+   ],
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-05"
+    },
+    2337.864,
+    null
+   ]
+  ]
+ }
+}

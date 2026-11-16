@@ -1,0 +1,100 @@
+{
+ "scenario": "bql/date_value",
+ "call": "bq.bql(\"get(nxt_call_dt()) for(['USX60003AC87 Corp'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "get(nxt_call_dt()) for(['USX60003AC87 Corp'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "nxt_call_dt()": {
+         "name": "nxt_call_dt()",
+         "offsets": [
+          0
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "SRCH",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "USX60003AC87 Corp"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "DATE",
+          "rank": 0,
+          "values": [
+           "2031-09-25T00:00:00Z"
+          ],
+          "defaultDate": false
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "nxt_call_dt()"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "nxt_call_dt()"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "nxt_call_dt()": "Date"
+    },
+    "rows": [
+     [
+      "USX60003AC87 Corp",
+      {
+       "$date": "2031-09-25"
+      }
+     ]
+    ]
+   }
+  ]
+ }
+}

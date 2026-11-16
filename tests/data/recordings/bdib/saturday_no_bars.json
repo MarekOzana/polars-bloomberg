@@ -1,0 +1,53 @@
+{
+ "scenario": "bdib/saturday_no_bars",
+ "call": "bq.bdib('OMX Index', 'TRADE', 60, at(SAT, 8), at(SAT, 12))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "IntradayBarRequest",
+  "body": {
+   "security": "OMX Index",
+   "eventType": "TRADE",
+   "interval": 60,
+   "startDateTime": {
+    "$datetime": "2026-11-14T08:00:00"
+   },
+   "endDateTime": {
+    "$datetime": "2026-11-14T12:00:00"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "IntradayBarResponse",
+     "payload": {
+      "barData": {
+       "eidData": [],
+       "barTickData": []
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "time": "Datetime(time_unit='us', time_zone=None)",
+   "open": "Float64",
+   "high": "Float64",
+   "low": "Float64",
+   "close": "Float64",
+   "volume": "Int64",
+   "numEvents": "Int64",
+   "value": "Float64"
+  }
+ }
+}

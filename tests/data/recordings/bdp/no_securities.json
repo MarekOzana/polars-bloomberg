@@ -1,0 +1,41 @@
+{
+ "scenario": "bdp/no_securities",
+ "call": "bq.bdp([], ['NAME'])",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "ReferenceDataRequest",
+  "body": {
+   "securities": [],
+   "fields": [
+    "NAME"
+   ]
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "ReferenceDataResponse",
+     "payload": {
+      "responseError": {
+       "source": "<server>",
+       "code": 5,
+       "category": "BAD_ARGS",
+       "message": "No securities specified [nid:<server>] "
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "raises": "BloombergError",
+  "message": "Response error: No securities specified [nid:<server>]  (BAD_ARGS)"
+ }
+}

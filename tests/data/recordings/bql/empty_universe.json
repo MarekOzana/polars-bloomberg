@@ -1,0 +1,54 @@
+{
+ "scenario": "bql/empty_universe",
+ "call": "bq.bql(\"get(name) for(filter(members('OMX Index'), px_last < 0))\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "get(name) for(filter(members('OMX Index'), px_last < 0))",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": null,
+       "ordering": null,
+       "responseExceptions": [
+        {
+         "message": "No results match filter(members('OMX Index'),px_last<0). Try expanding criteria.",
+         "type": "BENIGN",
+         "internalMessage": "Error, filter returned an empty result.",
+         "messageCategory": "BQL_SYNTAX_ERROR",
+         "messageSubcategory": "INVALID_SECURITY",
+         "level": 0,
+         "nodeName": "filter(members('OMX Index'),px_last<0)",
+         "uniqueException": false,
+         "messageKey": "UNIVERSE_SCREEN_EMPTY_RESULT"
+        }
+       ],
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [],
+  "frames": []
+ }
+}

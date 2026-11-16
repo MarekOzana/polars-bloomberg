@@ -1,0 +1,47 @@
+{
+ "scenario": "bdib/invalid_security",
+ "call": "bq.bdib('NOT A SECURITY Equity', 'TRADE', 60, at(D, 8), at(D, 12))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "IntradayBarRequest",
+  "body": {
+   "security": "NOT A SECURITY Equity",
+   "eventType": "TRADE",
+   "interval": 60,
+   "startDateTime": {
+    "$datetime": "2026-11-13T08:00:00"
+   },
+   "endDateTime": {
+    "$datetime": "2026-11-13T12:00:00"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "IntradayBarResponse",
+     "payload": {
+      "responseError": {
+       "source": "<server>",
+       "code": 15,
+       "category": "BAD_SEC",
+       "message": "Unknown/Invalid Security [nid:<server>] ",
+       "subcategory": "INVALID_SECURITY"
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "raises": "BloombergError",
+  "message": "Response error: Unknown/Invalid Security [nid:<server>]  (BAD_SEC)"
+ }
+}

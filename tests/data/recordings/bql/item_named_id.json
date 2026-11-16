@@ -1,0 +1,93 @@
+{
+ "scenario": "bql/item_named_id",
+ "call": "bq.bql(\"get(ID) for(['IBM US Equity'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "get(ID) for(['IBM US Equity'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "ID": {
+         "name": "ID",
+         "offsets": [
+          0
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "BQLINTERNAL",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "IBM US Equity"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "IBM US Equity"
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "ID"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "ID"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String"
+    },
+    "rows": [
+     [
+      "IBM US Equity"
+     ]
+    ]
+   }
+  ]
+ }
+}

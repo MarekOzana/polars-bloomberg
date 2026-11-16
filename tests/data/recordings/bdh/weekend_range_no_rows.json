@@ -1,0 +1,46 @@
+{
+ "scenario": "bdh/weekend_range_no_rows",
+ "call": "bq.bdh(['OMX Index'], ['PX_LAST'], date(2024, 1, 6), date(2024, 1, 7))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "OMX Index"
+   ],
+   "fields": [
+    "PX_LAST"
+   ],
+   "startDate": "20240106",
+   "endDate": "20240107"
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "OMX Index",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": []
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {},
+  "rows": []
+ }
+}

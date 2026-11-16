@@ -1,0 +1,54 @@
+{
+ "scenario": "bql/syntax_error",
+ "call": "bq.bql(\"get(px_last for(['IBM US Equity'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "get(px_last for(['IBM US Equity'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": null,
+       "ordering": null,
+       "responseExceptions": [
+        {
+         "message": "Error: Unable to parse request at 'get(px_lastfor'.",
+         "type": "PARTIAL",
+         "internalMessage": "Error: Unable to parse request at 'get(px_lastfor'.",
+         "messageCategory": "BQL_SYNTAX_ERROR",
+         "messageSubcategory": "NA_SUBCATEGORY",
+         "level": 0,
+         "nodeName": null,
+         "uniqueException": false,
+         "messageKey": "PARSER_UNABLE"
+        }
+       ],
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [],
+  "frames": []
+ }
+}

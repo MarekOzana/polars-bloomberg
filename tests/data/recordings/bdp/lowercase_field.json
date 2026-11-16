@@ -1,0 +1,60 @@
+{
+ "scenario": "bdp/lowercase_field",
+ "call": "bq.bdp(['IBM US Equity'], ['name', 'Crncy'])",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "ReferenceDataRequest",
+  "body": {
+   "securities": [
+    "IBM US Equity"
+   ],
+   "fields": [
+    "name",
+    "Crncy"
+   ]
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "ReferenceDataResponse",
+     "payload": {
+      "securityData": [
+       {
+        "security": "IBM US Equity",
+        "eidData": [],
+        "fieldExceptions": [],
+        "sequenceNumber": 0,
+        "fieldData": {
+         "name": "INTL BUSINESS MACHINES CORP",
+         "Crncy": "USD"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "name": "String",
+   "Crncy": "String"
+  },
+  "rows": [
+   [
+    "IBM US Equity",
+    "INTL BUSINESS MACHINES CORP",
+    "USD"
+   ]
+  ]
+ }
+}

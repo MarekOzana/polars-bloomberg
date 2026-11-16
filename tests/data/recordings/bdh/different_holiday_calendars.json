@@ -1,0 +1,136 @@
+{
+ "scenario": "bdh/different_holiday_calendars",
+ "call": "bq.bdh(['OMX Index', 'SPX Index'], ['PX_LAST'], date(2024, 1, 12), date(2024, 1, 16))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "OMX Index",
+    "SPX Index"
+   ],
+   "fields": [
+    "PX_LAST"
+   ],
+   "startDate": "20240112",
+   "endDate": "20240116"
+  }
+ },
+ "events": [
+  {
+   "type": "PARTIAL_RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "OMX Index",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-12"
+         },
+         "PX_LAST": 2355.965
+        },
+        {
+         "date": {
+          "$date": "2024-01-15"
+         },
+         "PX_LAST": 2340.467
+        },
+        {
+         "date": {
+          "$date": "2024-01-16"
+         },
+         "PX_LAST": 2323.785
+        }
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "SPX Index",
+       "eidData": [],
+       "sequenceNumber": 1,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-12"
+         },
+         "PX_LAST": 4783.83
+        },
+        {
+         "date": {
+          "$date": "2024-01-16"
+         },
+         "PX_LAST": 4765.98
+        }
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "PX_LAST": "Float64"
+  },
+  "rows": [
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-12"
+    },
+    2355.965
+   ],
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-15"
+    },
+    2340.467
+   ],
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-16"
+    },
+    2323.785
+   ],
+   [
+    "SPX Index",
+    {
+     "$date": "2024-01-12"
+    },
+    4783.83
+   ],
+   [
+    "SPX Index",
+    {
+     "$date": "2024-01-16"
+    },
+    4765.98
+   ]
+  ]
+ }
+}

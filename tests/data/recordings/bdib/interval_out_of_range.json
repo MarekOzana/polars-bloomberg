@@ -1,0 +1,47 @@
+{
+ "scenario": "bdib/interval_out_of_range",
+ "call": "bq.bdib('OMX Index', 'TRADE', 2000, at(D, 8), at(D, 12))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "IntradayBarRequest",
+  "body": {
+   "security": "OMX Index",
+   "eventType": "TRADE",
+   "interval": 2000,
+   "startDateTime": {
+    "$datetime": "2026-11-13T08:00:00"
+   },
+   "endDateTime": {
+    "$datetime": "2026-11-13T12:00:00"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "IntradayBarResponse",
+     "payload": {
+      "responseError": {
+       "source": "<server>",
+       "code": -1,
+       "category": "NOT_AVAILABLE",
+       "message": "Data not available from service. [nid:<server>] ",
+       "subcategory": "INTERNAL_ERROR"
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "raises": "BloombergError",
+  "message": "Response error: Data not available from service. [nid:<server>]  (NOT_AVAILABLE)"
+ }
+}

@@ -1,0 +1,109 @@
+{
+ "scenario": "bql/boolean_value",
+ "call": "bq.bql(\"get(px_last(dates=2024-01-02) > 100) for(['IBM US Equity'])\")",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "get(px_last(dates=2024-01-02) > 100) for(['IBM US Equity'])",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "px_last(dates=2024-01-02)>100": {
+         "name": "px_last(dates=2024-01-02)>100",
+         "offsets": [
+          0
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "IBM US Equity"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "BOOLEAN",
+          "rank": 0,
+          "values": [
+           true
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "DATE",
+           "type": "DATE",
+           "rank": 0,
+           "values": [
+            "2024-01-02T00:00:00Z"
+           ],
+           "defaultDate": true
+          }
+         ],
+         "partialErrorMap": null,
+         "responseExceptions": [],
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": "DATE",
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "ordering": [
+        {
+         "requestIndex": 0,
+         "responseName": "px_last(dates=2024-01-02)>100"
+        }
+       ],
+       "responseExceptions": null,
+       "dotString": null,
+       "screenCounts": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "px_last(dates=2024-01-02)>100"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "px_last(dates=2024-01-02)>100": "Boolean",
+     "DATE": "Date"
+    },
+    "rows": [
+     [
+      "IBM US Equity",
+      true,
+      {
+       "$date": "2024-01-02"
+      }
+     ]
+    ]
+   }
+  ]
+ }
+}

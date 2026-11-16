@@ -1,0 +1,129 @@
+{
+ "scenario": "bdh/invalid_security_mixed",
+ "call": "bq.bdh(['OMX Index', 'NOT A SECURITY Equity'], ['PX_LAST'], date(2024, 1, 2), date(2024, 1, 5))",
+ "format": 1,
+ "recorded": {
+  "date": "2026-11-16",
+  "blpapi": "3.26.10.1",
+  "polars": "2.1.0"
+ },
+ "request": {
+  "operation": "HistoricalDataRequest",
+  "body": {
+   "securities": [
+    "OMX Index",
+    "NOT A SECURITY Equity"
+   ],
+   "fields": [
+    "PX_LAST"
+   ],
+   "startDate": "20240102",
+   "endDate": "20240105"
+  }
+ },
+ "events": [
+  {
+   "type": "PARTIAL_RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "OMX Index",
+       "eidData": [],
+       "sequenceNumber": 0,
+       "fieldExceptions": [],
+       "fieldData": [
+        {
+         "date": {
+          "$date": "2024-01-02"
+         },
+         "PX_LAST": 2394.929
+        },
+        {
+         "date": {
+          "$date": "2024-01-03"
+         },
+         "PX_LAST": 2356.639
+        },
+        {
+         "date": {
+          "$date": "2024-01-04"
+         },
+         "PX_LAST": 2361.899
+        },
+        {
+         "date": {
+          "$date": "2024-01-05"
+         },
+         "PX_LAST": 2337.864
+        }
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "HistoricalDataResponse",
+     "payload": {
+      "securityData": {
+       "security": "NOT A SECURITY Equity",
+       "eidData": [],
+       "sequenceNumber": 1,
+       "securityError": {
+        "source": "<server>",
+        "code": 15,
+        "category": "BAD_SEC",
+        "message": "Unknown/Invalid securityInvalid Security [nid:<server>]",
+        "subcategory": "INVALID_SECURITY"
+       },
+       "fieldExceptions": [],
+       "fieldData": []
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "PX_LAST": "Float64"
+  },
+  "rows": [
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-02"
+    },
+    2394.929
+   ],
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-03"
+    },
+    2356.639
+   ],
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-04"
+    },
+    2361.899
+   ],
+   [
+    "OMX Index",
+    {
+     "$date": "2024-01-05"
+    },
+    2337.864
+   ]
+  ]
+ }
+}
