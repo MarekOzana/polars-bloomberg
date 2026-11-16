@@ -563,3 +563,31 @@ class TestBqlResultCombine:
         )
         assert_frame_equal(combined_df, expected_df)
 
+
+# --- combine() and null values in shared columns (F26; documented, not changed) ---
+
+
+def _two_items_where_one_security_has_no_date() -> BqlResult:
+    px_last = pl.DataFrame(
+        {"ID": ["A", "B"], "DATE": [date(2024, 1, 2), None], "px_last": [1.0, 2.0]}
+    )
+    name = pl.DataFrame(
+        {"ID": ["A", "B"], "DATE": [date(2024, 1, 2), None], "name": ["a", "b"]}
+    )
+    return BqlResult([px_last, name], names=["px_last", "name"])
+
+
+def test_combine_without_on_duplicates_rows_with_null_keys():
+    result = _two_items_where_one_security_has_no_date()
+
+    df = result.combine()  # joins on ID and DATE; a null DATE matches nothing
+
+    assert sorted(df["ID"].to_list()) == ["A", "B", "B"]
+
+
+def test_combine_on_id_gives_one_row_per_security_with_null_keys():
+    result = _two_items_where_one_security_has_no_date()
+
+    df = result.combine(on="ID")
+
+    assert sorted(df["ID"].to_list()) == ["A", "B"]

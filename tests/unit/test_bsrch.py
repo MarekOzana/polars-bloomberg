@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import polars as pl
 import pytest
+from support import answer, fake_bq
 
 from polars_bloomberg import BQuery
 
@@ -221,3 +222,31 @@ class TestBsrch:
         )
         unknown = {"Unknown": "x"}
         assert bq._extract_bsrch_field_value(unknown) == unknown
+
+
+# --- bsrch() end to end, through the fake session ---
+
+
+def test_bsrch_blank_cells_in_numeric_column_become_null():
+    grid = {
+        "ColumnTitles": ["Ticker", "Yield"],
+        "DataRecords": [
+            {"DataFields": [{"StringValue": "A Corp"}, {"DoubleValue": 1.5}]},
+            {"DataFields": [{"StringValue": "B Corp"}, {"StringValue": " "}]},
+        ],
+        "ReachMax": False,
+    }
+    bq = fake_bq([answer({"GridResponse": grid})])
+
+    df = bq.bsrch("FI:SRCHEX.@COCO")
+
+    assert df.schema["Yield"] == pl.Float64
+    assert df["Yield"].to_list() == [1.5, None]
+
+
+def test_bsrch_grid_error_raises_value_error():
+    grid = {"Error": "Invalid domain", "DataRecords": []}
+    bq = fake_bq([answer({"GridResponse": grid})])
+
+    with pytest.raises(ValueError, match="Invalid domain"):
+        bq.bsrch("FI:NOT_A_SEARCH")

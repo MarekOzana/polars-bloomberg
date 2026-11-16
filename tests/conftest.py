@@ -7,13 +7,22 @@ import pytest
 
 from polars_bloomberg import BQuery
 
-def pytest_configure(config: pytest.Config) -> None:
-    config.addinivalue_line(
-        "markers", "no_bbg: tests that do not require Bloomberg"
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    parser.addoption(
+        "--bbg",
+        action="store_true",
+        help="also run the tests that need a live Bloomberg Terminal",
     )
-    config.addinivalue_line(
-        "markers", "requires_bbg: tests that require a live Bloomberg session"
-    )
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list) -> None:
+    if config.getoption("--bbg"):
+        return
+    skip = pytest.mark.skip(reason="needs a Bloomberg Terminal; run with --bbg")
+    for item in items:
+        if "requires_bbg" in item.keywords:
+            item.add_marker(skip)
 
 
 @pytest.fixture()
@@ -24,7 +33,7 @@ def bq() -> BQuery:
     return bq_instance
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def live_bq() -> Generator[BQuery, None, None]:
     """Return a live BQuery instance when Bloomberg is available."""
     with BQuery() as bq_instance:

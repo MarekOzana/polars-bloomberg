@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 import polars as pl
 import pytest
 import yaml
+from support import DATA_DIR
 
 from polars_bloomberg import BQuery
 
@@ -18,7 +19,7 @@ def test_bdh_leading_nulls():
         patch.object(bq, "_create_request", return_value=MagicMock()),
         patch.object(bq, "_send_request", return_value="mocked_responses"),
     ):
-        with open("tests/data/bdh/bdh_data_leading_nulls.yaml") as f:
+        with open(DATA_DIR / "bdh" / "bdh_data_leading_nulls.yaml") as f:
             mock_data = yaml.safe_load(f)
 
         with patch.object(bq, "_parse_bdh_responses", return_value=mock_data):

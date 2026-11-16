@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import polars as pl
 import pytest
 import yaml
+from support import DATA_DIR
 
 from polars_bloomberg import BQuery
 from polars_bloomberg.plbbg import BqlResult, SITable
@@ -16,7 +17,7 @@ pytestmark = pytest.mark.no_bbg
 def test_extract_results_with_bql_syntax_error(caplog):
     bq = BQuery()
 
-    with open("tests/data/bql/response_bql_raised_exception.json") as f:
+    with open(DATA_DIR / "bql" / "response_bql_raised_exception.json") as f:
         responses = json.load(f)
 
     with caplog.at_level(logging.ERROR):
@@ -369,17 +370,17 @@ def test_extract_results_skips_non_dict():
 @pytest.mark.parametrize(
     "case_json_file",
     [
-        "tests/data/bql/bql_parse_results_last_px.json",
-        "tests/data/bql/bql_parse_results_dur_zspread.json",
-        "tests/data/bql/bql_parse_results_axes.json",
-        "tests/data/bql/bql_parse_results_segment.json",
-        "tests/data/bql/bql_parse_results_eps.json",
-        "tests/data/bql/bql_parse_results_rets.json",
-        "tests/data/bql/bql_parse_results_axes_addcolsALL.json",
+        "bql_parse_results_last_px.json",
+        "bql_parse_results_dur_zspread.json",
+        "bql_parse_results_axes.json",
+        "bql_parse_results_segment.json",
+        "bql_parse_results_eps.json",
+        "bql_parse_results_rets.json",
+        "bql_parse_results_axes_addcolsALL.json",
     ],
 )
 def test__parse_result_replay(case_json_file):
-    with open(case_json_file) as f:
+    with open(DATA_DIR / "bql" / case_json_file) as f:
         data = json.load(f)
 
     in_result: dict = data["in_results"]
@@ -397,7 +398,7 @@ def test__parse_result_replay(case_json_file):
     "yaml_file, exp_df",
     [
         (
-            "tests/data/bql/df_lst_name_dur_zspread.yaml",
+            "df_lst_name_dur_zspread.yaml",
             {
                 "ID": [
                     "YV402592 Corp",
@@ -428,7 +429,7 @@ def test__parse_result_replay(case_json_file):
             },
         ),
         (
-            "tests/data/bql/df_lst_name_ema20_ema200_rsi.yaml",
+            "df_lst_name_ema20_ema200_rsi.yaml",
             {
                 "ID": [
                     "ERICB SS Equity",
@@ -476,7 +477,7 @@ def test__parse_result_replay(case_json_file):
             },
         ),
         (
-            "tests/data/bql/df_lst_name_px_last.yaml",
+            "df_lst_name_px_last.yaml",
             {
                 "ID": ["IBM US Equity"],
                 "name": ["International Business Machine"],
@@ -486,7 +487,7 @@ def test__parse_result_replay(case_json_file):
             },
         ),
         (
-            "tests/data/bql/df_lst_name_rank_oas_nxtcall.yaml",
+            "df_lst_name_rank_oas_nxtcall.yaml",
             {
                 "ID": [
                     "YX231113 Corp",
@@ -527,7 +528,7 @@ def test__parse_result_replay(case_json_file):
             },
         ),
         (
-            "tests/data/bql/df_lst_segment_revenue.yaml",
+            "df_lst_segment_revenue.yaml",
             {
                 "#segment": [
                     "Broadcasting",
@@ -616,7 +617,7 @@ def test__parse_result_replay(case_json_file):
     ],
 )
 def test_real_life_cases(yaml_file, exp_df):
-    with open(yaml_file) as f:
+    with open(DATA_DIR / "bql" / yaml_file) as f:
         d_lst = yaml.safe_load(f)
     df_lst = [pl.DataFrame(dct) for dct in d_lst]
     names = [str(x) for x in list(range(len(df_lst)))]

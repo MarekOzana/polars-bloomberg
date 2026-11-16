@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Hand-written, reduced TEST schema. It is not Bloomberg's schema. -->
+<ServiceDefinition name="blp.refdata" version="1.0.1.0">
+  <service name="//blp/refdata" version="1.0.0.0">
+    <operation name="ReferenceDataRequest" serviceId="84">
+      <request>ReferenceDataRequest</request>
+      <response>Response</response>
+      <responseSelection>ReferenceDataResponse</responseSelection>
+    </operation>
+    <operation name="HistoricalDataRequest" serviceId="84">
+      <request>HistoricalDataRequest</request>
+      <response>Response</response>
+      <responseSelection>HistoricalDataResponse</responseSelection>
+    </operation>
+    <operation name="IntradayBarRequest" serviceId="84">
+      <request>IntradayBarRequest</request>
+      <response>Response</response>
+      <responseSelection>IntradayBarResponse</responseSelection>
+    </operation>
+  </service>
+  <schema>
+    <sequenceType name="ReferenceDataRequest">
+      <element name="securities" type="String" maxOccurs="unbounded"/>
+      <element name="fields" type="String" maxOccurs="unbounded"/>
+      <element name="overrides" type="FieldOverride" minOccurs="0" maxOccurs="unbounded"/>
+      <element name="returnEids" type="Boolean" minOccurs="0" maxOccurs="1"/>
+    </sequenceType>
+    <sequenceType name="HistoricalDataRequest">
+      <element name="securities" type="String" maxOccurs="unbounded"/>
+      <element name="fields" type="String" maxOccurs="unbounded"/>
+      <element name="startDate" type="String" minOccurs="0" maxOccurs="1"/>
+      <element name="endDate" type="String" minOccurs="0" maxOccurs="1"/>
+      <element name="periodicitySelection" type="String" minOccurs="0" maxOccurs="1"/>
+      <element name="overrides" type="FieldOverride" minOccurs="0" maxOccurs="unbounded"/>
+    </sequenceType>
+    <sequenceType name="IntradayBarRequest">
+      <element name="security" type="String"/>
+      <element name="eventType" type="String"/>
+      <element name="interval" type="Int32"/>
+      <element name="startDateTime" type="Datetime"/>
+      <element name="endDateTime" type="Datetime"/>
+      <element name="gapFillInitialBar" type="Boolean" minOccurs="0" maxOccurs="1"/>
+      <element name="overrides" type="FieldOverride" minOccurs="0" maxOccurs="unbounded"/>
+    </sequenceType>
+    <sequenceType name="FieldOverride">
+      <element name="fieldId" type="String"/>
+      <element name="value" type="String"/>
+    </sequenceType>
+    <choiceType name="Response">
+      <element name="ReferenceDataResponse" type="ReferenceDataResponseType"/>
+      <element name="HistoricalDataResponse" type="HistoricalDataResponseType"/>
+      <element name="IntradayBarResponse" type="IntradayBarResponseType"/>
+    </choiceType>
+    <choiceType name="ReferenceDataResponseType">
+      <element name="responseError" type="ErrorInfo"/>
+      <element name="securityData" type="ReferenceSecurityData" maxOccurs="unbounded"/>
+    </choiceType>
+    <choiceType name="HistoricalDataResponseType">
+      <element name="responseError" type="ErrorInfo"/>
+      <element name="securityData" type="HistoricalSecurityData"/>
+    </choiceType>
+    <choiceType name="IntradayBarResponseType">
+      <element name="responseError" type="ErrorInfo"/>
+      <element name="barData" type="BarData"/>
+    </choiceType>
+    <sequenceType name="ErrorInfo">
+      <element name="source" type="String"/>
+      <element name="code" type="Int32"/>
+      <element name="category" type="String"/>
+      <element name="message" type="String"/>
+      <element name="subcategory" type="String" minOccurs="0" maxOccurs="1"/>
+    </sequenceType>
+    <sequenceType name="FieldException">
+      <element name="fieldId" type="String"/>
+      <element name="errorInfo" type="ErrorInfo"/>
+    </sequenceType>
+    <sequenceType name="ReferenceSecurityData">
+      <element name="security" type="String"/>
+      <element name="eidData" type="Int32" minOccurs="0" maxOccurs="unbounded"/>
+      <element name="securityError" type="ErrorInfo" minOccurs="0" maxOccurs="1"/>
+      <element name="fieldExceptions" type="FieldException" minOccurs="0" maxOccurs="unbounded"/>
+      <element name="sequenceNumber" type="Int32" minOccurs="0" maxOccurs="1"/>
+      <element name="fieldData" type="ReferenceFieldData"/>
+    </sequenceType>
+    <sequenceType name="HistoricalSecurityData">
+      <element name="security" type="String"/>
+      <element name="eidData" type="Int32" minOccurs="0" maxOccurs="unbounded"/>
+      <element name="sequenceNumber" type="Int32" minOccurs="0" maxOccurs="1"/>
+      <element name="securityError" type="ErrorInfo" minOccurs="0" maxOccurs="1"/>
+      <element name="fieldExceptions" type="FieldException" minOccurs="0" maxOccurs="unbounded"/>
+      <element name="fieldData" type="HistoricalFieldData" minOccurs="0" maxOccurs="unbounded"/>
+    </sequenceType>
+    <!-- Add a line here for every field a test needs. -->
+    <sequenceType name="ReferenceFieldData">
+      <element name="PX_LAST" type="Float64" minOccurs="0" maxOccurs="1"/>
+      <element name="NAME" type="String" minOccurs="0" maxOccurs="1"/>
+      <element name="EQY_INIT_PO_DT" type="Date" minOccurs="0" maxOccurs="1"/>
+      <element name="INDX_MEMBERS" type="IndexMember" minOccurs="0" maxOccurs="unbounded"/>
+    </sequenceType>
+    <sequenceType name="IndexMember">
+      <element name="Member Ticker and Exchange Code" type="String"/>
+    </sequenceType>
+    <sequenceType name="HistoricalFieldData">
+      <element name="date" type="Date"/>
+      <element name="PX_LAST" type="Float64" minOccurs="0" maxOccurs="1"/>
+      <element name="PX_VOLUME" type="Float64" minOccurs="0" maxOccurs="1"/>
+    </sequenceType>
+    <sequenceType name="BarData">
+      <element name="eidData" type="Int32" minOccurs="0" maxOccurs="unbounded"/>
+      <element name="barTickData" type="BarTickData" minOccurs="0" maxOccurs="unbounded"/>
+    </sequenceType>
+    <sequenceType name="BarTickData">
+      <element name="time" type="Datetime"/>
+      <element name="open" type="Float64"/>
+      <element name="high" type="Float64"/>
+      <element name="low" type="Float64"/>
+      <element name="close" type="Float64"/>
+      <element name="volume" type="Int64"/>
+      <element name="numEvents" type="Int32"/>
+      <element name="value" type="Float64"/>
+    </sequenceType>
+  </schema>
+</ServiceDefinition>

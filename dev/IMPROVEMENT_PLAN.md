@@ -39,7 +39,7 @@ clean up, align the tooling, and update the documentation.
 
 Do the steps of section 7 in order. Later steps use the test tools of earlier ones.
 
-- [ ] Step 1: test plumbing and first end-to-end tests (offline)
+- [x] Step 1: test plumbing and first end-to-end tests (offline)
 - [ ] Step 2: event loop (live gate before coding, live check before merging)
 - [ ] Step 3: session lifecycle
 - [ ] Step 4: debug dump, recordings, contract tests, live checks (needs Bloomberg)
@@ -899,7 +899,7 @@ scripted JSON string otherwise.
 6. Run `python tests/record.py --refresh-expected` and review the diff.
 
 **Done when.** Offline tests pass on both dependency sets; `pytest --bbg` passes
-(`tests/integration/test_bql.py::test_incorrect_bql_syntax_logs_error` still holds).
+(`tests/integration/test_integration_bql.py::test_incorrect_bql_syntax_logs_error` still holds).
 
 Changelog: `BqlResult.errors`; results kept when BQL also reports exceptions; unknown
 value types no longer fail the query.

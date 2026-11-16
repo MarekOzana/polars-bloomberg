@@ -55,7 +55,10 @@ exclude = ["tests*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["no_bbg: mark tests that do not require a Bloomberg connection"]
+markers = [
+    "no_bbg: tests that run without Bloomberg",
+    "requires_bbg: tests that need a live Bloomberg Terminal (run with --bbg)",
+]
 addopts = ["--cov=polars_bloomberg", "--cov-report=term-missing"]
 
 [tool.ruff]
@@ -93,6 +96,7 @@ lint.ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["D", "PLR2004"]
 "tests/conftest.py" = ["I001"]
+"tests/support.py" = ["N802"]
 
 [tool.ruff.lint.pylint]
 max-args = 6
