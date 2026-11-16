@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
-import blpapi
 import pytest
+from support import answer, fake_bq
 
 from polars_bloomberg import BQuery
 
@@ -50,23 +50,12 @@ def test_enter_open_service_failure(service_name, message):
 
 
 def test_send_request_writes_debug_file(tmp_path, monkeypatch):
-    bq = BQuery(timeout=5000, debug=True)
-    session_mock = MagicMock()
-    bq.session = session_mock
-
-    response_event = MagicMock()
-    response_event.eventType.return_value = blpapi.Event.RESPONSE
-    response_message = MagicMock()
-    response_message.hasElement.return_value = False
-    response_message.toPy.return_value = {"final": "data"}
-    response_event.__iter__.return_value = iter([response_message])
-    session_mock.nextEvent.return_value = response_event
-
+    bq = fake_bq([answer({"securityData": []})], debug=True)
     monkeypatch.chdir(tmp_path)
-    bq._send_request(MagicMock())
 
-    debug_dir = tmp_path / "debug_cases"
-    saved = list(debug_dir.glob("responses_*.json"))
+    bq.bdp(["IBM US Equity"], ["NAME"])
+
+    saved = list((tmp_path / "debug_cases").glob("responses_*.json"))
     assert len(saved) == 1
 
 

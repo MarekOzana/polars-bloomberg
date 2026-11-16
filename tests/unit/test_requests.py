@@ -1,127 +1,122 @@
-from datetime import datetime
+"""The requests that bdp, bdh, bdib and bql build before sending them."""
+
+from datetime import UTC, date, datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
 import blpapi
 import pytest
+from support import answer, fake_bq
 
 from polars_bloomberg import BQuery
 
 pytestmark = pytest.mark.no_bbg
 
 
-def _make_request_with_elements():
-    request_mock = MagicMock()
-    securities_element = MagicMock()
-    fields_element = MagicMock()
-    overrides_element = MagicMock()
+def request_sent_by(call):
+    """Run `call(bq)` on a fake session and return the request it sent, as a dict.
 
-    def get_element(name: str):
-        if name == "securities":
-            return securities_element
-        if name == "fields":
-            return fields_element
-        if name == "overrides":
-            return overrides_element
-        return MagicMock()
-
-    request_mock.getElement.side_effect = get_element
-    return request_mock, securities_element, fields_element, overrides_element
+    The request is built on the reduced test schema of //blp/refdata, so it is checked
+    the way Bloomberg would check it. The scripted answer is empty.
+    """
+    bq = fake_bq([answer({})])
+    call(bq)
+    return bq.session.sent[0].asElement().toPy()
 
 
-def test_create_request(bq: BQuery):
-    request_mock, securities_element, fields_element, _ = _make_request_with_elements()
-    service_mock = MagicMock()
-    service_mock.createRequest.return_value = request_mock
-    bq.session.getService.return_value = service_mock
+# --- bdp, bdh, bdib: real requests ---
 
-    request = bq._create_request(
-        request_type="ReferenceDataRequest",
-        securities=["OMX Index", "SPX Index"],
-        fields=["PX_LAST"],
+
+def test_bdp_request_has_securities_and_fields():
+    request = request_sent_by(
+        lambda bq: bq.bdp(["OMX Index", "SPX Index"], ["PX_LAST", "NAME"])
     )
 
-    assert request is request_mock
-    securities_element.appendValue.assert_any_call("OMX Index")
-    securities_element.appendValue.assert_any_call("SPX Index")
-    fields_element.appendValue.assert_called_once_with("PX_LAST")
+    assert request == {
+        "securities": ["OMX Index", "SPX Index"],
+        "fields": ["PX_LAST", "NAME"],
+    }
 
 
-def test_create_request_with_overrides(bq: BQuery):
-    request_mock, _, _, overrides_element = _make_request_with_elements()
-    service_mock = MagicMock()
-    service_mock.createRequest.return_value = request_mock
-    bq.session.getService.return_value = service_mock
-
-    override_entry = MagicMock()
-    overrides_element.appendElement.return_value = override_entry
-
-    bq._create_request(
-        request_type="ReferenceDataRequest",
-        securities=["OMX Index", "SPX Index"],
-        fields=["PX_LAST"],
-        overrides=[("EQY_FUND_CRNCY", "SEK")],
+def test_bdp_request_has_overrides():
+    request = request_sent_by(
+        lambda bq: bq.bdp(
+            ["OMX Index"], ["PX_LAST"], overrides=[("EQY_FUND_CRNCY", "SEK")]
+        )
     )
 
-    override_entry.setElement.assert_any_call("fieldId", "EQY_FUND_CRNCY")
-    override_entry.setElement.assert_any_call("value", "SEK")
+    assert request["overrides"] == [{"fieldId": "EQY_FUND_CRNCY", "value": "SEK"}]
 
 
-def test_create_request_with_options(bq: BQuery):
-    request_mock, _, _, _ = _make_request_with_elements()
-    service_mock = MagicMock()
-    service_mock.createRequest.return_value = request_mock
-    bq.session.getService.return_value = service_mock
-
-    bq._create_request(
-        request_type="HistoricalDataRequest",
-        securities=["OMX Index", "SPX Index"],
-        fields=["PX_LAST"],
-        options={"adjustmentSplit": True},
+def test_bdp_request_has_options():
+    request = request_sent_by(
+        lambda bq: bq.bdp(["OMX Index"], ["PX_LAST"], options={"returnEids": True})
     )
 
-    request_mock.set.assert_called_once_with("adjustmentSplit", True)
+    assert request["returnEids"] is True
 
 
-def test_create_intraday_bar_request(bq: BQuery):
-    request_mock = MagicMock()
-    overrides_element = MagicMock()
-    override_entry = MagicMock()
-    overrides_element.appendElement.return_value = override_entry
-    request_mock.getElement.return_value = overrides_element
-
-    service_mock = MagicMock()
-    service_mock.createRequest.return_value = request_mock
-    bq.session.getService.return_value = service_mock
-
-    start_dt = datetime(2024, 1, 2, 9, 30)
-    end_dt = datetime(2024, 1, 2, 16, 0)
-    overrides = [("PRICE_OVERRIDE", "SETTLE")]
-    options = {"gapFillInitialBar": True}
-
-    result = bq._create_intraday_bar_request(
-        security="AAPL US Equity",
-        event_type="TRADE",
-        interval=5,
-        start_datetime=start_dt,
-        end_datetime=end_dt,
-        overrides=overrides,
-        options=options,
+def test_bdh_request_has_dates_as_yyyymmdd_and_options():
+    request = request_sent_by(
+        lambda bq: bq.bdh(
+            ["OMX Index"],
+            ["PX_LAST"],
+            date(2024, 1, 2),
+            date(2024, 3, 28),
+            options={"periodicitySelection": "MONTHLY"},
+        )
     )
 
-    bq.session.getService.assert_called_once_with("//blp/refdata")
-    service_mock.createRequest.assert_called_once_with("IntradayBarRequest")
-    assert result is request_mock
+    assert request == {
+        "securities": ["OMX Index"],
+        "fields": ["PX_LAST"],
+        "startDate": "20240102",
+        "endDate": "20240328",
+        "periodicitySelection": "MONTHLY",
+    }
 
-    request_mock.set.assert_any_call("security", "AAPL US Equity")
-    request_mock.set.assert_any_call("eventType", "TRADE")
-    request_mock.set.assert_any_call("interval", 5)
-    request_mock.set.assert_any_call("startDateTime", "2024-01-02T09:30:00")
-    request_mock.set.assert_any_call("endDateTime", "2024-01-02T16:00:00")
-    request_mock.set.assert_any_call("gapFillInitialBar", True)
 
-    overrides_element.appendElement.assert_called_once()
-    override_entry.setElement.assert_any_call("fieldId", "PRICE_OVERRIDE")
-    override_entry.setElement.assert_any_call("value", "SETTLE")
+def test_bdib_request_with_naive_datetimes_sends_them_unchanged():
+    request = request_sent_by(
+        lambda bq: bq.bdib(
+            "OMX Index",
+            "TRADE",
+            60,
+            datetime(2024, 1, 2, 8, 0),
+            datetime(2024, 1, 2, 12, 0),
+            overrides=[("PRICE_OVERRIDE", "SETTLE")],
+            options={"gapFillInitialBar": True},
+        )
+    )
+
+    assert request == {
+        "security": "OMX Index",
+        "eventType": "TRADE",
+        "interval": 60,
+        "startDateTime": datetime(2024, 1, 2, 8, 0),
+        "endDateTime": datetime(2024, 1, 2, 12, 0),
+        "gapFillInitialBar": True,
+        "overrides": [{"fieldId": "PRICE_OVERRIDE", "value": "SETTLE"}],
+    }
+
+
+def test_bdib_request_with_aware_datetimes_sends_them_in_utc():
+    stockholm_winter = timezone(timedelta(hours=1))
+
+    request = request_sent_by(
+        lambda bq: bq.bdib(
+            "OMX Index",
+            "TRADE",
+            60,
+            datetime(2024, 1, 2, 9, 0, tzinfo=stockholm_winter),
+            datetime(2024, 1, 2, 13, 0, tzinfo=stockholm_winter),
+        )
+    )
+
+    assert request["startDateTime"] == datetime(2024, 1, 2, 8, 0, tzinfo=UTC)
+    assert request["endDateTime"] == datetime(2024, 1, 2, 12, 0, tzinfo=UTC)
+
+
+# --- bql: the bqlsvc schema is not available offline ---
 
 
 def test_create_bql_request_sets_client_context(bq: BQuery):

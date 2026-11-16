@@ -1,7 +1,7 @@
 """polars_bloomberg package."""
 
-from .plbbg import BqlResult, BQuery
+from .plbbg import BloombergError, BqlResult, BQuery
 
-__all__ = ["BQuery", "BqlResult"]
+__all__ = ["BQuery", "BloombergError", "BqlResult"]
 
 __version__ = "0.5.4"

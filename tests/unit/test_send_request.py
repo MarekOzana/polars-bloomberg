@@ -1,84 +1,130 @@
-from unittest.mock import MagicMock, patch
+"""The event loop shared by every request: which Bloomberg messages are the answer.
+
+Each test scripts the events the fake session hands out and calls bdp(). The fake
+session numbers requests 1, 2, 3, ...; `cid=` says which request a message answers.
+"""
 
 import blpapi
 import pytest
+from support import fake_bq, response_event, status_event
 
-from polars_bloomberg import BQuery
+from polars_bloomberg import BloombergError
 
 pytestmark = pytest.mark.no_bbg
 
 
-class TestBQuerySendRequest:
-    @pytest.fixture
-    def bquery(self):
-        with patch("polars_bloomberg.plbbg.blpapi.Session") as mock_session_class:
-            mock_session_instance = MagicMock()
-            mock_session_instance.start.return_value = True
-            mock_session_instance.openService.return_value = True
-            mock_session_class.return_value = mock_session_instance
-            with BQuery(timeout=5000) as bquery:
-                yield bquery
+def name_answer(security, name, cid=1, event_type=blpapi.Event.RESPONSE):
+    """A real bdp answer for one security with its NAME field."""
+    payload = {"securityData": [{"security": security, "fieldData": {"NAME": name}}]}
+    return response_event("ReferenceDataRequest", payload, event_type, cid)
 
-    def test_send_request_success(self, bquery: BQuery):
-        partial_event = MagicMock()
-        partial_event.eventType.return_value = blpapi.Event.PARTIAL_RESPONSE
 
-        final_event = MagicMock()
-        final_event.eventType.return_value = blpapi.Event.RESPONSE
+def test_late_answer_to_timed_out_request_is_not_returned_to_next_request():
+    bq = fake_bq()  # nothing scripted: the first call times out
+    with pytest.raises(TimeoutError):
+        bq.bdp(["IBM US Equity"], ["NAME"])
+    bq.session.events += [
+        name_answer("IBM US Equity", "IBM", cid=1),  # arrives too late for call 1
+        name_answer("SEBA SS Equity", "SEB", cid=2),
+    ]
 
-        partial_message = MagicMock()
-        partial_message.hasElement.return_value = False
-        partial_message.toPy.return_value = {"partial": "data"}
+    df = bq.bdp(["SEBA SS Equity"], ["NAME"])
 
-        final_message = MagicMock()
-        final_message.hasElement.return_value = False
-        final_message.toPy.return_value = {"final": "data"}
+    assert df["security"].to_list() == ["SEBA SS Equity"]
 
-        partial_event.__iter__.return_value = iter([partial_message])
-        final_event.__iter__.return_value = iter([final_message])
 
-        bquery.session.nextEvent.side_effect = [partial_event, final_event]
+def test_request_failure_raises_bloomberg_error_with_reason():
+    reason = {
+        "source": "s",
+        "errorCode": 1,
+        "category": "TIMEOUT",
+        "description": "backend timed out",
+    }
+    failure = status_event(
+        blpapi.Event.REQUEST_STATUS, "RequestFailure", {"reason": reason}, cid=1
+    )
+    bq = fake_bq([failure])
 
-        mock_request = MagicMock()
-        responses = bquery._send_request(mock_request)
+    with pytest.raises(BloombergError, match=r"backend timed out \(TIMEOUT\)"):
+        bq.bdp(["IBM US Equity"], ["NAME"])
 
-        bquery.session.sendRequest.assert_called_with(mock_request)
-        assert responses == [{"partial": "data"}, {"final": "data"}]
-        assert bquery.session.nextEvent.call_count == 2
-        bquery.session.nextEvent.assert_any_call(5000)
 
-    def test_send_request_timeout(self, bquery: BQuery):
-        timeout_event = MagicMock()
-        timeout_event.eventType.return_value = blpapi.Event.TIMEOUT
-        timeout_event.__iter__.return_value = iter([])
+def test_session_terminated_raises_connection_error():
+    bq = fake_bq([status_event(blpapi.Event.SESSION_STATUS, "SessionTerminated")])
 
-        bquery.session.nextEvent.return_value = timeout_event
-        mock_request = MagicMock()
+    with pytest.raises(ConnectionError, match="session terminated"):
+        bq.bdp(["IBM US Equity"], ["NAME"])
 
-        with pytest.raises(
-            TimeoutError, match="Request timed out after 5000 milliseconds"
-        ):
-            bquery._send_request(mock_request)
 
-        bquery.session.sendRequest.assert_called_with(mock_request)
-        bquery.session.nextEvent.assert_called_once_with(5000)
+def test_status_messages_before_the_answer_are_skipped():
+    service_opened = status_event(
+        blpapi.Event.SERVICE_STATUS,
+        "ServiceOpened",
+        {"serviceName": "//blp/refdata"},
+    )
+    bq = fake_bq([service_opened, name_answer("IBM US Equity", "IBM")])
 
-    def test_send_request_with_response_error(self, bquery: BQuery):
-        response_event = MagicMock()
-        response_event.eventType.return_value = blpapi.Event.RESPONSE
+    df = bq.bdp(["IBM US Equity"], ["NAME"])
 
-        error_message = MagicMock()
-        error_message.hasElement.return_value = True
-        error_element = MagicMock()
-        error_element.getElementAsString.return_value = "Invalid field"
-        error_message.getElement.return_value = error_element
+    assert df["NAME"].to_list() == ["IBM"]
 
-        response_event.__iter__.return_value = iter([error_message])
-        bquery.session.nextEvent.return_value = response_event
 
-        mock_request = MagicMock()
-        with pytest.raises(Exception, match="Response error: Invalid field"):
-            bquery._send_request(mock_request)
+def test_partial_and_final_messages_are_collected_in_order():
+    partial = blpapi.Event.PARTIAL_RESPONSE
+    bq = fake_bq(
+        [
+            name_answer("IBM US Equity", "IBM", event_type=partial),
+            name_answer("SEBA SS Equity", "SEB"),
+        ]
+    )
 
-        bquery.session.sendRequest.assert_called_with(mock_request)
-        bquery.session.nextEvent.assert_called_once_with(5000)
+    df = bq.bdp(["IBM US Equity", "SEBA SS Equity"], ["NAME"])
+
+    assert df["security"].to_list() == ["IBM US Equity", "SEBA SS Equity"]
+
+
+def test_timeout_cancels_the_request():
+    bq = fake_bq()
+
+    with pytest.raises(TimeoutError):
+        bq.bdp(["IBM US Equity"], ["NAME"])
+
+    assert len(bq.session.cancelled) == 1
+
+
+def test_failed_cancel_does_not_hide_the_timeout():
+    bq = fake_bq()
+
+    def cancel_on_dead_session(correlation_id):
+        raise blpapi.InvalidStateException("session is gone", 0)
+
+    bq.session.cancel = cancel_on_dead_session
+
+    with pytest.raises(TimeoutError):
+        bq.bdp(["IBM US Equity"], ["NAME"])
+
+
+def test_keyboard_interrupt_cancels_the_request_and_next_call_is_correct():
+    bq = fake_bq([KeyboardInterrupt(), name_answer("SEBA SS Equity", "SEB", cid=2)])
+    with pytest.raises(KeyboardInterrupt):
+        bq.bdp(["IBM US Equity"], ["NAME"])
+
+    df = bq.bdp(["SEBA SS Equity"], ["NAME"])
+
+    assert bq.session.cancelled == [blpapi.CorrelationId(1)]
+    assert df["security"].to_list() == ["SEBA SS Equity"]
+
+
+def test_response_error_raises_bloomberg_error_with_category():
+    error = {
+        "source": "s",
+        "code": 1,
+        "category": "BAD_ARGS",
+        "message": "No securities specified",
+    }
+    bq = fake_bq([response_event("ReferenceDataRequest", {"responseError": error})])
+
+    with pytest.raises(
+        BloombergError, match=r"Response error: No securities specified \(BAD_ARGS\)"
+    ):
+        bq.bdp([], ["NAME"])

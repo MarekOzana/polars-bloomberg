@@ -46,6 +46,10 @@ import polars as pl
 logger = logging.getLogger(__name__)
 
 
+class BloombergError(ValueError):
+    """Bloomberg rejected or failed a request."""
+
+
 @dataclass
 class SITable:
     """Holds data and schema for a Single Item response Table."""
@@ -362,7 +366,9 @@ class BQuery:
                 The port number for the Bloomberg API server.
                 Defaults to 8194.
             timeout (int, optional):
-                Timeout in milliseconds for API requests.
+                The longest wait, in milliseconds, for the next event from
+                Bloomberg; it is not a limit on the whole request. ``0`` waits
+                forever. Slow BQL queries may need more than the default.
                 Defaults to 32000.
             debug (bool, optional):
                 Enable debug logging/saving of intermediate results.
@@ -879,28 +885,41 @@ class BQuery:
 
         return request
 
-    def _send_request(self, request) -> list[dict]:
-        """Send a Bloomberg request and collect responses with timeout handling."""
-        self.session.sendRequest(request)
-        responses = []
-        while True:
-            # Wait for an event with the specified timeout
-            event = self.session.nextEvent(self.timeout)
-            if event.eventType() == blpapi.Event.TIMEOUT:
-                # Handle the timeout scenario
-                raise TimeoutError(
-                    f"Request timed out after {self.timeout} milliseconds"
-                )
-            for msg in event:
-                # Check for errors in the message
-                if msg.hasElement("responseError"):
-                    error = msg.getElement("responseError")
-                    error_message = error.getElementAsString("message")
-                    raise Exception(f"Response error: {error_message}")
-                responses.append(msg.toPy())
-            # Break the loop when the final response is received
-            if event.eventType() == blpapi.Event.RESPONSE:
-                break
+    def _send_request(self, request: blpapi.Request) -> list[Any]:
+        """Send a request and return the payloads (``msg.toPy()``) of its responses."""
+        cid = self.session.sendRequest(request)
+        responses: list[Any] = []
+        try:
+            finished = False
+            while not finished:
+                event = self.session.nextEvent(self.timeout)
+                if event.eventType() == blpapi.Event.TIMEOUT:
+                    raise TimeoutError(
+                        f"Request timed out after {self.timeout} milliseconds"
+                    )
+                for msg in event:
+                    if msg.messageType() == blpapi.Names.SESSION_TERMINATED:
+                        raise ConnectionError("Bloomberg session terminated.")
+                    if cid not in msg.correlationIds():
+                        continue  # status message, or late answer to an old request
+                    payload = msg.toPy()
+                    if msg.messageType() == blpapi.Names.REQUEST_FAILURE:
+                        reason = payload.get("reason", {})
+                        raise BloombergError(
+                            f"Request failed: {reason.get('description')} "
+                            f"({reason.get('category')})"
+                        )
+                    if isinstance(payload, dict) and "responseError" in payload:
+                        error = payload["responseError"]
+                        raise BloombergError(
+                            f"Response error: {error.get('message')} "
+                            f"({error.get('category')})"
+                        )
+                    responses.append(payload)
+                    finished = event.eventType() == blpapi.Event.RESPONSE
+        except BaseException:
+            self._cancel_quietly(cid)
+            raise
 
         if getattr(self, "debug", False):
             os.makedirs("debug_cases", exist_ok=True)
@@ -910,6 +929,13 @@ class BQuery:
             ) as f:
                 json.dump(responses, f, default=str, indent=2)
         return responses
+
+    def _cancel_quietly(self, cid: blpapi.CorrelationId) -> None:
+        """Tell Bloomberg to drop a request; never hide the error being raised."""
+        try:
+            self.session.cancel(cid)
+        except Exception:  # the session may already be gone
+            logger.debug("Could not cancel request %s", cid)
 
     def _parse_bdp_responses(
         self, responses: list[dict], fields: list[str]

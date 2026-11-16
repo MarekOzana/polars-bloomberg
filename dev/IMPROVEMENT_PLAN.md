@@ -40,7 +40,7 @@ clean up, align the tooling, and update the documentation.
 Do the steps of section 7 in order. Later steps use the test tools of earlier ones.
 
 - [x] Step 1: test plumbing and first end-to-end tests (offline)
-- [ ] Step 2: event loop (live gate before coding, live check before merging)
+- [x] Step 2: event loop (live gate before coding, live check before merging)
 - [ ] Step 3: session lifecycle
 - [ ] Step 4: debug dump, recordings, contract tests, live checks (needs Bloomberg)
 - [ ] Step 5: `bdp` and `bdh` results

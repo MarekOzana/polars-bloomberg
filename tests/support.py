@@ -32,15 +32,6 @@ class FakeMessage:
     def correlationIds(self):
         return [] if self.correlation_id is None else [self.correlation_id]
 
-    # The next two methods are needed only by the old _send_request; delete in step 2.
-    def hasElement(self, name):
-        return isinstance(self.payload, dict) and name in self.payload
-
-    def getElement(self, name):
-        element = MagicMock()
-        element.getElementAsString.side_effect = lambda key: self.payload[name][key]
-        return element
-
 
 class FakeEvent:
     """Stand-in for blpapi.Event."""
