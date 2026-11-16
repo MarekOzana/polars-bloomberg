@@ -309,10 +309,12 @@ Fixes F32 and F33 and starts on F31. No library code changes. No Bloomberg neede
 
    ```python
    def test_bdp_returns_one_row_per_security_with_requested_columns():
-       payload = {"securityData": [
-           {"security": "IBM US Equity", "fieldData": {"NAME": "IBM"}},
-           {"security": "SEBA SS Equity", "fieldData": {"NAME": "SEB"}},
-       ]}
+       payload = {
+           "securityData": [
+               {"security": "IBM US Equity", "fieldData": {"NAME": "IBM"}},
+               {"security": "SEBA SS Equity", "fieldData": {"NAME": "SEB"}},
+           ]
+       }
        bq = fake_bq([answer(payload)])
 
        df = bq.bdp(["IBM US Equity", "SEBA SS Equity"], ["NAME"])
@@ -377,7 +379,12 @@ with BQuery() as bq:
         while True:
             event = bq.session.nextEvent(30_000)
             for msg in event:
-                print(name, event.eventType(), msg.messageType(), cid in msg.correlationIds())
+                print(
+                    name,
+                    event.eventType(),
+                    msg.messageType(),
+                    cid in msg.correlationIds(),
+                )
             if event.eventType() in (blpapi.Event.RESPONSE, blpapi.Event.TIMEOUT):
                 break
 ```
@@ -438,6 +445,7 @@ of status events end in `False`. If a response line prints `False`, stop and rep
        # ... existing debug block, unchanged ...
        return responses
 
+
    def _cancel_quietly(self, cid: blpapi.CorrelationId) -> None:
        """Tell Bloomberg to drop a request; never hide the error being raised."""
        try:
@@ -482,7 +490,7 @@ of status events end in `False`. If a response line prints `False`, stop and rep
 Live: this prints `True`:
 
 ```python
-with BQuery(timeout=1) as bq:              # 1 ms: the first call must time out
+with BQuery(timeout=1) as bq:  # 1 ms: the first call must time out
     try:
         bq.bql("get(px_last(dates=range(-1Y, 0D))) for(members('SPX Index'))")
     except TimeoutError:
@@ -505,6 +513,7 @@ Fixes F03, F04, F05 (decision D4).
 self.session: blpapi.Session | None = None
 self._open_services: set[str] = set()
 
+
 def start(self) -> "BQuery":
     """Connect to Bloomberg; ``with BQuery() as bq`` calls this for you."""
     options = blpapi.SessionOptions()
@@ -516,6 +525,7 @@ def start(self) -> "BQuery":
     self.session = session
     return self
 
+
 def stop(self) -> None:
     """Disconnect; safe to call more than once."""
     if self.session is not None:
@@ -523,11 +533,14 @@ def stop(self) -> None:
         self.session = None
         self._open_services.clear()
 
+
 def __enter__(self) -> "BQuery":
     return self.start()
 
+
 def __exit__(self, exc_type, exc_val, exc_tb) -> None:
     self.stop()
+
 
 def _get_service(self, name: str) -> blpapi.Service:
     """Return a service, opening it the first time it is needed."""

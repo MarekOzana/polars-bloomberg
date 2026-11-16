@@ -1,4 +1,3 @@
-
 import pytest
 
 from polars_bloomberg import BQuery
@@ -82,4 +81,3 @@ def test_parse_bdh_responses():
 
     result = bq._parse_bdh_responses(mock_responses, fields=["PX_LAST", "VOLUME"])
     assert result == expected_output
-

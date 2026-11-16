@@ -128,7 +128,7 @@ combined_df = results.combine(on="ID", allow_common_columns=False)
 Example of using saved SRCH search and filtering on ticker:
 Find list of SEB and Handelsbanken's AT1 bonds and print their names, duration and Z-Spread. The result of the query is list of 3 polars dataframes and can be conveniently combined using `combine()` method.
 ```python
-query="""
+query = """
     let(#dur=duration(duration_type=MODIFIED); 
         #zsprd=spread(spread_type=Z);) 
     get(name(), #dur, #zsprd) 

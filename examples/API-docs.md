@@ -52,7 +52,9 @@ with BQuery() as bq:
     df_ref = bq.bdp(["AAPL US Equity"], ["PX_LAST"])
 
     # Fetch historical data
-    df_hist = bq.bdh(["AAPL US Equity"], ["PX_LAST"], date(2020, 1, 1), date(2020, 1, 31))
+    df_hist = bq.bdh(
+        ["AAPL US Equity"], ["PX_LAST"], date(2020, 1, 1), date(2020, 1, 31)
+    )
 
     # Run a Bloomberg Query Language (BQL) expression
     results = bq.bql("get(px_last) for(['AAPL US Equity'])")
@@ -117,10 +119,10 @@ Retrieves historical data over a date range, equivalent to Bloomberg Excel's `BD
 
 ```python
 df = bq.bdh(
-    ["AAPL US Equity"], 
-    ["PX_LAST"], 
-    start_date=date(2023, 1, 1), 
-    end_date=date(2023, 1, 7)
+    ["AAPL US Equity"],
+    ["PX_LAST"],
+    start_date=date(2023, 1, 1),
+    end_date=date(2023, 1, 7),
 )
 print(df)
 ```

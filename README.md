@@ -492,7 +492,7 @@ combined_df = results.combine(on="ID", allow_common_columns=False)
 ### 4. Advanced Example: Screening Securities
 Find list of SEB and Handelsbanken's AT1 bonds and print their names, duration and Z-Spread.
 ```python
-query="""
+query = """
     let(#dur=duration(duration_type=MODIFIED);
         #zsprd=spread(spread_type=Z);)
     get(name(), #dur, #zsprd)

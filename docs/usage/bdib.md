@@ -23,8 +23,8 @@ from polars_bloomberg import BQuery
 with BQuery() as bq:
     df = bq.bdib(
         "OMX Index",
-        event_type="TRADE",   # TRADE, BID, ASK, BEST_BID, BEST_ASK
-        interval=60,          # minutes (1-1440)
+        event_type="TRADE",  # TRADE, BID, ASK, BEST_BID, BEST_ASK
+        interval=60,  # minutes (1-1440)
         start_datetime=datetime(2025, 11, 5),
         end_datetime=datetime(2025, 11, 5, 12),
     )

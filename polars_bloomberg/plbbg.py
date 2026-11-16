@@ -261,8 +261,7 @@ class BqlResult:
             if missing_cols:
                 name = self.names[idx] if idx < len(self.names) else str(idx)
                 raise ValueError(
-                    f"Join columns not found in DataFrame {idx} ({name}): "
-                    f"{missing_cols}"
+                    f"Join columns not found in DataFrame {idx} ({name}): {missing_cols}"
                 )
 
         result = self.dataframes[0]

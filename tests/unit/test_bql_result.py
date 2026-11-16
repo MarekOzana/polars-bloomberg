@@ -247,7 +247,6 @@ class TestBqlResultCombine:
         # Two instruments become three rows because DATE was inferred as a join key.
         assert_frame_equal(combined_df, expected_df)
 
-
     def test_combine_on_id_list_ignores_unrelated_common_columns(self):
         """Use combine(on=["ID"]) when ID is the only intended join key.
 
@@ -280,7 +279,6 @@ class TestBqlResultCombine:
         assert combined_df.shape[0] == 2
         # Overlapping non-key columns are preserved with source-aware suffixes.
         assert_frame_equal(combined_df, expected_df)
-
 
     def test_combine_on_multiple_columns_uses_only_explicit_keys(self):
         """Use combine(on=["ID", "DATE"]) for true compound keys.
@@ -321,7 +319,6 @@ class TestBqlResultCombine:
         )
         assert_frame_equal(combined_df, expected_df)
 
-
     def test_combine_on_string_is_equivalent_to_single_column_list(self):
         """Users can pass a single key as either "ID" or ["ID"]."""
         df1 = pl.DataFrame({"ID": ["A", "B"], "Name": ["Alpha", "Beta"]})
@@ -332,7 +329,6 @@ class TestBqlResultCombine:
         from_list = bql_result.combine(on=["ID"])
 
         assert_frame_equal(from_string, from_list)
-
 
     def test_combine_on_how_full_keeps_unmatched_rows(self):
         """Use how="full" when each side may contain different IDs.
@@ -349,7 +345,6 @@ class TestBqlResultCombine:
             {"ID": ["A", "B", "C"], "Value1": [1, 2, None], "Value2": [None, 20, 30]}
         )
         assert_frame_equal(combined_df, expected_df)
-
 
     def test_combine_on_how_inner_keeps_only_matched_rows(self):
         """Use how="inner" when only IDs present in every joined frame should remain."""
@@ -370,9 +365,7 @@ class TestBqlResultCombine:
 
         with pytest.raises(
             ValueError,
-            match=re.escape(
-                "The 'how' parameter requires explicit join keys via 'on'."
-            ),
+            match=re.escape("The 'how' parameter requires explicit join keys via 'on'."),
         ):
             bql_result.combine(how="inner")
 
@@ -421,7 +414,6 @@ class TestBqlResultCombine:
         ):
             bql_result.combine(on="ID", how="outer")
 
-
     def test_combine_on_missing_join_key_raises(self):
         """Explicit combine fails early when a requested key is absent in any frame."""
         df1 = pl.DataFrame({"ID": ["A"], "Value1": [1]})
@@ -452,7 +444,6 @@ class TestBqlResultCombine:
         with pytest.raises(ValueError, match=re.escape("Join columns must be strings.")):
             bql_result.combine(on=["ID", 1])
 
-
     def test_combine_on_empty_join_keys_raises(self):
         """An empty key list is invalid because explicit combine needs a real key."""
         df = pl.DataFrame({"ID": ["A"], "Value": [1]})
@@ -463,14 +454,12 @@ class TestBqlResultCombine:
         ):
             bql_result.combine(on=[])
 
-
     def test_combine_on_empty_dataframes_keeps_existing_error(self):
         """Explicit combine keeps the same empty-result error as legacy combine()."""
         bql_result = BqlResult(dataframes=[], names=[])
 
         with pytest.raises(ValueError, match=re.escape("No DataFrames to combine.")):
             bql_result.combine(on="ID")
-
 
     def test_combine_on_single_dataframe_returns_dataframe(self):
         """Combining one frame is a no-op once the explicit key is validated."""
@@ -480,7 +469,6 @@ class TestBqlResultCombine:
         combined_df = bql_result.combine(on="ID")
 
         assert_frame_equal(combined_df, df)
-
 
     def test_combine_on_single_dataframe_validates_join_key(self):
         """Even a single-frame explicit combine validates the requested key."""
@@ -492,7 +480,6 @@ class TestBqlResultCombine:
             match=re.escape("Join columns not found in DataFrame 0 (Data1): ['DATE']"),
         ):
             bql_result.combine(on="DATE")
-
 
     def test_combine_on_overlapping_non_key_columns_can_raise(self):
         """Set allow_common_columns=False to fail on ambiguous non-key overlaps.
@@ -511,7 +498,6 @@ class TestBqlResultCombine:
             ),
         ):
             bql_result.combine(on="ID", allow_common_columns=False)
-
 
     def test_combine_on_overlapping_suffix_avoids_existing_column_names(self):
         """Automatic suffixes do not overwrite a column that already exists."""
@@ -536,7 +522,6 @@ class TestBqlResultCombine:
             }
         )
         assert_frame_equal(combined_df, expected_df)
-
 
     def test_combine_on_overlapping_suffix_uses_counter_for_repeated_collisions(self):
         """Repeated suffix collisions get a numeric counter instead of failing."""
