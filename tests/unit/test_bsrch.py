@@ -13,7 +13,7 @@ pytestmark = pytest.mark.no_bbg
 
 
 def grid(titles, *records, **extra):
-    """A GridResponse payload as Bloomberg sends it (live check L8)."""
+    """A GridResponse payload as Bloomberg sends it (recording bsrch/coco_limit_2)."""
     return {
         "NumOfFields": len(titles),
         "NumOfRecords": len(records),
