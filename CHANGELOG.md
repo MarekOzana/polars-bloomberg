@@ -21,6 +21,9 @@ All notable changes to polars-bloomberg are listed here.
   `bdib` and `bsrch` alike.
 - `bdh` accepts its dates also as `YYYYMMDD` or `YYYY-MM-DD` strings, and `bdib` its
   start and end also as a `date` (midnight).
+- `BqlResult.errors`: the messages BQL returned with the answer, for example a
+  syntax error. `combine()` on a failed query now raises
+  `No DataFrames to combine. BQL error: <message>`.
 
 ### Changed
 
@@ -60,6 +63,14 @@ All notable changes to polars-bloomberg are listed here.
 - `bdp` raises `ValueError` when `security` is requested as a field, and `bdh` when
   `security` or `date` is; such a field used to overwrite the key column.
 
+- BQL: a value type the library does not know is no longer read as text; Polars
+  infers its dtype and a warning names the type.
+- BQL: when two columns of one item have the same name (an item named `ID`, or named
+  like one of its secondary columns), the second gets a suffix (`ID_1`) and a
+  warning is logged. It used to replace the first column silently.
+- BQL: an item whose DataFrame cannot be built raises `BloombergError` naming the
+  item.
+
 ### Fixed
 
 - After a `TimeoutError` or an interrupted call (for example "interrupt kernel" in a
@@ -75,3 +86,11 @@ All notable changes to polars-bloomberg are listed here.
   no longer sent as the overrides `A=B` and `C=D`.
 - `bsrch` with a `LIMIT` given as a (name, value) pair no longer crashes.
 - `bdib` with a `date` instead of a `datetime` no longer crashes.
+- BQL: results that arrive together with an error message are kept; they used to
+  be discarded.
+- BQL: a large answer, which Bloomberg sends as several fragments of one JSON text,
+  is joined before parsing. It used to give an empty result and log every
+  multi-megabyte fragment as an error.
+- BQL: `DATE` values with fractional seconds or without a time are parsed.
+- BQL: an item with a column that has no type, or with null parts, no longer
+  crashes the query.
