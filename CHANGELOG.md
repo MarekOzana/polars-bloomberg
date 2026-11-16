@@ -9,8 +9,16 @@ All notable changes to polars-bloomberg are listed here.
 - `BloombergError`, raised when Bloomberg rejects or fails a request. It derives
   from `ValueError`, so existing `except ValueError` and `except Exception` blocks
   still catch it.
+- `BQuery.start()` and `BQuery.stop()`, for use without a `with` block:
+  `bq = BQuery().start()` ... `bq.stop()`. `stop()` is safe to call twice.
 
 ### Changed
+
+- Services (reference data, BQL, search) open when a method first needs them, not
+  all at once when the session starts. A user without access to one service can now
+  use the others.
+- Calling a method on a `BQuery` that was never started raises `ConnectionError`
+  with a hint, instead of `AttributeError`.
 
 - Error messages for a rejected request now include Bloomberg's error category, for
   example `Response error: No securities specified (BAD_ARGS)`.

@@ -347,8 +347,6 @@ class BQuery:
 
     """
 
-    session: blpapi.Session
-
     def __init__(
         self,
         host: str = "localhost",
@@ -374,39 +372,87 @@ class BQuery:
                 Enable debug logging/saving of intermediate results.
                 Defaults to False.
 
-        Raises:
-            ConnectionError: If unable to establish connection to Bloomberg API.
-
         """
         self.host = host
         self.port = port
         self.timeout = timeout
         self.debug = debug
+        self.session: blpapi.Session | None = None
+        self._open_services: set[str] = set()
 
-    def __enter__(self):  # noqa: D105
-        # Enter the runtime context related to this object.
+    def start(self) -> "BQuery":
+        """Connect to Bloomberg; ``with BQuery() as bq`` calls this for you.
+
+        Use ``start()`` and ``stop()`` where a ``with`` block does not fit, for
+        example when one connection is kept for a whole notebook. Services
+        (reference data, BQL, search) are opened when a method first needs them.
+
+        Returns:
+            BQuery: This instance, so that ``bq = BQuery().start()`` works.
+
+        Raises:
+            ConnectionError: If unable to establish connection to Bloomberg API.
+
+        Example:
+            ```python
+            from polars_bloomberg import BQuery
+
+            bq = BQuery().start()
+            df = bq.bdp(['IBM US Equity'], ['NAME'])
+            bq.stop()
+            ```
+
+        """
         options = blpapi.SessionOptions()
         options.setServerHost(self.host)
         options.setServerPort(self.port)
-        self.session = blpapi.Session(options)
-
-        if not self.session.start():
+        session = blpapi.Session(options)
+        if not session.start():
             raise ConnectionError("Failed to start Bloomberg session.")
-
-        # Open both required services
-        if not self.session.openService("//blp/refdata"):
-            raise ConnectionError("Failed to open service //blp/refdata.")
-        if not self.session.openService("//blp/bqlsvc"):
-            raise ConnectionError("Failed to open service //blp/bqlsvc.")
-        if not self.session.openService("//blp/exrsvc"):
-            raise ConnectionError("Failed to open service //blp/exrsvc.")
-
+        self.session = session
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):  # noqa: D105
-        # Exit the context manager and stop the Bloomberg session.
-        if self.session:
+    def stop(self) -> None:
+        """Disconnect from Bloomberg; safe to call more than once.
+
+        ``with BQuery() as bq`` calls this for you when the block ends, also when
+        it ends with an error.
+
+        Example:
+            ```python
+            from polars_bloomberg import BQuery
+
+            bq = BQuery().start()
+            try:
+                df = bq.bdp(['IBM US Equity'], ['NAME'])
+            finally:
+                bq.stop()
+            ```
+
+        """
+        if self.session is not None:
             self.session.stop()
+            self.session = None
+            self._open_services.clear()
+
+    def __enter__(self) -> "BQuery":  # noqa: D105
+        return self.start()
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:  # noqa: D105
+        self.stop()
+
+    def _get_service(self, name: str) -> blpapi.Service:
+        """Return a service, opening it the first time it is needed."""
+        if self.session is None:
+            raise ConnectionError(
+                "Bloomberg session is not started. "
+                "Use 'with BQuery() as bq:' or call bq.start()."
+            )
+        if name not in self._open_services:
+            if not self.session.openService(name):
+                raise ConnectionError(f"Failed to open service {name}.")
+            self._open_services.add(name)
+        return self.session.getService(name)
 
     def bdp(
         self,
@@ -785,7 +831,7 @@ class BQuery:
         options: dict | None = None,
     ) -> blpapi.Request:
         """Create a Bloomberg request with support for overrides and options."""
-        service = self.session.getService("//blp/refdata")
+        service = self._get_service("//blp/refdata")
         request = service.createRequest(request_type)
 
         # Add securities
@@ -820,7 +866,7 @@ class BQuery:
         options: dict | None = None,
     ) -> blpapi.Request:
         """Create an ExcelGetGridRequest for BSRCH on //blp/exrsvc."""
-        service = self.session.getService("//blp/exrsvc")
+        service = self._get_service("//blp/exrsvc")
         request = service.createRequest("ExcelGetGridRequest")
         request.set("Domain", domain)
 
@@ -848,7 +894,7 @@ class BQuery:
         options: dict | None,
     ) -> blpapi.Request:
         """Create an IntradayBarRequest with overrides and options support."""
-        service = self.session.getService("//blp/refdata")
+        service = self._get_service("//blp/refdata")
         request = service.createRequest("IntradayBarRequest")
         request.set("security", security)
         request.set("eventType", event_type)
@@ -871,7 +917,7 @@ class BQuery:
 
     def _create_bql_request(self, expression: str) -> blpapi.Request:
         """Create a BQL request."""
-        service = self.session.getService("//blp/bqlsvc")
+        service = self._get_service("//blp/bqlsvc")
         request = service.createRequest("sendQuery")
         request.set("expression", expression)
         # BLPAPI requires setting sub-elements on the sequence element.

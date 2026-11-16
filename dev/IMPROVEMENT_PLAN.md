@@ -41,7 +41,7 @@ Do the steps of section 7 in order. Later steps use the test tools of earlier on
 
 - [x] Step 1: test plumbing and first end-to-end tests (offline)
 - [x] Step 2: event loop (live gate before coding, live check before merging)
-- [ ] Step 3: session lifecycle
+- [x] Step 3: session lifecycle
 - [ ] Step 4: debug dump, recordings, contract tests, live checks (needs Bloomberg)
 - [ ] Step 5: `bdp` and `bdh` results
 - [ ] Step 6: inputs
