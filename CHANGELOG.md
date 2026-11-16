@@ -2,7 +2,7 @@
 
 All notable changes to polars-bloomberg are listed here.
 
-## Unreleased
+## 0.7.2 - 2026-11-16
 
 ### Changed
 
