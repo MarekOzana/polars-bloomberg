@@ -1,67 +1,107 @@
+"""bql: Bloomberg Query Language, like =BQL() in Excel.
+
+bq.bql(query) gives a BqlResult: one DataFrame per item of get(...), in order, and
+the item names in result.names. Each frame has an `ID` column, a column named after
+the item, and the extra columns BQL sends with it (DATE, CURRENCY, ...).
+result.combine(on="ID") joins the frames into one.
+
+Run:  pytest --bbg tests/integration/test_integration_bql.py
+"""
+
 import logging
+from datetime import date
 
 import polars as pl
 import pytest
-
-from polars_bloomberg.plbbg import BqlResult
+from polars.testing import assert_frame_equal
 
 pytestmark = pytest.mark.requires_bbg
 
 
-def test_bql_live(live_bq):
-    query = """
-            get(name(), cpn())
-            for(['XS2479344561 Corp', 'USX60003AC87 Corp'])
-            """
-    bql_result = live_bq.bql(query)
+def test_bql_gives_a_frame_with_id_value_and_extra_columns(bq):
+    result = bq.bql(
+        "get(px_last(dates=2024-01-02)) for(['IBM US Equity', 'SEBA SS Equity'])"
+    )
 
-    assert isinstance(bql_result, BqlResult)
-    assert len(bql_result) == 2
-    assert bql_result.names == ["name()", "cpn()"]
-
-    df = bql_result[0].join(bql_result[1], on="ID")
-    assert isinstance(df, pl.DataFrame)
-    assert df.columns == ["ID", "name()", "cpn()", "MULTIPLIER", "CPN_TYP"]
-    assert df.shape[0] == 2
-
-
-def test_bql_with_single_quote_live(live_bq):
-    query = """
-            get(px_last)
-            for(['IBM US Equity', 'AAPL US Equity'])
-            """
-    bql_result = live_bq.bql(query)
-
-    assert isinstance(bql_result, BqlResult)
-    assert bql_result.names == ["px_last"]
-    df = bql_result[0]
-    assert df.columns == ["ID", "px_last", "DATE", "CURRENCY"]
-    assert df.shape[0] == 2
+    assert result.names == ["px_last(dates=2024-01-02)"]
+    expected = pl.DataFrame(
+        [
+            ("IBM US Equity", 161.5, date(2024, 1, 2), "USD"),
+            ("SEBA SS Equity", 140.2, date(2024, 1, 2), "SEK"),
+        ],
+        schema=["ID", "px_last(dates=2024-01-02)", "DATE", "CURRENCY"],
+        orient="row",
+    )
+    assert_frame_equal(result[0].sort("ID"), expected)
 
 
-def test_issue_7_bql_with_single_quote(live_bq):
-    """Regression test for apostrophes in BQL results."""
-    result = live_bq.bql("for(['BFOR US Equity']) get(name)")
-    assert len(result) == 1
-    df = result[0]
-    assert isinstance(df, pl.DataFrame)
-    assert df["name"].item().startswith("Barron")
+def test_bql_combine_joins_the_items_into_one_row_per_security(bq):
+    result = bq.bql("get(name, px_last(dates=2024-01-02)) for(['IBM US Equity'])")
+
+    df = result.combine(on="ID")
+
+    assert result.names == ["name", "px_last(dates=2024-01-02)"]
+    assert df.columns == ["ID", "name", "px_last(dates=2024-01-02)", "DATE", "CURRENCY"]
+    assert df.rows() == [
+        (
+            "IBM US Equity",
+            "International Business Machine",
+            161.5,
+            date(2024, 1, 2),
+            "USD",
+        )
+    ]
 
 
-def test_issue_14_bql_with_infinity(live_bq):
-    query = "let(#colP = 1 / 0; #colM = -1 / 0;) get(#colP, #colM) for('OMX Index')"
-    res = live_bq.bql(query)
+def test_bql_let_names_an_item_and_a_date_range_gives_a_time_series(bq):
+    result = bq.bql(
+        "let(#px = px_last(dates=range(2024-01-02, 2024-01-05));) "
+        "get(#px) for(['IBM US Equity'])"
+    )
 
-    assert len(res) == 2
-    df = res.combine()
-    assert df["#colP"].to_list() == [float("inf")]
-    assert df["#colM"].to_list() == [float("-inf")]
+    assert result.names == ["#px"]
+    assert result[0].select("DATE", "#px").rows() == [
+        (date(2024, 1, 2), 161.5),
+        (date(2024, 1, 3), 160.1),
+        (date(2024, 1, 4), 160.86),
+        (date(2024, 1, 5), 159.16),
+    ]
 
 
-def test_incorrect_bql_syntax_logs_error(live_bq, caplog):
-    incorrect_query = "get(px_last for(['AAPL US Equity'])"
+def test_bql_item_brings_its_own_extra_columns(bq):
+    result = bq.bql("get(name(), cpn()) for(['XS2479344561 Corp', 'USX60003AC87 Corp'])")
+
+    names, coupons = result  # a BqlResult unpacks into its frames
+
+    assert names.columns == ["ID", "name()"]
+    assert coupons.columns == ["ID", "cpn()", "MULTIPLIER", "CPN_TYP"]
+    assert coupons.schema["cpn()"] == pl.Float64
+    assert result.combine(on="ID").height == 2
+
+
+def test_bql_division_by_zero_gives_infinity_and_zero_by_zero_gives_null(bq):
+    result = bq.bql(
+        "let(#p = 1 / 0; #m = -1 / 0; #n = 0 / 0;) get(#p, #m, #n) for('OMX Index')"
+    )
+
+    df = result.combine(on="ID")
+
+    assert df.rows() == [("OMX Index", float("inf"), float("-inf"), None)]
+
+
+def test_bql_text_keeps_its_apostrophes(bq):
+    result = bq.bql("get(name) for(['BFOR US Equity'])")
+
+    assert result[0]["name"].item() == "Barron's 400 ETF"
+
+
+def test_bql_error_gives_an_empty_result_that_carries_the_message(bq, caplog):
     with caplog.at_level(logging.ERROR):
-        res = live_bq.bql(incorrect_query)
+        result = bq.bql("get(px_last for(['IBM US Equity'])")  # a missing ")"
 
-    assert len(res) == 0
+    # Nothing is raised: the result is empty, and BQL's message is logged and kept.
+    assert len(result) == 0
+    assert "Unable to parse request" in result.errors[0]
     assert "BQL error:" in caplog.text
+    with pytest.raises(ValueError, match="BQL error: Error: Unable to parse request"):
+        result.combine()

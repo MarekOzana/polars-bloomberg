@@ -14,14 +14,14 @@ pytestmark = pytest.mark.requires_bbg
 
 
 @pytest.mark.parametrize("name", list(CHECKS))
-def test_live_answer_has_what_consumers_rely_on(name, live_bq):
-    result = SCENARIOS[name](live_bq)
+def test_live_answer_has_what_consumers_rely_on(name, bq):
+    result = SCENARIOS[name](bq)
 
     CHECKS[name](result)
 
 
-def _axes_or_skip(live_bq, query):
-    result = live_bq.bql(query)
+def _axes_or_skip(bq, query):
+    result = bq.bql(query)
     assert result.errors == []
     assert result.names == ["security_des", "#ax"]
     if result[1].height == 0:
@@ -29,9 +29,9 @@ def _axes_or_skip(live_bq, query):
     return result
 
 
-def test_live_dealer_axes_keep_one_row_per_dealer_quote(live_bq):
+def test_live_dealer_axes_keep_one_row_per_dealer_quote(bq):
     result = _axes_or_skip(
-        live_bq,
+        bq,
         "let(#ax=axes(aggregateby='SECURITY_DEALER');) get(security_des,#ax) "
         f"for(['{BANK_BOND}']) preferences(addcols=all)",
     )
@@ -48,9 +48,9 @@ def test_live_dealer_axes_keep_one_row_per_dealer_quote(live_bq):
     assert df["security_des"].null_count() == 0
 
 
-def test_live_security_axes_combine_on_id_to_one_row(live_bq):
+def test_live_security_axes_combine_on_id_to_one_row(bq):
     result = _axes_or_skip(
-        live_bq,
+        bq,
         "let(#ax=axes();) get(security_des,#ax) "
         f"for(['{BANK_BOND}']) with(aggregateby=SECURITY) preferences(addcols=all)",
     )
@@ -61,14 +61,10 @@ def test_live_security_axes_combine_on_id_to_one_row(live_bq):
     assert {"ASK_PRICE", "BID_PRICE", "ASK_DEPTH", "BID_DEPTH"} <= set(df.columns)
 
 
-def test_live_capital_stack_requests_in_a_row_get_their_own_answers(live_bq):
-    bonds = live_bq.bql(
-        "get(name) for(bonds('GTN US Equity',consolidateduplicates=True))"
-    )
-    loans = live_bq.bql("get(name) for(loans('GTN US Equity'))")
-    ebitda = live_bq.bql(
-        "get(ebitda(fpt='LTM').value) for('GTN US Equity') with(ccy=USD)"
-    )
+def test_live_capital_stack_requests_in_a_row_get_their_own_answers(bq):
+    bonds = bq.bql("get(name) for(bonds('GTN US Equity',consolidateduplicates=True))")
+    loans = bq.bql("get(name) for(loans('GTN US Equity'))")
+    ebitda = bq.bql("get(ebitda(fpt='LTM').value) for('GTN US Equity') with(ccy=USD)")
 
     assert bonds.errors == loans.errors == ebitda.errors == []
     assert bonds.names == loans.names == ["name"]

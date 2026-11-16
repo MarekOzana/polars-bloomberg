@@ -1,6 +1,17 @@
 Offline tests (no Bloomberg):   pytest
 Live tests (Terminal needed):   pytest --bbg
 
+Learning the library? Read the live tests in tests/integration/ in this order; each
+test is one call and shows what comes back:
+
+  test_integration_session.py   connect, errors, debug dumps
+  test_integration_bdp.py       reference data, overrides, bulk fields
+  test_integration_bdh.py       history, options, empty ranges
+  test_integration_bdib.py      intraday bars, time zones
+  test_integration_bql.py       BQL items, combine(), let(), BQL errors
+  test_integration_bsrch.py     saved searches
+  test_integration_usage.py     requests from real reports and bond screens
+
 Offline tests replay recorded Bloomberg answers from tests/data/recordings/.
 One file is one scenario: the request, the raw messages, the expected result.
 tests/recordings.py lists the scenarios; tests/support.py holds the fake session.

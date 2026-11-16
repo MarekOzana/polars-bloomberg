@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Generator
 from unittest.mock import MagicMock
 
 import pytest
@@ -31,10 +30,3 @@ def bq() -> BQuery:
     bq_instance = BQuery()
     bq_instance.session = MagicMock()
     return bq_instance
-
-
-@pytest.fixture(scope="session")
-def live_bq() -> Generator[BQuery, None, None]:
-    """Return a live BQuery instance when Bloomberg is available."""
-    with BQuery() as bq_instance:
-        yield bq_instance
