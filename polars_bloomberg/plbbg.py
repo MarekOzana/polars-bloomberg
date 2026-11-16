@@ -1270,17 +1270,16 @@ class BQuery:
             security = bar_data.get("security") or fallback_security
             entries = bar_data.get("barTickData", [])
             for entry in entries:
-                bar_entry = entry.get("barTickData", entry)
                 record = {
                     "security": security,
-                    "time": bar_entry.get("time"),
-                    "open": bar_entry.get("open"),
-                    "high": bar_entry.get("high"),
-                    "low": bar_entry.get("low"),
-                    "close": bar_entry.get("close"),
-                    "volume": bar_entry.get("volume"),
-                    "numEvents": bar_entry.get("numEvents"),
-                    "value": bar_entry.get("value"),
+                    "time": entry.get("time"),
+                    "open": entry.get("open"),
+                    "high": entry.get("high"),
+                    "low": entry.get("low"),
+                    "close": entry.get("close"),
+                    "volume": entry.get("volume"),
+                    "numEvents": entry.get("numEvents"),
+                    "value": entry.get("value"),
                 }
                 bars.append(record)
         return bars
@@ -1420,10 +1419,6 @@ class BQuery:
                 errors.append(f"Failed to decode JSON: {e}")
 
         for resp_dict in payloads:
-            # Skip non-dict responses (e.g., connection metadata)
-            if not isinstance(resp_dict, dict):
-                continue
-
             # BQL errors (e.g. syntax errors) are in responseExceptions
             errors.extend(
                 exc.get("message") or exc.get("internalMessage") or "Unknown error"

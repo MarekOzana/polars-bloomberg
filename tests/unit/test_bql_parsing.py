@@ -348,14 +348,6 @@ def test__extract_results():
     }
 
 
-def test_extract_results_skips_non_dict():
-    bq = BQuery()
-    responses = [["not", "a", "dict"], {"results": {"ok": True}}]
-    results, errors = bq._extract_results(responses)
-    assert results == [{"ok": True}]
-    assert errors == []
-
-
 @pytest.mark.parametrize(
     "yaml_file, exp_df",
     [
