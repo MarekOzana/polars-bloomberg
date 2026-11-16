@@ -27,7 +27,7 @@ class TestSchemaMappingAndDataConversion:
             ),
             (
                 {"col1": "UNKNOWN_TYPE"},
-                {"col1": pl.String},
+                {"col1": None},
             ),
             (
                 {"name": "STRING", "age": "INT"},
@@ -55,7 +55,7 @@ class TestSchemaMappingAndDataConversion:
             ),
             (
                 {"unknown_field": "UNKNOWN"},
-                {"unknown_field": pl.Utf8},
+                {"unknown_field": None},
             ),
             (
                 {},

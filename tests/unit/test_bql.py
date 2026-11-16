@@ -5,10 +5,13 @@ Bloomberg sends a BQL answer as one JSON string; `bql_answer` builds that string
 
 import json
 import logging
+from datetime import date
 
 import polars as pl
 import pytest
 from support import DATA_DIR, answer, fake_bq, replay
+
+from polars_bloomberg import BloombergError
 
 pytestmark = pytest.mark.no_bbg
 
@@ -128,3 +131,34 @@ def test_bql_valid_query_has_no_errors():
     result = bq.bql("get(name, px_last) for(['IBM US Equity'])")
 
     assert result.errors == []
+
+
+def test_bql_unknown_value_type_is_inferred(caplog):
+    items = {"px_last": bql_item(["A", "B"], [1.5, 2.5], "DECIMAL")}
+    bq = fake_bq([bql_answer(items)])
+
+    with caplog.at_level(logging.WARNING):
+        result = bq.bql("get(px_last) for(['A', 'B'])")
+
+    assert result[0].schema["px_last"] == pl.Float64
+    assert result[0]["px_last"].to_list() == [1.5, 2.5]
+    assert "DECIMAL" in caplog.text
+
+
+def test_bql_date_with_fractional_seconds_is_parsed():
+    items = {
+        "day": bql_item(["A", "B"], ["2024-01-02T00:00:00.000Z", "2024-01-03"], "DATE")
+    }
+    bq = fake_bq([bql_answer(items)])
+
+    result = bq.bql("get(day) for(['A', 'B'])")
+
+    assert result[0]["day"].to_list() == [date(2024, 1, 2), date(2024, 1, 3)]
+
+
+def test_bql_item_that_cannot_be_built_names_the_item():
+    items = {"px_last": bql_item(["A", "B"], [1.5], "DOUBLE")}  # one value, two IDs
+    bq = fake_bq([bql_answer(items)])
+
+    with pytest.raises(BloombergError, match="BQL item 'px_last'"):
+        bq.bql("get(px_last) for(['A', 'B'])")

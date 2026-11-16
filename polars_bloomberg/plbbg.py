@@ -168,6 +168,22 @@ def _check_key_columns(fields: list[str], keys: tuple[str, ...]) -> None:
         raise ValueError(f"{names} cannot be requested as fields")
 
 
+# --- BQL values ---
+
+
+def _convert_number(value: Any) -> Any:
+    """Turn BQL's text for NaN and infinity into None and float infinities."""
+    if isinstance(value, str):
+        lower_val = value.lower()
+        if lower_val == "nan":
+            return None
+        if lower_val in {"infinity", "inf"}:
+            return float("inf")
+        if lower_val in {"-infinity", "-inf"}:
+            return float("-inf")
+    return value
+
+
 @dataclass
 class SITable:
     """Holds data and schema for a Single Item response Table."""
@@ -877,6 +893,8 @@ class BQuery:
 
         Raises:
             ConnectionError: If there is an issue with the Bloomberg session.
+            BloombergError: If an item of the answer cannot be turned into a
+                DataFrame; the message names the item.
 
         Example:
             Simple query to fetch last price:
@@ -942,10 +960,15 @@ class BQuery:
         request = self._create_bql_request(expression)
         responses = self._send_request(request)
         tables, errors = self._parse_bql_responses(responses)
-        dataframes = [
-            pl.DataFrame(table.data, schema=table.schema, strict=True)
-            for table in tables
-        ]
+        dataframes = []
+        for table in tables:
+            try:
+                df = pl.DataFrame(table.data, schema=table.schema, strict=True)
+            except (pl.exceptions.PolarsError, TypeError, ValueError) as error:
+                raise BloombergError(
+                    f"Cannot build a DataFrame for BQL item {table.name!r}: {error}"
+                ) from error
+            dataframes.append(df)
         names = [table.name for table in tables]
         return BqlResult(dataframes, names, errors)
 
@@ -1364,30 +1387,13 @@ class BQuery:
 
     def _apply_schema(self, table: SITable) -> SITable:
         """Convert data based on the schema (e.g., str -> date, 'NaN' -> None)."""
-        date_format = "%Y-%m-%dT%H:%M:%SZ"
         for col, dtype in table.schema.items():
             if dtype == pl.Date:
                 table.data[col] = [
-                    (
-                        datetime.strptime(v, date_format).date()
-                        if isinstance(v, str)
-                        else None
-                    )
+                    datetime.fromisoformat(v).date() if isinstance(v, str) else None
                     for v in table.data[col]
                 ]
             elif dtype in {pl.Float64, pl.Int64}:
-
-                def _convert_number(val: Any):
-                    if isinstance(val, str):
-                        lower_val = val.lower()
-                        if lower_val == "nan":
-                            return None
-                        if lower_val in {"infinity", "inf"}:
-                            return float("inf")
-                        if lower_val in {"-infinity", "-inf"}:
-                            return float("-inf")
-                    return val
-
                 table.data[col] = [_convert_number(x) for x in table.data[col]]
         return table
 
@@ -1455,8 +1461,8 @@ class BQuery:
 
         return tables
 
-    def _map_types(self, type_map: dict[str, str]) -> dict[str, pl.DataType]:
-        """Map string-based types to Polars data types. Default to Utf8."""
+    def _map_types(self, type_map: dict[str, str]) -> dict[str, pl.DataType | None]:
+        """Map BQL type names to Polars data types; None (infer) for unknown names."""
         mapping = {
             "STRING": pl.Utf8,
             "DOUBLE": pl.Float64,
@@ -1464,7 +1470,17 @@ class BQuery:
             "DATE": pl.Date,
             "BOOLEAN": pl.Boolean,
         }
-        return {col: mapping.get(t.upper(), pl.Utf8) for col, t in type_map.items()}
+        schema = {}
+        for col, bql_type in type_map.items():
+            name = (bql_type or "STRING").upper()
+            if name not in mapping:
+                logger.warning(
+                    "Unknown BQL type %r for column %r; Polars infers its dtype.",
+                    bql_type,
+                    col,
+                )
+            schema[col] = mapping.get(name)
+        return schema
 
     @staticmethod
     def _format_datetime(value: datetime | date | str) -> str:
