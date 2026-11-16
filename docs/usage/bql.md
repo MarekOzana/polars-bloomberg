@@ -14,6 +14,10 @@ description: Execute Bloomberg BQL queries in Polars-Bloomberg to screen securit
   the legacy behavior of joining on common columns. Use `.combine(on=...)` to join
   only on explicit keys such as `"ID"` or `["ID", "DATE"]`.
 
+A query that BQL rejects, for example for a syntax error, does not raise: `bql()`
+returns an empty `BqlResult`, logs the message and keeps it in `result.errors`;
+`combine()` on it raises `ValueError` with that message.
+
 ## Basic Example
 ```python
 # Fetch the last price of IBM stock
@@ -84,7 +88,7 @@ n=2
 
 We can use `combine()` method to join the results into single dataframe:
 ```python
->>> combined_df = results.combine()
+>>> combined_df = results.combine(on="ID")
 >>> print(combined_df)
 ```
 Output:
@@ -103,7 +107,41 @@ DataFrame on all common column names. This is convenient for simple BQL results,
 it can be too broad when several item tables share metadata columns such as `DATE`,
 `CURRENCY`, `PERIOD`, `VALUE`, or `MULTIPLIER`.
 
-For safer joins, pass the intended key columns explicitly:
+A row whose shared columns hold nulls matches nothing and appears twice, once
+from each side: for example a security for which BQL has no `DATE`.
+
+```python
+with BQuery() as bq:
+    results = bq.bql(
+        "get(px_last, px_volume) for(['IBM US Equity', 'NOT A SECURITY Equity'])"
+    )
+
+>>> print(results.combine())  # joins on ID and DATE
+shape: (3, 5)
+┌───────────────────────┬─────────┬────────────┬──────────┬───────────┐
+│ ID                    ┆ px_last ┆ DATE       ┆ CURRENCY ┆ px_volume │
+│ ---                   ┆ ---     ┆ ---        ┆ ---      ┆ ---       │
+│ str                   ┆ f64     ┆ date       ┆ str      ┆ f64       │
+╞═══════════════════════╪═════════╪════════════╪══════════╪═══════════╡
+│ IBM US Equity         ┆ 247.13  ┆ 2026-11-16 ┆ USD      ┆ 4750.0    │
+│ NOT A SECURITY Equity ┆ null    ┆ null       ┆ null     ┆ null      │
+│ NOT A SECURITY Equity ┆ null    ┆ null       ┆ null     ┆ null      │
+└───────────────────────┴─────────┴────────────┴──────────┴───────────┘
+
+>>> print(results.combine(on="ID"))  # one row per security
+shape: (2, 6)
+┌───────────────────────┬─────────┬────────────┬──────────┬───────────┬────────────────┐
+│ ID                    ┆ px_last ┆ DATE       ┆ CURRENCY ┆ px_volume ┆ DATE_px_volume │
+│ ---                   ┆ ---     ┆ ---        ┆ ---      ┆ ---       ┆ ---            │
+│ str                   ┆ f64     ┆ date       ┆ str      ┆ f64       ┆ date           │
+╞═══════════════════════╪═════════╪════════════╪══════════╪═══════════╪════════════════╡
+│ IBM US Equity         ┆ 247.13  ┆ 2026-11-16 ┆ USD      ┆ 4750.0    ┆ 2026-11-16     │
+│ NOT A SECURITY Equity ┆ null    ┆ null       ┆ null     ┆ null      ┆ null           │
+└───────────────────────┴─────────┴────────────┴──────────┴───────────┴────────────────┘
+```
+
+For safer joins, pass the intended key columns explicitly; `combine(on="ID")` gives
+one row per security:
 
 ```python
 # Join only by security ID. Other common columns are kept as data columns.
@@ -138,23 +176,26 @@ query = """
 
 with BQuery() as bq:
     results = bq.bql(query)
-    combined_df = results.combine()
+    combined_df = results.combine(on="ID")
     print(combined_df)
 ```
 Output:
 ```python
-┌───────────────┬─────────────────┬──────┬────────────┬────────┐
-│ ID            ┆ name()          ┆ #dur ┆ DATE       ┆ #zsprd │
-│ ---           ┆ ---             ┆ ---  ┆ ---        ┆ ---    │
-│ str           ┆ str             ┆ f64  ┆ date       ┆ f64    │
-╞═══════════════╪═════════════════╪══════╪════════════╪════════╡
-│ BW924993 Corp ┆ SEB 6 ⅞ PERP    ┆ 2.23 ┆ 2024-12-16 ┆ 212.0  │
-│ YV402592 Corp ┆ SEB Float PERP  ┆ 0.21 ┆ 2024-12-16 ┆ 233.0  │
-│ ZQ349286 Corp ┆ SEB 5 ⅛ PERP    ┆ 0.39 ┆ 2024-12-16 ┆ 186.0  │
-│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP ┆ 1.95 ┆ 2024-12-16 ┆ 213.0  │
-│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP ┆ 4.94 ┆ 2024-12-16 ┆ 256.0  │
-│ YU819930 Corp ┆ SEB 6 ¾ PERP    ┆ 5.37 ┆ 2024-12-16 ┆ 309.0  │
-└───────────────┴─────────────────┴──────┴────────────┴────────┘
+shape: (8, 6)
+┌───────────────┬───────────────────┬──────────┬────────────┬────────────┬─────────────┐
+│ ID            ┆ name()            ┆ #dur     ┆ DATE       ┆ #zsprd     ┆ DATE_#zsprd │
+│ ---           ┆ ---               ┆ ---      ┆ ---        ┆ ---        ┆ ---         │
+│ str           ┆ str               ┆ f64      ┆ date       ┆ f64        ┆ date        │
+╞═══════════════╪═══════════════════╪══════════╪════════════╪════════════╪═════════════╡
+│ BW924993 Corp ┆ SEB 6 ⅞ PERP      ┆ 0.581939 ┆ 2026-11-16 ┆ 184.994423 ┆ 2026-11-16  │
+│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP   ┆ 3.576392 ┆ 2026-11-16 ┆ 224.954038 ┆ 2026-11-16  │
+│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP   ┆ 0.281479 ┆ 2026-11-16 ┆ 184.076417 ┆ 2026-11-16  │
+│ DL161992 Corp ┆ SEB 6 ¾ PERP      ┆ 5.5886   ┆ 2026-11-16 ┆ 283.007084 ┆ 2026-11-16  │
+│ DH445766 Corp ┆ SHBASS 5.3 PERP   ┆ 3.687234 ┆ 2026-11-16 ┆ 239.782319 ┆ 2026-11-16  │
+│ YU819930 Corp ┆ SEB 6 ¾ PERP      ┆ 4.13844  ┆ 2026-11-16 ┆ 226.000509 ┆ 2026-11-16  │
+│ YV402592 Corp ┆ SEB Float PERP    ┆ 0.042373 ┆ 2026-11-16 ┆ 203.234    ┆ 2026-11-16  │
+│ DH445768 Corp ┆ SHBASS Float PERP ┆ 0.130108 ┆ 2026-11-16 ┆ 228.884    ┆ 2026-11-16  │
+└───────────────┴───────────────────┴──────────┴────────────┴────────────┴─────────────┘
 ```
 
 ## Aggregation
@@ -244,7 +285,7 @@ query="""
 
 with BQuery() as bq:
     results = bq.bql(query)
-    print(results.combine())
+    print(results.combine(on="ID"))
 
 ┌───────────────┬─────────────────┬─────┬───────────┬───────────┬────────────────┬────────────────┐
 │ ID            ┆ security_des    ┆ #ax ┆ ASK_DEPTH ┆ BID_DEPTH ┆ ASK_TOTAL_SIZE ┆ BID_TOTAL_SIZE │
@@ -345,20 +386,21 @@ with BQuery() as bq:
         with(fill=PREV)
         """
     )
-    print(results.combine())
+    df = results.combine(on="ID").select("ID", "name()", "#ema20", "#ema200", "#rsi")
+    print(df.head())
 ```
 Output:
 ```python
-┌─────────────────┬──────────────────┬────────────┬────────────┬──────────┬────────────┬───────────┐
-│ ID              ┆ name()           ┆ #ema20     ┆ DATE       ┆ CURRENCY ┆ #ema200    ┆ #rsi      │
-│ ---             ┆ ---              ┆ ---        ┆ ---        ┆ ---      ┆ ---        ┆ ---       │
-│ str             ┆ str              ┆ f64        ┆ date       ┆ str      ┆ f64        ┆ f64       │
-╞═════════════════╪══════════════════╪════════════╪════════════╪══════════╪════════════╪═══════════╡
-│ ERICB SS Equity ┆ Telefonaktiebola ┆ 90.152604  ┆ 2024-12-16 ┆ SEK      ┆ 75.072151  ┆ 56.010028 │
-│                 ┆ get LM Ericsso   ┆            ┆            ┆          ┆            ┆           │
-│ ABB SS Equity   ┆ ABB Ltd          ┆ 630.622469 ┆ 2024-12-16 ┆ SEK      ┆ 566.571183 ┆ 53.763102 │
-│ SEBA SS Equity  ┆ Skandinaviska    ┆ 153.80595  ┆ 2024-12-16 ┆ SEK      ┆ 150.742394 ┆ 56.460733 │
-│                 ┆ Enskilda Banken  ┆            ┆            ┆          ┆            ┆           │
-│ ASSAB SS Equity ┆ Assa Abloy AB    ┆ 339.017591 ┆ 2024-12-16 ┆ SEK      ┆ 317.057573 ┆ 53.351619 │
-└─────────────────┴──────────────────┴────────────┴────────────┴──────────┴────────────┴───────────┘
+shape: (5, 5)
+┌─────────────────┬────────────────────────────────┬─────────────┬─────────────┬───────────┐
+│ ID              ┆ name()                         ┆ #ema20      ┆ #ema200     ┆ #rsi      │
+│ ---             ┆ ---                            ┆ ---         ┆ ---         ┆ ---       │
+│ str             ┆ str                            ┆ f64         ┆ f64         ┆ f64       │
+╞═════════════════╪════════════════════════════════╪═════════════╪═════════════╪═══════════╡
+│ ASSAB SS Equity ┆ Assa Abloy AB                  ┆ 385.478874  ┆ 355.198037  ┆ 66.686416 │
+│ ATCOA SS Equity ┆ Atlas Copco AB                 ┆ 191.123926  ┆ 190.067657  ┆ 53.146331 │
+│ AZN SS Equity   ┆ AstraZeneca PLC                ┆ 1789.335794 ┆ 1672.637661 ┆ 73.714405 │
+│ EQT SS Equity   ┆ EQT AB                         ┆ 309.20166   ┆ 308.380981  ┆ 63.29927  │
+│ ERICB SS Equity ┆ Telefonaktiebolaget LM Ericsso ┆ 104.852083  ┆ 100.467523  ┆ 58.089387 │
+└─────────────────┴────────────────────────────────┴─────────────┴─────────────┴───────────┘
 ```

@@ -6,6 +6,11 @@ description: Pull Bloomberg BDH historical time series into Polars DataFrames wi
 # BDH
 
 Use Case: Retrieve historical data over a date range, such as daily closing prices or volumes.
+
+An invalid security has no rows and an invalid field is a column of nulls, with one
+warning per call that lists them; a range without data, such as a weekend, gives an
+empty frame that keeps its `security`, `date` and field columns, and a request
+Bloomberg rejects raises `BloombergError`.
 ```python
 with BQuery() as bq:
     df = bq.bdh(

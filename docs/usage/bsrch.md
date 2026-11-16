@@ -7,8 +7,11 @@ description: Run Bloomberg BSRCH (SRCH/BI) searches in Polars-Bloomberg with ove
 
 Use case: Excel-style searches (SRCH/BI domains). Good for running saved SRCH screens or Bloomberg BI templates.
 
+A failed search raises `BloombergError` (a `ValueError`), and a search without
+results gives an empty frame that keeps its columns.
+
 Key points:
-- Pass `overrides` as a dict; values are stringified. Common keys: `LIMIT` to raise the row cap (default ~5k), custom keys like `BIKEY` for BI templates, or domain-specific parameters.
+- Pass `overrides` as a dict or as (name, value) pairs; values are stringified. Common keys: `LIMIT` to raise the row cap (default ~5k), custom keys like `BIKEY` for BI templates, or domain-specific parameters.
 
 ## Example: two COCO bonds (LIMIT=2)
 ```python
@@ -19,14 +22,14 @@ with BQuery() as bq:
     print(df)
 
 # shape: (2, 1)
-# ┌──────────────┐
-# │ id           │
-# │ ---          │
-# │ str          │
-# ╞══════════════╡
-# │ DA785784 Corp│
-# │ DA773901 Corp│
-# └──────────────┘
+# ┌───────────────┐
+# │ id            │
+# │ ---           │
+# │ str           │
+# ╞═══════════════╡
+# │ DS990344 Corp │
+# │ DT301785 Corp │
+# └───────────────┘
 ```
 
 ## Example: BI template (BI:TPD) with BIKEY + LIMIT

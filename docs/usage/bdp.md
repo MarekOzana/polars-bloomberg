@@ -7,6 +7,10 @@ description: Bloomberg BDP single-value data point requests in Polars-Bloomberg,
 
 Use Case: Fetch single-value data points (like last price, currency, or descriptive fields).
 
+An invalid security gives a row of nulls and an invalid field a column of nulls, with
+one warning per call that lists them; a request Bloomberg rejects raises
+`BloombergError`, and an empty result keeps its `security` and field columns.
+
 ```python
 with BQuery() as bq:
     df = bq.bdp(["AAPL US Equity", "SEBA SS Equity"], ["PX_LAST", "CRNCY"])

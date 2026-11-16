@@ -53,13 +53,14 @@ If you’re a quant financial analyst, data scientist, or quant developer workin
         - [Bonds Total Return](#bonds-total-returns)
         - [Maturity Wall for US HY](#maturity-wall-for-us-hy-bonds)
         </details>
-6. [Additional Documentation and Resources](#additional-documentation--resources)
+6. [Errors, Warnings and Empty Results](#errors-warnings-and-empty-results)
+7. [Additional Documentation and Resources](#additional-documentation--resources)
 
 ## Introduction
 Working with Bloomberg data in Python often feels more complicated than using their well-known Excel interface.
 Great projects like [blp](https://github.com/matthewgilbert/blp), [xbbg](https://github.com/alpha-xone/xbbg), and [pdblp](https://github.com/matthewgilbert/pdblp) have made this easier by pulling data directly into pandas.
 
-With polars-bloomberg, you can enjoy the speed and simplicity of [Polars](https://www.pola.rs/) DataFrames—accessing both familiar Excel-style calls (`bdp`, `bdh` ,`bdip`, `bsrch`) and advanced `bql` queries—without extra pandas conversions.
+With polars-bloomberg, you can enjoy the speed and simplicity of [Polars](https://www.pola.rs/) DataFrames—accessing both familiar Excel-style calls (`bdp`, `bdh`, `bdib`, `bsrch`) and advanced `bql` queries—without extra pandas conversions.
 
 For detailed documentation and function references, visit the documentation site [https://marekozana.github.io/polars-bloomberg](https://marekozana.github.io/polars-bloomberg/).
 
@@ -109,7 +110,7 @@ If you see a price in `df`, your setup is working 🤩!!!
 - `bq.bdh()` for Historical Data (time series).
 - `bq.bql()` for complex Bloomberg Query Language requests.
 - `bq.bsrch()` for saved custom SRCH searches and BI templates.
-- `bq.bdip()` for intraday bars
+- `bq.bdib()` for intraday bars
 
 ## BDP
 Use Case: Fetch the latest single-value data points (like last price, currency, or descriptive fields).
@@ -290,13 +291,13 @@ Use Case: Retrieve intraday bars (1- to 1440-minute intervals) over a precise in
 window without managing tick aggregation yourself.
 
 ```python
-with BQuery() as bq:  # set debug=False for normal usage
+with BQuery() as bq:
     df = bq.bdib(
         "OMX Index",
         event_type="TRADE",
         interval=60,
-        start_datetime=datetime(2025, 11, 5),
-        end_datetime=datetime(2025, 11, 5, 12),
+        start_datetime=datetime(2026, 11, 13),
+        end_datetime=datetime(2026, 11, 13, 12),
     )
     print(df)
 ```
@@ -304,24 +305,25 @@ with BQuery() as bq:  # set debug=False for normal usage
 Output:
 ```
 shape: (4, 9)
-┌───────────┬──────────────┬──────────┬──────────┬───┬──────────┬────────┬───────────┬───────┐
-│ security  ┆ time         ┆ open     ┆ high     ┆ … ┆ close    ┆ volume ┆ numEvents ┆ value │
-│ ---       ┆ ---          ┆ ---      ┆ ---      ┆   ┆ ---      ┆ ---    ┆ ---       ┆ ---   │
-│ str       ┆ datetime[μs] ┆ f64      ┆ f64      ┆   ┆ f64      ┆ i64    ┆ i64       ┆ f64   │
-╞═══════════╪══════════════╪══════════╪══════════╪═══╪══════════╪════════╪═══════════╪═══════╡
-│ OMX Index ┆ 2025-11-05   ┆ 2726.603 ┆ 2742.014 ┆ … ┆ 2739.321 ┆ 0      ┆ 3591      ┆ 0.0   │
-│           ┆ 08:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
-│ OMX Index ┆ 2025-11-05   ┆ 2739.466 ┆ 2739.706 ┆ … ┆ 2733.836 ┆ 0      ┆ 3600      ┆ 0.0   │
-│           ┆ 09:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
-│ OMX Index ┆ 2025-11-05   ┆ 2733.747 ┆ 2734.827 ┆ … ┆ 2731.724 ┆ 0      ┆ 3600      ┆ 0.0   │
-│           ┆ 10:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
-│ OMX Index ┆ 2025-11-05   ┆ 2731.721 ┆ 2742.015 ┆ … ┆ 2741.185 ┆ 0      ┆ 3600      ┆ 0.0   │
-│           ┆ 11:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
-└───────────┴──────────────┴──────────┴──────────┴───┴──────────┴────────┴───────────┴───────┘
+┌───────────┬───────────────┬──────────┬──────────┬───┬──────────┬────────┬───────────┬───────┐
+│ security  ┆ time          ┆ open     ┆ high     ┆ … ┆ close    ┆ volume ┆ numEvents ┆ value │
+│ ---       ┆ ---           ┆ ---      ┆ ---      ┆   ┆ ---      ┆ ---    ┆ ---       ┆ ---   │
+│ str       ┆ datetime[μs]  ┆ f64      ┆ f64      ┆   ┆ f64      ┆ i64    ┆ i64       ┆ f64   │
+╞═══════════╪═══════════════╪══════════╪══════════╪═══╪══════════╪════════╪═══════════╪═══════╡
+│ OMX Index ┆ 2026-11-13    ┆ 3351.464 ┆ 3353.647 ┆ … ┆ 3350.421 ┆ 0      ┆ 3591      ┆ 0.0   │
+│           ┆ 08:00:00      ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+│ OMX Index ┆ 2026-11-13    ┆ 3350.322 ┆ 3359.014 ┆ … ┆ 3358.95  ┆ 0      ┆ 3600      ┆ 0.0   │
+│           ┆ 09:00:00      ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+│ OMX Index ┆ 2026-11-13    ┆ 3358.95  ┆ 3366.616 ┆ … ┆ 3365.006 ┆ 0      ┆ 3600      ┆ 0.0   │
+│           ┆ 10:00:00      ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+│ OMX Index ┆ 2026-11-13    ┆ 3365.006 ┆ 3365.888 ┆ … ┆ 3362.596 ┆ 0      ┆ 3600      ┆ 0.0   │
+│           ┆ 11:00:00      ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+└───────────┴───────────────┴──────────┴──────────┴───┴──────────┴────────┴───────────┴───────┘
 ```
 
-Each row is a 60-minute bar built from TRADE events, and the `time` column is returned
-in UTC (matching Bloomberg's wide format).
+Each row is a 60-minute bar built from TRADE events. `time` is the start of each bar,
+as a naive datetime (no time zone) holding UTC. Bloomberg keeps intraday bars for some
+months only; an older window gives an empty frame.
 
 ## BSRCH
 Use Case: Excel-style searches (SRCH/BI domains). Supports overrides such as `LIMIT` and custom keys (e.g., `BIKEY`).
@@ -335,14 +337,14 @@ with BQuery() as bq:
 Example output:
 ```
 shape: (2, 1)
-┌──────────────┐
-│ id           │
-│ ---          │
-│ str          │
-╞══════════════╡
-│ DA785784 Corp│
-│ DA773901 Corp│
-└──────────────┘
+┌───────────────┐
+│ id            │
+│ ---           │
+│ str           │
+╞═══════════════╡
+│ DS990344 Corp │
+│ DT301785 Corp │
+└───────────────┘
 ```
 
 ### Larger example: BI template (BI:TPD) with BIKEY and LIMIT
@@ -449,7 +451,7 @@ n=2
 
 #### Combining Results
 ```python
->>> combined_df = results.combine()
+>>> combined_df = results.combine(on="ID")
 >>> print(combined_df)
 ```
 Output:
@@ -468,7 +470,11 @@ DataFrame on all common column names. This is convenient for simple BQL results,
 it can be too broad when several item tables share metadata columns such as `DATE`,
 `CURRENCY`, `PERIOD`, `VALUE`, or `MULTIPLIER`.
 
-For safer joins, pass the intended key columns explicitly:
+A row whose shared columns hold nulls matches nothing and appears twice, once
+from each side: for example a security for which BQL has no `DATE`.
+
+For safer joins, pass the intended key columns explicitly; `combine(on="ID")` gives
+one row per security:
 
 ```python
 # Join only by security ID. Other common columns are kept as data columns.
@@ -502,23 +508,26 @@ query = """
 
 with BQuery() as bq:
     results = bq.bql(query)
-    combined_df = results.combine()
+    combined_df = results.combine(on="ID")
     print(combined_df)
 ```
 Output:
 ```python
-┌───────────────┬─────────────────┬──────┬────────────┬────────┐
-│ ID            ┆ name()          ┆ #dur ┆ DATE       ┆ #zsprd │
-│ ---           ┆ ---             ┆ ---  ┆ ---        ┆ ---    │
-│ str           ┆ str             ┆ f64  ┆ date       ┆ f64    │
-╞═══════════════╪═════════════════╪══════╪════════════╪════════╡
-│ BW924993 Corp ┆ SEB 6 ⅞ PERP    ┆ 2.23 ┆ 2024-12-16 ┆ 212.0  │
-│ YV402592 Corp ┆ SEB Float PERP  ┆ 0.21 ┆ 2024-12-16 ┆ 233.0  │
-│ ZQ349286 Corp ┆ SEB 5 ⅛ PERP    ┆ 0.39 ┆ 2024-12-16 ┆ 186.0  │
-│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP ┆ 1.95 ┆ 2024-12-16 ┆ 213.0  │
-│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP ┆ 4.94 ┆ 2024-12-16 ┆ 256.0  │
-│ YU819930 Corp ┆ SEB 6 ¾ PERP    ┆ 5.37 ┆ 2024-12-16 ┆ 309.0  │
-└───────────────┴─────────────────┴──────┴────────────┴────────┘
+shape: (8, 6)
+┌───────────────┬───────────────────┬──────────┬────────────┬────────────┬─────────────┐
+│ ID            ┆ name()            ┆ #dur     ┆ DATE       ┆ #zsprd     ┆ DATE_#zsprd │
+│ ---           ┆ ---               ┆ ---      ┆ ---        ┆ ---        ┆ ---         │
+│ str           ┆ str               ┆ f64      ┆ date       ┆ f64        ┆ date        │
+╞═══════════════╪═══════════════════╪══════════╪════════════╪════════════╪═════════════╡
+│ BW924993 Corp ┆ SEB 6 ⅞ PERP      ┆ 0.581939 ┆ 2026-11-16 ┆ 184.994423 ┆ 2026-11-16  │
+│ ZO703956 Corp ┆ SHBASS 4 ¾ PERP   ┆ 3.576392 ┆ 2026-11-16 ┆ 224.954038 ┆ 2026-11-16  │
+│ ZO703315 Corp ┆ SHBASS 4 ⅜ PERP   ┆ 0.281479 ┆ 2026-11-16 ┆ 184.076417 ┆ 2026-11-16  │
+│ DL161992 Corp ┆ SEB 6 ¾ PERP      ┆ 5.5886   ┆ 2026-11-16 ┆ 283.007084 ┆ 2026-11-16  │
+│ DH445766 Corp ┆ SHBASS 5.3 PERP   ┆ 3.687234 ┆ 2026-11-16 ┆ 239.782319 ┆ 2026-11-16  │
+│ YU819930 Corp ┆ SEB 6 ¾ PERP      ┆ 4.13844  ┆ 2026-11-16 ┆ 226.000509 ┆ 2026-11-16  │
+│ YV402592 Corp ┆ SEB Float PERP    ┆ 0.042373 ┆ 2026-11-16 ┆ 203.234    ┆ 2026-11-16  │
+│ DH445768 Corp ┆ SHBASS Float PERP ┆ 0.130108 ┆ 2026-11-16 ┆ 228.884    ┆ 2026-11-16  │
+└───────────────┴───────────────────┴──────────┴────────────┴────────────┴─────────────┘
 ```
 
 ### Average PE per Sector
@@ -569,7 +578,7 @@ query="""
 
 with BQuery() as bq:
     results = bq.bql(query)
-    print(results.combine())
+    print(results.combine(on="ID"))
 
 ┌───────────────┬─────────────────┬─────┬───────────┬───────────┬────────────────┬────────────────┐
 │ ID            ┆ security_des    ┆ #ax ┆ ASK_DEPTH ┆ BID_DEPTH ┆ ASK_TOTAL_SIZE ┆ BID_TOTAL_SIZE │
@@ -603,7 +612,7 @@ preferences(addcols=all)
 
 with BQuery() as bq:
     results = bq.bql(query)
-    print(results.combine())
+    print(results.combine(on="ID"))
 ```
 Output:
 <div>
@@ -719,22 +728,23 @@ with BQuery() as bq:
         with(fill=PREV)
         """
     )
-    print(results.combine())
+    df = results.combine(on="ID").select("ID", "name()", "#ema20", "#ema200", "#rsi")
+    print(df.head())
 ```
 Output:
 ```python
-┌─────────────────┬──────────────────┬────────────┬────────────┬──────────┬────────────┬───────────┐
-│ ID              ┆ name()           ┆ #ema20     ┆ DATE       ┆ CURRENCY ┆ #ema200    ┆ #rsi      │
-│ ---             ┆ ---              ┆ ---        ┆ ---        ┆ ---      ┆ ---        ┆ ---       │
-│ str             ┆ str              ┆ f64        ┆ date       ┆ str      ┆ f64        ┆ f64       │
-╞═════════════════╪══════════════════╪════════════╪════════════╪══════════╪════════════╪═══════════╡
-│ ERICB SS Equity ┆ Telefonaktiebola ┆ 90.152604  ┆ 2024-12-16 ┆ SEK      ┆ 75.072151  ┆ 56.010028 │
-│                 ┆ get LM Ericsso   ┆            ┆            ┆          ┆            ┆           │
-│ ABB SS Equity   ┆ ABB Ltd          ┆ 630.622469 ┆ 2024-12-16 ┆ SEK      ┆ 566.571183 ┆ 53.763102 │
-│ SEBA SS Equity  ┆ Skandinaviska    ┆ 153.80595  ┆ 2024-12-16 ┆ SEK      ┆ 150.742394 ┆ 56.460733 │
-│                 ┆ Enskilda Banken  ┆            ┆            ┆          ┆            ┆           │
-│ ASSAB SS Equity ┆ Assa Abloy AB    ┆ 339.017591 ┆ 2024-12-16 ┆ SEK      ┆ 317.057573 ┆ 53.351619 │
-└─────────────────┴──────────────────┴────────────┴────────────┴──────────┴────────────┴───────────┘
+shape: (5, 5)
+┌─────────────────┬────────────────────────────────┬─────────────┬─────────────┬───────────┐
+│ ID              ┆ name()                         ┆ #ema20      ┆ #ema200     ┆ #rsi      │
+│ ---             ┆ ---                            ┆ ---         ┆ ---         ┆ ---       │
+│ str             ┆ str                            ┆ f64         ┆ f64         ┆ f64       │
+╞═════════════════╪════════════════════════════════╪═════════════╪═════════════╪═══════════╡
+│ ASSAB SS Equity ┆ Assa Abloy AB                  ┆ 385.478874  ┆ 355.198037  ┆ 66.686416 │
+│ ATCOA SS Equity ┆ Atlas Copco AB                 ┆ 191.123926  ┆ 190.067657  ┆ 53.146331 │
+│ AZN SS Equity   ┆ AstraZeneca PLC                ┆ 1789.335794 ┆ 1672.637661 ┆ 73.714405 │
+│ EQT SS Equity   ┆ EQT AB                         ┆ 309.20166   ┆ 308.380981  ┆ 63.29927  │
+│ ERICB SS Equity ┆ Telefonaktiebolaget LM Ericsso ┆ 104.852083  ┆ 100.467523  ┆ 58.089387 │
+└─────────────────┴────────────────────────────────┴─────────────┴─────────────┴───────────┘
 ```
 
 ### Bond Universe from Equity Ticker
@@ -751,7 +761,7 @@ for(filter(bonds('GTN US Equity'), series() == '144A'))
 
 with BQuery() as bq:
     results = bq.bql(query)
-    df = results.combine()
+    df = results.combine(on="ID")
     print(df)
 ```
 Output:
@@ -837,6 +847,78 @@ shape: (5, 11)
 └──────────┴───────────┴───────────┴───────────┴───┴───────────┴───────────┴───────────┴───────────┘
 ```
 
+
+## Errors, Warnings and Empty Results
+
+| What happened | What you get |
+|---|---|
+| Bloomberg rejects or fails a request: a bad argument, an unknown security in `bdib`, a failed search in `bsrch` | `BloombergError` with Bloomberg's message and category, for example `Response error: No securities specified (BAD_ARGS)`. It is a subclass of `ValueError`. |
+| The session is not started, cannot start, or is lost | `ConnectionError` |
+| Bloomberg sends nothing for `timeout` milliseconds | `TimeoutError` |
+| An invalid security or field in `bdp` or `bdh` | No exception. An invalid security is a row of nulls in `bdp` and has no rows in `bdh`; an invalid field is a column of nulls. One warning per call lists them. |
+| A BQL query that fails, for example on a syntax error | An empty `BqlResult`; the message is logged and kept in `result.errors`, and `combine()` raises `ValueError` with it. |
+| No data, for example `bdh` over a weekend | An empty DataFrame that still has its columns |
+
+Warnings go through Python's `logging` (logger `polars_bloomberg.plbbg`); with no
+logging set up, Python prints them to stderr:
+
+```python
+with BQuery() as bq:
+    df = bq.bdp(["IBM US Equity", "NOT A SECURITY Equity"], ["PX_LAST", "NOT_A_FIELD"])
+
+Bloomberg reported 2 error(s):
+  IBM US Equity / NOT_A_FIELD: Field not valid (BAD_FLD)
+  NOT A SECURITY Equity: Unknown/Invalid Security  [nid:…] (BAD_SEC)
+```
+
+An empty result keeps its columns; field columns without values have dtype `null`:
+
+```python
+with BQuery() as bq:
+    df = bq.bdh("IBM US Equity", "PX_LAST", date(2026, 11, 14), date(2026, 11, 15))
+    print(df)
+
+shape: (0, 3)
+┌──────────┬──────┬─────────┐
+│ security ┆ date ┆ PX_LAST │
+│ ---      ┆ ---  ┆ ---     │
+│ str      ┆ date ┆ null    │
+╞══════════╪══════╪═════════╡
+└──────────┴──────┴─────────┘
+```
+
+A BQL error does not raise; check `result.errors`:
+
+```python
+with BQuery() as bq:
+    result = bq.bql("get(px_last) for(['IBM US Equity'")  # missing ")"
+
+>>> len(result)
+0
+>>> result.errors
+["Error: Unable to parse request at '(['IBM US Equity''."]
+```
+
+**Options of `BQuery`:**
+
+- `timeout` (default 32000) is the longest wait, in milliseconds, for the next
+  message from Bloomberg; it is not a limit on the whole request. `0` waits forever.
+  Slow BQL queries may need more than the default.
+- `debug=True` writes every request and the raw messages Bloomberg sent back to a
+  JSON file in `debug_cases/`, also when the request fails; `debug="some/dir"` writes
+  to that directory. Attach such a file to a bug report, after checking that you may
+  share the data in it.
+
+**Without a `with` block**, for example to keep one connection for a whole notebook:
+
+```python
+bq = BQuery().start()
+df = bq.bdp("IBM US Equity", "PX_LAST")
+bq.stop()  # safe to call twice
+```
+
+**Threads:** one `BQuery` must not be used from several threads at once. Give each
+thread its own `BQuery`.
 
 ## Additional Documentation & Resources
 
