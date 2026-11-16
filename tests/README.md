@@ -12,6 +12,8 @@ tests/integration/test_integration_usage.py on fresh answers.
 
 Re-record (Terminal needed):    python tests/record.py            # all scenarios
                                 python tests/record.py bdp/ bql/syntax_error
+The scenarios in CONVERTED (tests/recordings.py) come from older fixtures whose
+answers cannot be recorded again; record.py leaves them alone.
 After an intended output change (no Terminal needed):
                                 python tests/record.py --refresh-expected
 Review `git diff tests/data/recordings` before committing.

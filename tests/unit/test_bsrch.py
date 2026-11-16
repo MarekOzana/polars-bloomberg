@@ -1,5 +1,5 @@
 import logging
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import polars as pl
 import pytest
@@ -137,24 +137,6 @@ class TestBsrch:
 
         rows, _ = bq._parse_bsrch_responses(responses)
         assert rows == [{"Ticker": "AAPL US Equity"}]
-
-    def test_bsrch_calls_components(self):
-        bq = BQuery()
-        mock_request = MagicMock()
-        parsed_rows = [{"Ticker": "IBM US Equity"}, {"Ticker": "MSFT US Equity"}]
-
-        with (
-            patch.object(bq, "_create_bsrch_request", return_value=mock_request),
-            patch.object(bq, "_send_request", return_value=["raw_response"]),
-            patch.object(
-                bq, "_parse_bsrch_responses", return_value=(parsed_rows, ["Ticker"])
-            ),
-        ):
-            df = bq.bsrch("FI:SRCHEX.@CLOSUB", overrides={"LIMIT": 10000})
-
-        assert isinstance(df, pl.DataFrame)
-        assert df.shape == (2, 1)
-        assert df["Ticker"].to_list() == ["IBM US Equity", "MSFT US Equity"]
 
     def test_coerce_bsrch_numeric_columns_direct(self):
         bq = BQuery()

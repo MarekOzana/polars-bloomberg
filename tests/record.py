@@ -19,7 +19,7 @@ from pathlib import Path
 
 import polars as pl
 import recordings
-from recordings import SCENARIOS, VOLATILE
+from recordings import CONVERTED, SCENARIOS, VOLATILE
 from support import DATA_DIR, replay, run
 
 from polars_bloomberg import BqlResult, BQuery
@@ -62,6 +62,9 @@ def record_all(names: list[str]) -> None:
     """Record the scenarios against a live Terminal."""
     with tempfile.TemporaryDirectory() as dump_dir, BQuery(debug=dump_dir) as bq:
         for name in names:
+            if name in CONVERTED:
+                print(f"{name:45} kept: converted, cannot be recorded again")
+                continue
             recording, _ = record(bq, Path(dump_dir), name)
             write_recording(name, recording)
             print(f"{name:45} {outcome(recording['expected'])}")

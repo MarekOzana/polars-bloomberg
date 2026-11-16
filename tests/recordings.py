@@ -227,6 +227,17 @@ SCENARIOS = {
         "let(#DATE = px_last(dates=2024-01-02);) get(#DATE) for(['IBM US Equity'])"
     ),
     "bql/apostrophe_in_value": lambda bq: bq.bql("get(name) for(['BFOR US Equity'])"),
+    # axes() at security grain: converted from answers of 2024-12-17 (see CONVERTED)
+    "bql/axes": lambda bq: bq.bql(
+        "let(#ax=axes();) get(security_des, #ax) for(filter(bondsuniv(ACTIVE), "
+        "crncy()=='USD' and basel_iii_designation() == 'Additional Tier 1' and "
+        "country_iso() == 'SE'))"
+    ),
+    "bql/axes_addcols_all": lambda bq: bq.bql(
+        "let(#ax=axes();) get(name, #ax) for(filter(bondsuniv(ACTIVE), "
+        "crncy()=='USD' and basel_iii_designation() == 'Additional Tier 1' and "
+        "country_iso() == 'SE' and is_axed('Bid') == True)) preferences(addcols=all)"
+    ),
     # --- bql as used in real-life reports and charts (tests/unit/test_usage.py) ---
     "bql/usage_security_snapshot": lambda bq: bq.bql(
         "let(#amt=amt_outstanding(); "
@@ -337,6 +348,10 @@ VOLATILE = {
     "bql/usage_member_mean_per_date",
     "bql/usage_agency_ratings",
 }
+
+# Converted from fixtures made before these recordings existed. Their answers (live
+# dealer axes of one day) cannot be recorded again, so record.py leaves them alone.
+CONVERTED = {"bql/axes", "bql/axes_addcols_all"}
 
 # Scenarios that the live contract tests compare with a fresh answer from Bloomberg.
 CONTRACT = [

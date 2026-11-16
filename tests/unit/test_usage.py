@@ -12,7 +12,6 @@ import polars as pl
 import pytest
 from recordings import SCENARIOS
 from support import (
-    DATA_DIR,
     answer,
     assert_result_matches,
     fake_bq,
@@ -124,17 +123,10 @@ def test_combine_on_id_keeps_one_row_for_a_group_whose_rating_is_null():
 
 
 def test_security_axes_combined_on_id_keep_one_row_per_bond_with_quotes():
-    # A bond screen with axes() at security grain, recorded before the recordings
-    # of tests/data/recordings/ existed; it goes through bql() end to end here.
-    fixture = json.loads(
-        (DATA_DIR / "bql" / "bql_parse_results_axes_addcolsALL.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    payload = {"results": fixture["in_results"], "responseExceptions": None}
-    bq = fake_bq([answer(json.dumps(payload))])
+    # A bond screen with axes() at security grain (a converted recording).
+    bq, _ = replay("bql/axes_addcols_all")
 
-    result = bq.bql(fixture["query"])
+    result = SCENARIOS["bql/axes_addcols_all"](bq)
     df = result.combine(on="ID", how="left")
 
     assert result.names == ["name", "#ax"]

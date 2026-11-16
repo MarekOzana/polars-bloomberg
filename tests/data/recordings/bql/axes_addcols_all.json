@@ -1,0 +1,860 @@
+{
+ "scenario": "bql/axes_addcols_all",
+ "call": "bq.bql(\"let(#ax=axes();) get(name, #ax) for(filter(bondsuniv(ACTIVE), crncy()=='USD' and basel_iii_designation() == 'Additional Tier 1' and country_iso() == 'SE' and is_axed('Bid') == True)) preferences(addcols=all)\")",
+ "format": 1,
+ "recorded": {
+  "date": "2024-12-17",
+  "converted_from": "tests/data/bql/bql_parse_results_axes_addcolsALL.json"
+ },
+ "request": {
+  "operation": "query",
+  "body": {
+   "expression": "let(#ax=axes();) get(name, #ax) for(filter(bondsuniv(ACTIVE), crncy()=='USD' and basel_iii_designation() == 'Additional Tier 1' and country_iso() == 'SE' and is_axed('Bid') == True)) preferences(addcols=all)",
+   "clientContext": {
+    "appName": "EXCEL"
+   }
+  }
+ },
+ "events": [
+  {
+   "type": "RESPONSE",
+   "messages": [
+    {
+     "type": "result",
+     "payload": {
+      "$json": {
+       "results": {
+        "name": {
+         "name": "name",
+         "offsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+         ],
+         "namespace": "FUNCTION_DEFAULT",
+         "source": "BQLAnalyticsEngine",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "YU819930 Corp",
+           "ZO703315 Corp",
+           "BR069680 Corp",
+           "ZL122341 Corp",
+           "ZQ349286 Corp",
+           "ZF859199 Corp",
+           "ZO703956 Corp",
+           "BW924993 Corp"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "SEB 6 ¾ PERP",
+           "SHBASS 4 ⅜ PERP",
+           "SWEDA 4 PERP",
+           "SWEDA 7 ⅝ PERP",
+           "SEB 5 ⅛ PERP",
+           "SWEDA 7 ¾ PERP",
+           "SHBASS 4 ¾ PERP",
+           "SEB 6 ⅞ PERP"
+          ]
+         },
+         "secondaryColumns": [],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "transparency": null,
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        },
+        "#ax": {
+         "name": "#ax",
+         "offsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+         ],
+         "namespace": "DATAITEM_DEFAULT",
+         "source": "AXES",
+         "idColumn": {
+          "name": "ID",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "YU819930 Corp",
+           "ZO703315 Corp",
+           "BR069680 Corp",
+           "ZL122341 Corp",
+           "ZQ349286 Corp",
+           "ZF859199 Corp",
+           "ZO703956 Corp",
+           "BW924993 Corp"
+          ]
+         },
+         "valuesColumn": {
+          "name": "VALUE",
+          "type": "STRING",
+          "rank": 0,
+          "values": [
+           "Y",
+           "Y",
+           "Y",
+           "Y",
+           "Y",
+           "Y",
+           "Y",
+           "Y"
+          ]
+         },
+         "secondaryColumns": [
+          {
+           "name": "ASK_PRICE",
+           "type": "DOUBLE",
+           "rank": 0,
+           "values": [
+            99.0,
+            96.6,
+            88.5,
+            103.875,
+            99.475,
+            104.5,
+            91.5,
+            102.0
+           ]
+          },
+          {
+           "name": "BID_PRICE",
+           "type": "DOUBLE",
+           "rank": 0,
+           "values": [
+            98.625,
+            96.0,
+            88.0,
+            103.375,
+            99.38,
+            104.0,
+            90.875,
+            101.5
+           ]
+          },
+          {
+           "name": "ASK_DEPTH",
+           "type": "INT",
+           "rank": 0,
+           "values": [
+            5,
+            1,
+            1,
+            1,
+            2,
+            3,
+            2,
+            3
+           ]
+          },
+          {
+           "name": "BID_DEPTH",
+           "type": "INT",
+           "rank": 0,
+           "values": [
+            1,
+            2,
+            1,
+            4,
+            5,
+            1,
+            2,
+            3
+           ]
+          },
+          {
+           "name": "ASK_DEALER",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            "HSBC",
+            "JPM",
+            "DNSK",
+            "DNSK",
+            "DB",
+            "DNSK",
+            "SG",
+            "DB"
+           ]
+          },
+          {
+           "name": "BID_DEALER",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            "DNSK",
+            "RBC",
+            "DNSK",
+            "DNSK",
+            "HSBC",
+            "DNSK",
+            "RBC",
+            "DNSK"
+           ]
+          },
+          {
+           "name": "ASK_SIZE",
+           "type": "DOUBLE",
+           "rank": 0,
+           "values": [
+            1000000.0,
+            5000000.0,
+            2000000.0,
+            1000000.0,
+            5000000.0,
+            1000000.0,
+            1200000.0,
+            5000000.0
+           ]
+          },
+          {
+           "name": "BID_SIZE",
+           "type": "DOUBLE",
+           "rank": 0,
+           "values": [
+            2000000.0,
+            5000000.0,
+            2000000.0,
+            2000000.0,
+            5200000.0,
+            2000000.0,
+            5000000.0,
+            2000000.0
+           ]
+          },
+          {
+           "name": "ASK_TOTAL_SIZE",
+           "type": "DOUBLE",
+           "rank": 0,
+           "values": [
+            9600000.0,
+            5000000.0,
+            2000000.0,
+            1000000.0,
+            5500000.0,
+            8000000.0,
+            3200000.0,
+            10000000.0
+           ]
+          },
+          {
+           "name": "BID_TOTAL_SIZE",
+           "type": "DOUBLE",
+           "rank": 0,
+           "values": [
+            2000000.0,
+            6000000.0,
+            2000000.0,
+            9400000.0,
+            27200000.0,
+            2000000.0,
+            6000000.0,
+            8000000.0
+           ]
+          },
+          {
+           "name": "ASK_PRICE_IS_DERIVED",
+           "type": "BOOLEAN",
+           "rank": 0,
+           "values": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+           ]
+          },
+          {
+           "name": "BID_PRICE_IS_DERIVED",
+           "type": "BOOLEAN",
+           "rank": 0,
+           "values": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+           ]
+          },
+          {
+           "name": "ASK_SPREAD",
+           "type": "DOUBLE",
+           "rank": 0,
+           "values": [
+            99.0,
+            171.845,
+            260.513,
+            216.445,
+            217.462,
+            243.937,
+            193.545,
+            176.719
+           ]
+          },
+          {
+           "name": "BID_SPREAD",
+           "type": "DOUBLE",
+           "rank": 0,
+           "values": [
+            265.791,
+            202.876,
+            274.02,
+            231.369,
+            99.38,
+            255.127,
+            206.647,
+            197.968
+           ]
+          },
+          {
+           "name": "ASK_SPREAD_IS_DERIVED",
+           "type": "BOOLEAN",
+           "rank": 0,
+           "values": [
+            null,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+           ]
+          },
+          {
+           "name": "BID_SPREAD_IS_DERIVED",
+           "type": "BOOLEAN",
+           "rank": 0,
+           "values": [
+            true,
+            true,
+            true,
+            true,
+            null,
+            true,
+            true,
+            true
+           ]
+          },
+          {
+           "name": "ASK_YIELD",
+           "type": "DOUBLE",
+           "rank": 0,
+           "values": [
+            6.93,
+            5.97,
+            6.88,
+            6.439,
+            6.438,
+            6.714,
+            6.452,
+            6.01
+           ]
+          },
+          {
+           "name": "BID_YIELD",
+           "type": "DOUBLE",
+           "rank": 0,
+           "values": [
+            7.003,
+            6.37,
+            7.015,
+            6.589,
+            6.7,
+            6.826,
+            6.585,
+            6.224
+           ]
+          },
+          {
+           "name": "ASK_YIELD_IS_DERIVED",
+           "type": "BOOLEAN",
+           "rank": 0,
+           "values": [
+            null,
+            null,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+           ]
+          },
+          {
+           "name": "BID_YIELD_IS_DERIVED",
+           "type": "BOOLEAN",
+           "rank": 0,
+           "values": [
+            true,
+            true,
+            true,
+            true,
+            null,
+            true,
+            true,
+            true
+           ]
+          },
+          {
+           "name": "ASK_AXE_SOURCE",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            "ERUN",
+            "RUN",
+            "ERUN",
+            "ERUN",
+            "ERUN",
+            "ERUN",
+            "ERUN",
+            "ERUN"
+           ]
+          },
+          {
+           "name": "BID_AXE_SOURCE",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            "ERUN",
+            "ERUN",
+            "ERUN",
+            "ERUN",
+            "ERUN",
+            "ERUN",
+            "ERUN",
+            "ERUN"
+           ]
+          },
+          {
+           "name": "ASK_BROKER",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            "HSCT",
+            "JP",
+            "DBCR",
+            "DBCR",
+            "DABC",
+            "DBCR",
+            "SGCR",
+            "DABC"
+           ]
+          },
+          {
+           "name": "BID_BROKER",
+           "type": "STRING",
+           "rank": 0,
+           "values": [
+            "DBCR",
+            "RBC",
+            "DBCR",
+            "DBCR",
+            "HSCT",
+            "DBCR",
+            "RBC",
+            "DBCR"
+           ]
+          },
+          {
+           "name": "ASK_HIST_AGG_SIZE",
+           "type": "DOUBLE",
+           "rank": 0,
+           "values": [
+            8360000.0,
+            3720000.0,
+            2000000.0,
+            6520000.0,
+            6460000.0,
+            11720000.0,
+            5200000.0,
+            10640000.0
+           ]
+          },
+          {
+           "name": "BID_HIST_AGG_SIZE",
+           "type": "DOUBLE",
+           "rank": 0,
+           "values": [
+            7240000.0,
+            10120000.0,
+            5000000.0,
+            36480000.0,
+            54560000.0,
+            12000000.0,
+            8000000.0,
+            16200000.0
+           ]
+          }
+         ],
+         "partialErrorMap": {
+          "errorIterator": null
+         },
+         "responseExceptions": [],
+         "transparency": null,
+         "forUniverse": true,
+         "bqlResponseInfo": null,
+         "defaultDateColumnName": null,
+         "itemPreviewStatistics": null,
+         "indexView": null
+        }
+       },
+       "responseExceptions": null
+      }
+     }
+    }
+   ]
+  }
+ ],
+ "expected": {
+  "names": [
+   "name",
+   "#ax"
+  ],
+  "frames": [
+   {
+    "schema": {
+     "ID": "String",
+     "name": "String"
+    },
+    "rows": [
+     [
+      "YU819930 Corp",
+      "SEB 6 ¾ PERP"
+     ],
+     [
+      "ZO703315 Corp",
+      "SHBASS 4 ⅜ PERP"
+     ],
+     [
+      "BR069680 Corp",
+      "SWEDA 4 PERP"
+     ],
+     [
+      "ZL122341 Corp",
+      "SWEDA 7 ⅝ PERP"
+     ],
+     [
+      "ZQ349286 Corp",
+      "SEB 5 ⅛ PERP"
+     ],
+     [
+      "ZF859199 Corp",
+      "SWEDA 7 ¾ PERP"
+     ],
+     [
+      "ZO703956 Corp",
+      "SHBASS 4 ¾ PERP"
+     ],
+     [
+      "BW924993 Corp",
+      "SEB 6 ⅞ PERP"
+     ]
+    ]
+   },
+   {
+    "schema": {
+     "ID": "String",
+     "#ax": "String",
+     "ASK_PRICE": "Float64",
+     "BID_PRICE": "Float64",
+     "ASK_DEPTH": "Int64",
+     "BID_DEPTH": "Int64",
+     "ASK_DEALER": "String",
+     "BID_DEALER": "String",
+     "ASK_SIZE": "Float64",
+     "BID_SIZE": "Float64",
+     "ASK_TOTAL_SIZE": "Float64",
+     "BID_TOTAL_SIZE": "Float64",
+     "ASK_PRICE_IS_DERIVED": "Boolean",
+     "BID_PRICE_IS_DERIVED": "Boolean",
+     "ASK_SPREAD": "Float64",
+     "BID_SPREAD": "Float64",
+     "ASK_SPREAD_IS_DERIVED": "Boolean",
+     "BID_SPREAD_IS_DERIVED": "Boolean",
+     "ASK_YIELD": "Float64",
+     "BID_YIELD": "Float64",
+     "ASK_YIELD_IS_DERIVED": "Boolean",
+     "BID_YIELD_IS_DERIVED": "Boolean",
+     "ASK_AXE_SOURCE": "String",
+     "BID_AXE_SOURCE": "String",
+     "ASK_BROKER": "String",
+     "BID_BROKER": "String",
+     "ASK_HIST_AGG_SIZE": "Float64",
+     "BID_HIST_AGG_SIZE": "Float64"
+    },
+    "rows": [
+     [
+      "YU819930 Corp",
+      "Y",
+      99.0,
+      98.625,
+      5,
+      1,
+      "HSBC",
+      "DNSK",
+      1000000.0,
+      2000000.0,
+      9600000.0,
+      2000000.0,
+      null,
+      null,
+      99.0,
+      265.791,
+      null,
+      true,
+      6.93,
+      7.003,
+      null,
+      true,
+      "ERUN",
+      "ERUN",
+      "HSCT",
+      "DBCR",
+      8360000.0,
+      7240000.0
+     ],
+     [
+      "ZO703315 Corp",
+      "Y",
+      96.6,
+      96.0,
+      1,
+      2,
+      "JPM",
+      "RBC",
+      5000000.0,
+      5000000.0,
+      5000000.0,
+      6000000.0,
+      null,
+      null,
+      171.845,
+      202.876,
+      true,
+      true,
+      5.97,
+      6.37,
+      null,
+      true,
+      "RUN",
+      "ERUN",
+      "JP",
+      "RBC",
+      3720000.0,
+      10120000.0
+     ],
+     [
+      "BR069680 Corp",
+      "Y",
+      88.5,
+      88.0,
+      1,
+      1,
+      "DNSK",
+      "DNSK",
+      2000000.0,
+      2000000.0,
+      2000000.0,
+      2000000.0,
+      null,
+      null,
+      260.513,
+      274.02,
+      true,
+      true,
+      6.88,
+      7.015,
+      true,
+      true,
+      "ERUN",
+      "ERUN",
+      "DBCR",
+      "DBCR",
+      2000000.0,
+      5000000.0
+     ],
+     [
+      "ZL122341 Corp",
+      "Y",
+      103.875,
+      103.375,
+      1,
+      4,
+      "DNSK",
+      "DNSK",
+      1000000.0,
+      2000000.0,
+      1000000.0,
+      9400000.0,
+      null,
+      null,
+      216.445,
+      231.369,
+      true,
+      true,
+      6.439,
+      6.589,
+      true,
+      true,
+      "ERUN",
+      "ERUN",
+      "DBCR",
+      "DBCR",
+      6520000.0,
+      36480000.0
+     ],
+     [
+      "ZQ349286 Corp",
+      "Y",
+      99.475,
+      99.38,
+      2,
+      5,
+      "DB",
+      "HSBC",
+      5000000.0,
+      5200000.0,
+      5500000.0,
+      27200000.0,
+      null,
+      null,
+      217.462,
+      99.38,
+      true,
+      null,
+      6.438,
+      6.7,
+      true,
+      null,
+      "ERUN",
+      "ERUN",
+      "DABC",
+      "HSCT",
+      6460000.0,
+      54560000.0
+     ],
+     [
+      "ZF859199 Corp",
+      "Y",
+      104.5,
+      104.0,
+      3,
+      1,
+      "DNSK",
+      "DNSK",
+      1000000.0,
+      2000000.0,
+      8000000.0,
+      2000000.0,
+      null,
+      null,
+      243.937,
+      255.127,
+      true,
+      true,
+      6.714,
+      6.826,
+      true,
+      true,
+      "ERUN",
+      "ERUN",
+      "DBCR",
+      "DBCR",
+      11720000.0,
+      12000000.0
+     ],
+     [
+      "ZO703956 Corp",
+      "Y",
+      91.5,
+      90.875,
+      2,
+      2,
+      "SG",
+      "RBC",
+      1200000.0,
+      5000000.0,
+      3200000.0,
+      6000000.0,
+      null,
+      null,
+      193.545,
+      206.647,
+      true,
+      true,
+      6.452,
+      6.585,
+      true,
+      true,
+      "ERUN",
+      "ERUN",
+      "SGCR",
+      "RBC",
+      5200000.0,
+      8000000.0
+     ],
+     [
+      "BW924993 Corp",
+      "Y",
+      102.0,
+      101.5,
+      3,
+      3,
+      "DB",
+      "DNSK",
+      5000000.0,
+      2000000.0,
+      10000000.0,
+      8000000.0,
+      null,
+      null,
+      176.719,
+      197.968,
+      true,
+      true,
+      6.01,
+      6.224,
+      true,
+      true,
+      "ERUN",
+      "ERUN",
+      "DABC",
+      "DBCR",
+      10640000.0,
+      16200000.0
+     ]
+    ]
+   }
+  ]
+ }
+}

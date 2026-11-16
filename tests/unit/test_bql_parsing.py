@@ -1,15 +1,14 @@
 import json
 import logging
 from datetime import date
-from unittest.mock import MagicMock, patch
 
 import polars as pl
 import pytest
 import yaml
-from support import DATA_DIR
+from support import DATA_DIR, load_recording
 
 from polars_bloomberg import BQuery
-from polars_bloomberg.plbbg import BqlResult, SITable
+from polars_bloomberg.plbbg import BqlResult
 
 pytestmark = pytest.mark.no_bbg
 
@@ -17,8 +16,8 @@ pytestmark = pytest.mark.no_bbg
 def test_extract_results_with_bql_syntax_error(caplog):
     bq = BQuery()
 
-    with open(DATA_DIR / "bql" / "response_bql_raised_exception.json") as f:
-        responses = json.load(f)
+    recording = load_recording("bql/syntax_error")
+    responses = [m["payload"] for m in recording["events"][0]["messages"]]
 
     with caplog.at_level(logging.ERROR):
         result, errors = bq._extract_results([responses[-1]])
@@ -269,35 +268,6 @@ def test_parse_bql_responses():
     assert tbl.schema == exp_schema
 
 
-def test_bql_calls_components():
-    bq = BQuery()
-    mock_request = MagicMock()
-    tables = [
-        SITable(
-            name="px_last",
-            data={"ID": ["IBM US Equity"], "px_last": [123.4]},
-            schema={"ID": pl.Utf8, "px_last": pl.Float64},
-        )
-    ]
-
-    with (
-        patch.object(bq, "_create_bql_request", return_value=mock_request)
-        as create_mock,
-        patch.object(bq, "_send_request", return_value=["raw"]) as send_mock,
-        patch.object(
-            bq, "_parse_bql_responses", return_value=(tables, [])
-        ) as parse_mock,
-    ):
-        result = bq.bql("get(px_last) for('IBM US Equity')")
-
-    assert isinstance(result, BqlResult)
-    assert result.names == ["px_last"]
-    assert result[0].shape == (1, 2)
-    create_mock.assert_called_once_with("get(px_last) for('IBM US Equity')")
-    send_mock.assert_called_once_with(mock_request)
-    parse_mock.assert_called_once_with(["raw"])
-
-
 def test__extract_results():
     bq = BQuery()
     payload = {
@@ -384,33 +354,6 @@ def test_extract_results_skips_non_dict():
     results, errors = bq._extract_results(responses)
     assert results == [{"ok": True}]
     assert errors == []
-
-
-@pytest.mark.parametrize(
-    "case_json_file",
-    [
-        "bql_parse_results_last_px.json",
-        "bql_parse_results_dur_zspread.json",
-        "bql_parse_results_axes.json",
-        "bql_parse_results_segment.json",
-        "bql_parse_results_eps.json",
-        "bql_parse_results_rets.json",
-        "bql_parse_results_axes_addcolsALL.json",
-    ],
-)
-def test__parse_result_replay(case_json_file):
-    with open(DATA_DIR / "bql" / case_json_file) as f:
-        data = json.load(f)
-
-    in_result: dict = data["in_results"]
-    out_tables: list[dict] = data["out_tables"]
-
-    bq = BQuery()
-    tables = bq._parse_result(in_result)
-    for i, table in enumerate(tables):
-        assert table.name == out_tables[i]["name"]
-        assert table.data == out_tables[i]["data"]
-        assert {k: str(v) for k, v in table.schema.items()} == out_tables[i]["schema"]
 
 
 @pytest.mark.parametrize(

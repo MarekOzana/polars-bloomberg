@@ -10,7 +10,7 @@ from datetime import date, datetime
 import blpapi
 import polars as pl
 import pytest
-from support import DATA_DIR, FakeEvent, FakeMessage, answer, fake_bq, replay
+from support import FakeEvent, FakeMessage, answer, fake_bq, replay
 
 from polars_bloomberg import BloombergError
 
@@ -65,11 +65,7 @@ def test_bql_infinity_strings_become_inf():
 
 
 def test_bql_syntax_error_returns_empty_result_and_logs(caplog):
-    recorded = json.loads(
-        (DATA_DIR / "bql" / "response_bql_raised_exception.json").read_text()
-    )
-    syntax_error_payload = recorded[-1]  # the JSON string with responseExceptions
-    bq = fake_bq([answer(syntax_error_payload)])
+    bq, _ = replay("bql/syntax_error")  # a JSON string with responseExceptions
 
     with caplog.at_level(logging.ERROR):
         result = bq.bql("get(px_lastfor(['IBM US Equity'])")
