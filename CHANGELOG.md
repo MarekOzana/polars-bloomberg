@@ -113,3 +113,24 @@ All notable changes to polars-bloomberg are listed here.
   missing from the first row.
 - `polars_bloomberg.__version__` said 0.5.4 while the package was 0.6.0. It is now
   read from the installed package's metadata, so the two cannot disagree again.
+
+### Documentation
+
+- README: a new section "Errors, Warnings and Empty Results" lists which exception
+  each failure raises (`BloombergError`, `ConnectionError`, `TimeoutError`), the
+  warning for invalid securities and fields, what an empty result looks like,
+  `BqlResult.errors`, the `timeout` and `debug` options, `start()`/`stop()`, and
+  that one `BQuery` must not be used from several threads at once. Each page under
+  `docs/usage/` says how its method reports errors and empty results.
+- `combine()`: without `on` it joins on every shared column, so a row whose shared
+  columns hold nulls (for example a security without a `DATE`) appears twice.
+  `combine(on="ID")` gives one row per security; the README examples that mean one
+  row per security use it.
+- `bdib`: `time` is a naive datetime holding UTC; the docstring said the time zone
+  was kept. An interval outside 1-1440 raises `BloombergError`, not a schema error.
+- The `Raises` sections name `BloombergError`, `ConnectionError` and `TimeoutError`.
+- Corrected docstring examples: wrong `shape:` lines, an example that asked for IBM
+  and showed AAPL, a "no common columns" example that cannot raise, and a `bsrch`
+  example that showed the limit warning the `LIMIT` override suppresses. The
+  README's `bdip` is `bdib`. Changed example outputs were re-run on a Bloomberg
+  Terminal.

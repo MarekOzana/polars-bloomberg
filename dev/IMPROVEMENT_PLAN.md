@@ -49,7 +49,7 @@ Do the steps of section 7 in order. Later steps use the test tools of earlier on
 - [x] Step 8: `bsrch`
 - [x] Step 9: clean-up
 - [x] Step 10: tooling and CI
-- [ ] Step 11: documentation
+- [x] Step 11: documentation
 
 Tick a box when the step's "Done when" list is met, and commit this file with the step.
 
