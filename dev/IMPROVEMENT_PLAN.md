@@ -43,7 +43,7 @@ Do the steps of section 7 in order. Later steps use the test tools of earlier on
 - [x] Step 2: event loop (live gate before coding, live check before merging)
 - [x] Step 3: session lifecycle
 - [x] Step 4: debug dump, recordings, contract tests, live checks (needs Bloomberg)
-- [ ] Step 5: `bdp` and `bdh` results
+- [x] Step 5: `bdp` and `bdh` results
 - [ ] Step 6: inputs
 - [ ] Step 7: BQL
 - [ ] Step 8: `bsrch`

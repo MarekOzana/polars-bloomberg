@@ -93,6 +93,38 @@ def _write_debug_dump(directory: str, request: blpapi.Request, events: list) -> 
         logger.warning("Could not write debug dump %s: %s", path, error)
 
 
+# --- errors Bloomberg reports inside a bdp/bdh answer ---
+
+_MAX_LOGGED_ERRORS = 10
+
+
+def _item_errors(security_data: dict) -> list[str]:
+    """Describe the errors Bloomberg reported for one securityData element."""
+    name = security_data.get("security")
+    lines = []
+    if error := security_data.get("securityError"):
+        lines.append(f"{name}: {error.get('message')} ({error.get('category')})")
+    for exception in security_data.get("fieldExceptions") or []:
+        info = exception.get("errorInfo") or {}
+        lines.append(
+            f"{name} / {exception.get('fieldId')}: "
+            f"{info.get('message')} ({info.get('category')})"
+        )
+    return lines
+
+
+def _warn_item_errors(lines: list[str]) -> None:
+    """Log the errors of one call as a single warning, at most ten lines of them."""
+    if not lines:
+        return
+    shown = lines[:_MAX_LOGGED_ERRORS]
+    if len(lines) > _MAX_LOGGED_ERRORS:
+        shown.append(f"... and {len(lines) - _MAX_LOGGED_ERRORS} more")
+    logger.warning(
+        "Bloomberg reported %d error(s):\n  %s", len(lines), "\n  ".join(shown)
+    )
+
+
 @dataclass
 class SITable:
     """Holds data and schema for a Single Item response Table."""
@@ -520,7 +552,14 @@ class BQuery:
             options (dict, optional): Additional request options. Defaults to None.
 
         Returns:
-            pl.DataFrame: A Polars DataFrame containing the requested reference data.
+            pl.DataFrame: A Polars DataFrame containing the requested reference data,
+                with a ``security`` column and one column per field. Rows may come
+                back in a different order than ``securities``; Bloomberg answers
+                large requests in batches. In an empty result, the field columns
+                have dtype ``Null``.
+
+            An invalid security gives a row of nulls and an invalid field a column
+            of nulls; Bloomberg's reason is logged as one warning per call.
 
         Raises:
             ConnectionError: If there is an issue with the Bloomberg session.
@@ -556,7 +595,8 @@ class BQuery:
         )
         responses = self._send_request(request)
         data = self._parse_bdp_responses(responses, fields)
-        return pl.DataFrame(data)
+        schema = {"security": pl.String, **dict.fromkeys(fields)}
+        return pl.DataFrame(data, schema=schema, infer_schema_length=None)
 
     def bdh(
         self,
@@ -580,7 +620,12 @@ class BQuery:
             options (dict, optional): Additional request options. Defaults to None.
 
         Returns:
-            pl.DataFrame: A Polars DataFrame containing the requested historical data.
+            pl.DataFrame: A Polars DataFrame containing the requested historical data,
+                with ``security`` and ``date`` columns and one column per field. In
+                an empty result, the field columns have dtype ``Null``.
+
+            An invalid security gives no rows and an invalid field a column of
+            nulls; Bloomberg's reason is logged as one warning per call.
 
         Raises:
             ConnectionError: If there is an issue with the Bloomberg session.
@@ -626,7 +671,12 @@ class BQuery:
         request.set("endDate", end_date.strftime("%Y%m%d"))
         responses = self._send_request(request)
         data = self._parse_bdh_responses(responses, fields)
-        return pl.DataFrame(data, infer_schema_length=None)
+        schema = {
+            "security": pl.String,
+            "date": pl.Date,
+            **dict.fromkeys(fields),
+        }
+        return pl.DataFrame(data, schema=schema, infer_schema_length=None)
 
     def bdib(  # noqa: PLR0913
         self,
@@ -1039,23 +1089,28 @@ class BQuery:
         self, responses: list[dict], fields: list[str]
     ) -> list[dict]:
         data = []
+        errors = []
         for response in responses:
             security_data = response.get("securityData", [])
             for sec in security_data:
+                errors.extend(_item_errors(sec))
                 security = sec.get("security")
                 field_data = sec.get("fieldData", {})
                 record = {"security": security}
                 for field in fields:
                     record[field] = field_data.get(field)
                 data.append(record)
+        _warn_item_errors(errors)
         return data
 
     def _parse_bdh_responses(
         self, responses: list[dict], fields: list[str]
     ) -> list[dict]:
         data = []
+        errors = []
         for response in responses:
             security_data = response.get("securityData", {})
+            errors.extend(_item_errors(security_data))
             security = security_data.get("security")
             field_data_array = security_data.get("fieldData", [])
             for entry in field_data_array:
@@ -1063,6 +1118,7 @@ class BQuery:
                 for field in fields:
                     record[field] = entry.get(field)
                 data.append(record)
+        _warn_item_errors(errors)
         return data
 
     def _parse_bdib_responses(

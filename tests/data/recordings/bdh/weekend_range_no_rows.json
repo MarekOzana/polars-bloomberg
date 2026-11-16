@@ -40,7 +40,11 @@
   }
  ],
  "expected": {
-  "schema": {},
+  "schema": {
+   "security": "String",
+   "date": "Date",
+   "PX_LAST": "Null"
+  },
   "rows": []
  }
 }

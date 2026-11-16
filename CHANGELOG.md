@@ -36,6 +36,15 @@ All notable changes to polars-bloomberg are listed here.
 - The `timeout` argument is documented as what it is: the longest wait for the next
   event from Bloomberg, not a limit on the whole request.
 
+- Empty `bdp` and `bdh` results have their columns (`security`, for `bdh` also
+  `date`, then one per field) instead of no columns at all. Field columns of an
+  empty result have dtype `Null`.
+- `bdp` and `bdh` log one warning per call that lists the invalid securities and
+  fields Bloomberg reported, with its reason, for example
+  `NOT A SECURITY Equity: Unknown/Invalid Security (BAD_SEC)`. The DataFrame is
+  unchanged: an invalid security is still a null row in `bdp` and has no rows in
+  `bdh`; an invalid field is still a column of nulls.
+
 ### Fixed
 
 - After a `TimeoutError` or an interrupted call (for example "interrupt kernel" in a
@@ -43,3 +52,5 @@ All notable changes to polars-bloomberg are listed here.
   call stayed one answer behind. Each call now accepts only the answer to its own
   request, and an abandoned request is cancelled.
 - Session and service status messages are no longer collected as part of an answer.
+- `bdp` no longer fails with a Polars `ComputeError` when a field's first value comes
+  after the first 100 securities.
