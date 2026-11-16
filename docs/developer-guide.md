@@ -1,20 +1,59 @@
 ---
 title: Developer Guide
-description: How polars-bloomberg is built - the one pipeline every call follows, a map of plbbg.py, the Bloomberg quirks it handles, and recipes for fixing bugs and adding features with offline tests.
+description: How polars-bloomberg is built - the one pipeline every call follows, a map of plbbg.py, how to find a bug with a debug dump, the Bloomberg quirks the code handles, and recipes for fixing bugs and adding features with offline tests.
 ---
 
 # Developer guide
 
-This page is for someone who opens the repository with a bug report or a feature
-idea. It takes about ten minutes to read. After it you should know how a call flows,
-where a bug must be, and how to turn a strange Bloomberg answer into an offline test.
+You have a bug report or a feature idea for polars-bloomberg. Three facts keep the
+work small:
+
+- **The code is one file.** Almost everything is in `polars_bloomberg/plbbg.py`,
+  and it reads from top to bottom.
+- **Every call runs the same five steps.** When you can read `bdp`, you can read
+  the other four methods.
+- **You need no Bloomberg Terminal.** The tests replay recorded Bloomberg answers,
+  and a user's failing call can be saved to a file and replayed on your machine.
+
+The first six sections, up to [Find where a bug is](#find-where-a-bug-is), are a
+tour: read them in order, in about eight minutes. The sections after them are for
+looking things up.
+
+| You want to | Go to |
+|---|---|
+| run the tests for the first time | [Set up](#set-up) |
+| find the code behind a wrong result | [Find where a bug is](#find-where-a-bug-is) |
+| reproduce a user's bug without a Terminal | [Capture a failing case](#capture-a-failing-case-and-turn-it-into-an-offline-test) |
+| know whether a strange behavior is Bloomberg's | [Bloomberg quirks the code handles](#bloomberg-quirks-the-code-handles) |
+| add an option or a new method | [Add an option](#add-an-option), [Add a new request type](#add-a-new-request-type) |
+| know what a pull request must satisfy | [Before you open a pull request](#before-you-open-a-pull-request) |
+
+## Set up
+
+In your clone of the repository:
+
+```bash
+uv sync --extra dev --extra docs
+uv run pytest
+```
+
+All tests pass in about a second. The live tests are reported as skipped: they run
+only with `pytest --bbg`, at a Bloomberg Terminal.
+
+The other commands on this page are written without `uv run`. Put it in front of
+each, or activate the environment once: `source .venv/bin/activate`, on Windows
+`.venv\Scripts\activate`.
+
+`blpapi` is not on PyPI; `pyproject.toml` tells uv where Bloomberg publishes it.
+Without uv, run `pip install -r requirements.txt` and then
+`pip install -e ".[dev]"` in an environment of your own.
 
 ## The library in one minute
 
 polars-bloomberg is five methods on `BQuery`: `bdp`, `bdh`, `bdib`, `bql` and
 `bsrch`. Each one sends one Bloomberg request and turns the answer into one Polars
 DataFrame (`bql` returns a `BqlResult`, which holds one DataFrame per item of the
-query). Almost all of the code is in one file, `polars_bloomberg/plbbg.py`.
+query).
 
 Every method runs the same five steps. This is `bdp` without its docstring:
 
@@ -40,9 +79,26 @@ def bdp(self, securities, fields, overrides=None, options=None):
 ```
 
 A *payload* is one message of Bloomberg's answer as plain Python (`msg.toPy()`):
-dicts, lists, numbers, strings and dates. Steps 4 and 5 work on such plain data only.
-That is why the offline tests need no Bloomberg: they hand recorded payloads to the
-same code.
+dicts, lists, numbers, strings and dates. The schema names the columns and gives a
+dtype to `security` only; Polars infers the dtype of each field from all rows.
+
+Only step 3 talks to Bloomberg, and it does so through one object, the session:
+
+```text
+bq.bdp(...)                                                         DataFrame
+    │                                                                   ▲
+    ▼                                                                   │
+1 check inputs ─► 2 build request ─► 3 send ─► 4 parse answer ─► 5 build DataFrame
+                                      │  ▲
+                              request ▼  │ payloads
+                                   the session
+                      live:   Bloomberg answers
+                      tests:  a fake session replays a recorded answer
+```
+
+This is why the offline tests need no Bloomberg. They call the public methods on a
+`BQuery` whose session is a `FakeSession` (in `tests/support.py`). All five steps
+run as they do for a user; only the answer comes from a file.
 
 The other four methods read the same way. They differ in these places:
 
@@ -54,11 +110,31 @@ The other four methods read the same way. They differ in these places:
 | `bql` | `//blp/bqlsvc` | `sendQuery` | `_parse_bql` | the answer is JSON text; one DataFrame per item; errors are part of the answer |
 | `bsrch` | `//blp/exrsvc` | `ExcelGetGridRequest` | `_parse_bsrch` | overrides are sent as text; the answer is a grid without column types |
 
+## Words used on this page
+
+The first seven rows are Bloomberg's words, which you will also meet in Bloomberg's
+documentation. The last four belong to this repository.
+
+| Word | Meaning |
+|---|---|
+| security, field | What a request asks about (`IBM US Equity`) and what it asks for (`PX_LAST`). |
+| override | A value that replaces one that Bloomberg would otherwise use in a calculation, for example `REFERENCE_DATE`. |
+| option | A setting of the request itself, for example `periodicitySelection`. |
+| session | The connection to Bloomberg, a `blpapi.Session`. `BQuery.start()` opens it. |
+| service | A group of request types, for example `//blp/refdata`. A session opens a service before it uses it. |
+| event, message | Bloomberg answers in events, and an event holds messages. The last event of an answer has the type `RESPONSE`; the events before it have the type `PARTIAL_RESPONSE`. |
+| correlation ID | The ticket that the session returns when a request is sent. Every message of the answer carries it. |
+| payload | One message as plain Python. |
+| debug dump | The JSON file that `BQuery(debug=True)` writes for each request: the request and the messages that came back. |
+| recording | A debug dump stored in `tests/data/recordings/`, with the result of the call added as `"expected"`. |
+| scenario | A named call in `tests/recordings.py`. Its answer is the recording of the same name. |
+
 ## A map of `plbbg.py`
 
 The module docstring is the table of contents. The file has eight numbered sections.
 The class comes first and shows the five steps of each method; the sections after it
-hold what the steps call.
+hold what the steps call. Each section starts with a banner comment, so a search for
+`# 3.` takes you to section 3. The table names the main functions of each section.
 
 | Section | What is in it | Go here when |
 |---|---|---|
@@ -66,15 +142,16 @@ hold what the steps call.
 | 2. Inputs and requests | `_as_list`, `_check_no_field_is_named`, `_yyyymmdd`, `_append_values`, `_set_overrides`, `_override_pairs`, `_set_options` | an input is refused or sent in the wrong form |
 | 3. bdp and bdh | `_parse_bdp`, `_parse_bdh`, `_security_errors`, `_warn_security_errors` | a value or row is missing; a warning about a security or field is wrong |
 | 4. bdib | `_iso_datetime`, `_BAR_SCHEMA`, `_parse_bdib` | times are off; a bar column is missing |
-| 5. bql | `_set_bql_client_context`, `_parse_bql`, `_load_bql_answers`, `_bql_item`, `_BQL_DTYPES`, the readers of text values, `_bql_dataframe` | a BQL column has the wrong type or name; an error message is lost |
+| 5. bql | `_set_bql_client_context`, `_parse_bql`, `_load_bql_answers`, `_bql_item`, `_BQL_DTYPES`, `_bql_number`, `_bql_date`, `_bql_datetime`, `_bql_dataframe` | a BQL column has the wrong type or name; an error message is lost |
 | 6. bsrch | `_set_bsrch_overrides`, `_parse_bsrch`, `_cell_value`, `_blank_strings_to_none` | a search column has the wrong type or title |
 | 7. `BqlResult` | the frames of a BQL answer and `combine()` | joining BQL items gives unexpected rows or columns |
 | 8. Debug dump | `_write_debug_dump`, `_json_default` | you change what `BQuery(debug=True)` writes |
 
 ## One call, end to end
 
-Take `bq.bdp(["IBM US Equity", "NOT A SECURITY Equity"], ["NAME"])`. Bloomberg's
-answer to it is stored in `tests/data/recordings/bdp/invalid_security_mixed.json`.
+Take `bq.bdp(["IBM US Equity", "NOT A SECURITY Equity"], ["NAME"])`: one security
+that exists and one that does not. Bloomberg's answer to it is stored in
+`tests/data/recordings/bdp/invalid_security_mixed.json`.
 
 1. **Check the inputs.** `_as_list` lets a caller pass one name as a string.
    `_check_no_field_is_named` refuses a field called `security`, because it would
@@ -87,60 +164,152 @@ answer to it is stored in `tests/data/recordings/bdp/invalid_security_mixed.json
 3. **Send it.** `_send_request` sends the request and reads events until the
    `RESPONSE` event that ends the answer. It keeps only messages that carry the
    correlation ID of this request, raises `BloombergError` if Bloomberg refuses the
-   request, and returns the payloads. Here that is one payload:
-   `{"securityData": [{"security": "IBM US Equity", "fieldData": {"NAME": ...}},
-   {"security": "NOT A SECURITY Equity", "securityError": {...}, "fieldData": {}}]}`.
-   If the `BQuery` was created with `debug=`, `_write_debug_dump` writes the request
-   and the messages to a file at this point, also when the request failed.
-4. **Parse the answer.** `_parse_bdp` makes one row per security. `_security_errors`
-   turns the `securityError` into the line
-   `NOT A SECURITY Equity: Unknown/Invalid Security (BAD_SEC)`, and
+   request, and returns the payloads. Here that is one payload (shortened):
+
+    ```python
+    {
+        "securityData": [
+            {
+                "security": "IBM US Equity",
+                "fieldData": {"NAME": "INTL BUSINESS MACHINES CORP"},
+            },
+            {
+                "security": "NOT A SECURITY Equity",
+                "securityError": {
+                    "category": "BAD_SEC",
+                    "message": "Unknown/Invalid Security  [nid:<server>]",
+                },
+                "fieldData": {},
+            },
+        ]
+    }
+    ```
+
+    If the `BQuery` was created with `debug=`, `_write_debug_dump` writes the
+    request and the messages to a file at this point, also when the request failed.
+
+4. **Parse the answer.** `_parse_bdp` makes one row per security. The unknown
+   security has no `NAME` in its `fieldData`, so its row holds `None`.
+   `_security_errors` turns the `securityError` into one line of text, and
    `_warn_security_errors` logs all such lines of the call as one warning.
 5. **Build the DataFrame.** Two rows; `NAME` is null for the unknown security.
 
+The caller sees a warning in the log and gets the DataFrame:
+
+```text
+Bloomberg reported 1 error(s):
+  NOT A SECURITY Equity: Unknown/Invalid Security  [nid:<server>] (BAD_SEC)
+
+shape: (2, 2)
+┌───────────────────────┬─────────────────────────────┐
+│ security              ┆ NAME                        │
+│ ---                   ┆ ---                         │
+│ str                   ┆ str                         │
+╞═══════════════════════╪═════════════════════════════╡
+│ IBM US Equity         ┆ INTL BUSINESS MACHINES CORP │
+│ NOT A SECURITY Equity ┆ null                        │
+└───────────────────────┴─────────────────────────────┘
+```
+
+`[nid:<server>]` stands for the name of the Bloomberg server that answered. A
+recording never stores that name.
+
+## Find where a bug is
+
+A debug dump tells you which of the five steps went wrong. Run the failing call with
+`BQuery(debug=True)`. Every request then writes one JSON file to `debug_cases/`: the
+request that was sent, and every message that came back. This is the dump of
+`bq.bdp(["IBM US Equity"], ["NAME", "NOT_A_FIELD"])`, shortened:
+
+```json
+{
+ "format": 1,
+ "recorded": {"date": "2026-11-16", "blpapi": "3.26.10.1", "polars": "2.1.0"},
+ "request": {
+  "operation": "ReferenceDataRequest",
+  "body": {"securities": ["IBM US Equity"], "fields": ["NAME", "NOT_A_FIELD"]}
+ },
+ "events": [{
+   "type": "RESPONSE",
+   "messages": [{
+     "type": "ReferenceDataResponse",
+     "payload": {"securityData": [{
+       "security": "IBM US Equity",
+       "fieldExceptions": [{
+         "fieldId": "NOT_A_FIELD",
+         "errorInfo": {"category": "BAD_FLD", "message": "Field not valid"}
+       }],
+       "fieldData": {"NAME": "INTL BUSINESS MACHINES CORP"}
+     }]}
+   }]
+ }]
+}
+```
+
+Compare the dump with what the user expected, from the top:
+
+| What you find | Where to look |
+|---|---|
+| No file was written | Nothing was sent. The call failed in step 1 or in `_create_request`: the session is not started, or the service did not open. |
+| `request` is not what the user asked for | Step 2: the body of the method, and section 2 of `plbbg.py`. |
+| `request` is right, but `events` does not hold the data, or holds an error | Bloomberg did not send the data. Look for the behavior in the [quirks table](#bloomberg-quirks-the-code-handles). If it is not there, the cause is usually the content of the request (a field, an override, an entitlement) and not the library. |
+| `events` holds the data, but the DataFrame lacks it, or has it under the wrong name or dtype | Steps 4 and 5: the parser of the method, in sections 3 to 6. |
+| The call hangs, times out, or returns the data of another call | Step 3: `_send_request`. |
+
+The same file is the input of an offline test. See
+[Capture a failing case](#capture-a-failing-case-and-turn-it-into-an-offline-test).
+
 ## Bloomberg quirks the code handles
 
-Each quirk has a comment at the place that handles it. A name like
-`bdp/partial_responses` is the recording `tests/data/recordings/bdp/partial_responses.json`;
-open it to see the raw answer.
+Read this table before you "fix" something: what looks like a bug of the library
+is often a behavior of Bloomberg that the code handles on purpose. Each quirk has a
+comment at the place that handles it. A name like `bdp/partial_responses` is the
+recording `tests/data/recordings/bdp/partial_responses.json`; open it to see the
+raw answer. Where no recording shows the quirk, the table names a test.
 
 | Quirk | Handled in | Shown by |
 |---|---|---|
-| An answer arrives as several events, and `bdp` rows not in the order of the request | `_send_request`, `_parse_bdp` | `bdp/partial_responses` |
+| **Any call** | | |
+| An answer arrives as several events | `_send_request` | `bdp/partial_responses` |
 | The reply to an old request that timed out arrives during the next request | `_send_request` (correlation ID check, and the cancel on any error) | `test_late_answer_to_timed_out_request_is_not_returned_to_next_request` in `tests/unit/test_send_request.py` |
-| Bloomberg refuses a request in two ways: a `RequestFailure` message, or a `responseError` inside a normal response | `_send_request` | `bdp/no_securities`, `bdib/invalid_security` |
+| Bloomberg refuses a request in two ways: a `RequestFailure` message, or a `responseError` inside a normal response | `_send_request` | `test_request_failure_raises_bloomberg_error_with_reason` in `tests/unit/test_send_request.py` (the first way); `bdp/no_securities` (the second) |
+| An override date must be sent as `YYYYMMDD`; Bloomberg ignores other forms without an error | `_override_pairs` | `bdp/override_reference_date` (the accepted form) |
+| **`bdp` and `bdh`** | | |
 | An unknown security or field does not fail the request; it is reported inside the answer | `_security_errors` | `bdp/invalid_security_mixed`, `bdp/invalid_field_mixed`, `bdh/invalid_field_mixed` |
 | An unknown security is a row of nulls in `bdp` but no rows in `bdh` | `_parse_bdp`, `_parse_bdh` | `bdp/invalid_security_mixed`, `bdh/invalid_security_mixed` |
+| `bdp` rows come back in Bloomberg's order, not in the order of the request | `_parse_bdp` | `bdp/partial_responses` |
 | Field names come back spelled as the request spelled them | `_parse_bdp` | `bdp/lowercase_field` |
-| An override date must be sent as `YYYYMMDD`; Bloomberg ignores other forms without an error | `_override_pairs` | `bdp/override_reference_date` (the accepted form) |
+| **`bdib`** | | |
+| An unknown security fails the whole request here, with a `responseError` | `_send_request` | `bdib/invalid_security` |
 | Intraday times are UTC, in the request and in the answer | `_iso_datetime`, `_BAR_SCHEMA` | `bdib/trade_bars_60min` |
 | The intraday answer does not name the security | `_parse_bdib` | `bdib/trade_bars_60min` |
+| **`bql`** | | |
+| The request says that it comes from Excel, as Bloomberg's own Excel add-in does | `_set_bql_client_context` | `test_bql_request_sets_expression_and_client_context` in `tests/unit/test_requests.py` |
 | A BQL answer is JSON text, and a long one is cut into fragments over several messages | `_load_bql_answers` | `test_bql_answer_split_over_several_messages_is_joined` in `tests/unit/test_bql.py` |
 | A failed BQL query is an answer too, with its reason inside | `_parse_bql` | `bql/syntax_error`, `bql/invalid_item` |
 | "No results" is sent as an exception of type `BENIGN` | `_parse_bql` | `bql/empty_universe` |
 | BQL sends dates, NaN and infinity as text | `_bql_date`, `_bql_datetime`, `_bql_number` | `bql/date_value`, `bql/nan_and_infinity` |
 | A BQL item can be named like one of its own columns | `_bql_item` | `bql/item_named_id` |
+| **`bsrch`** | | |
 | A search grid has no column types; an empty numeric cell is a blank string | `_cell_value`, `_blank_strings_to_none` | `test_bsrch_blank_cells_in_numeric_column_become_null` in `tests/unit/test_bsrch.py` |
 | `ReachMax` is true also when a `LIMIT` override cut the search short | `_parse_bsrch` | `bsrch/coco_limit_2` |
 | A failed search is a grid with an `Error` text | `_parse_bsrch` | `bsrch/invalid_domain` |
 
 ## Recipes
 
-### Set up and run the checks
+### Run the checks
 
-```bash
-uv sync --extra dev --extra docs
-```
-
-`blpapi` is not on PyPI; `pyproject.toml` tells uv where Bloomberg publishes it.
-
-| Check | Command | Needs |
+| Check | Command | Run it |
 |---|---|---|
-| Offline tests | `pytest` | nothing |
-| Lint and format | `ruff check .` and `ruff format --check .` | nothing |
-| Recordings replay to the same results | `python tests/record.py --refresh-expected`, then `git diff --stat tests/data/recordings` must print nothing | nothing |
-| Docs build | `mkdocs build --strict` | the `docs` extra |
-| Live tests | `pytest --bbg` | a Bloomberg Terminal on this machine |
+| Offline tests | `pytest` | before every commit |
+| Lint and format | `ruff check .` and `ruff format --check .` | before every commit |
+| Recordings replay to the same results | `python tests/record.py --refresh-expected`, then `git diff --stat tests/data/recordings` must print nothing | after a change to `plbbg.py` |
+| Minimum dependencies | see below | before a pull request that changes `plbbg.py` |
+| Docs build | `mkdocs build --strict` | after a change to `docs/` or to a public docstring |
+| Live tests | `pytest --bbg` | when you have a Bloomberg Terminal on this machine |
+
+The recordings check repeats what `pytest` does, but more strictly: `pytest`
+compares numbers with a tolerance, and `git diff` shows every difference.
 
 The offline tests must also pass on the oldest supported versions (Python 3.12,
 polars 1.7.1, blpapi 3.24.2). Build that environment outside the repository and
@@ -156,13 +325,19 @@ uv pip install --python $MIN --no-config \
 $MIN/bin/python -m pytest tests/unit -m no_bbg
 ```
 
+On Windows the interpreter of that environment is `Scripts\python.exe` instead of
+`bin/python`.
+
 How the tests are organised, and in which order to read the live tests as a tour of
 the library, is in
 [tests/README.md](https://github.com/MarekOzana/polars-bloomberg/blob/main/tests/README.md).
 
 ### Capture a failing case and turn it into an offline test
 
-1. **Get the raw answer.** Ask the user to run the failing call with `debug=True`:
+The call and the names in this recipe are examples; use those of your case.
+
+1. **Get the raw answer.** Run the failing call with `debug=True`, or ask the user
+   who reported it to do so:
 
     ```python
     with BQuery(debug=True) as bq:
@@ -172,11 +347,15 @@ the library, is in
     Every request writes one JSON file to `debug_cases/` in the working directory,
     for example `ReferenceDataRequest_20261116_201008_297370.json`, also when the
     call raises. The file holds the request, every message Bloomberg sent back, and
-    the library versions. `BQuery(debug="some/dir")` writes to that directory.
+    the library versions; [Find where a bug is](#find-where-a-bug-is) shows one.
+    `BQuery(debug="some/dir")` writes to that directory.
 
 2. **Make it small and public.** The repository is public. Cut the answer down by
    hand to what shows the problem: at most three securities and five rows where the
-   case allows it. Never commit `debug_cases/` itself.
+   case allows it. Replace instruments and names that are the user's own by
+   well-known ones, in the request and in the answer alike. Keep the markers that
+   hold dates, such as `{"$date": "2024-01-02"}`: the replay turns them back into
+   dates. Never commit `debug_cases/` itself.
 
 3. **Store it as a recording.** Copy the file to
    `tests/data/recordings/<method>/<short_name>.json`, and add the call under the
@@ -192,6 +371,10 @@ the library, is in
     state that is gone), also add the name to `CONVERTED` in the same file. Then
     `python tests/record.py` leaves the file alone.
 
+    From now until step 5, `tests/unit/test_recordings.py` fails for the new
+    scenario with `KeyError: 'expected'`. That is correct: the file does not say
+    yet what the call should give.
+
 4. **Write the test that shows the bug**, in `tests/unit/test_<method>.py`:
 
     ```python
@@ -204,7 +387,7 @@ the library, is in
     ```
 
     `replay` (in `tests/support.py`) returns a `BQuery` whose fake session answers
-    the next request with the recorded messages.
+    the next request with the recorded messages. Run the test and see it fail.
 
 5. **Fix the code**, then store the result the call now gives:
 
@@ -223,11 +406,24 @@ string instead of readable JSON.
 
 ### Fix a parsing bug
 
-1. Find the parser in the method table above and open a recording of that method
-   to see the shape of the payloads.
-2. Reproduce the bug in a test. Replay a recording as in the recipe above, or script
-   a payload by hand: `fake_bq([answer(payload)])` from `tests/support.py`. The
-   files `tests/unit/test_bdp.py` to `test_bsrch.py` show both.
+1. Find the parser in the [method table](#the-library-in-one-minute) and open a
+   recording of that method to see the shape of the payloads.
+2. Reproduce the bug in a test. Replay a recording as in the recipe above, or
+   write the payload by hand when a few lines are enough:
+
+    ```python
+    def test_bdp_security_without_field_data_gives_a_null():
+        payload = {"securityData": [{"security": "IBM US Equity", "fieldData": {}}]}
+        bq = fake_bq([answer(payload)])
+
+        df = bq.bdp(["IBM US Equity"], ["NAME"])
+
+        assert df["NAME"].to_list() == [None]
+    ```
+
+    `fake_bq` and `answer` are in `tests/support.py`. The files
+    `tests/unit/test_bdp.py` to `test_bsrch.py` show both kinds of test.
+
 3. Fix the parser and run `pytest`.
 4. Run `python tests/record.py --refresh-expected` and read
    `git diff tests/data/recordings`. Only the scenarios whose result you meant to
@@ -269,7 +465,7 @@ check it in step 1, set it in step 2, test the request in
    `tests/integration/test_integration_<name>.py` (live).
 6. Document it: a Google-style docstring with an example (`docs/api.md` renders
    it), a page `docs/usage/<name>.md` listed in `mkdocs.yml`, a section in
-   `README.md`, a line in `CHANGELOG.md`.
+   `README.md`, a line in `CHANGELOG.md`, and a row in the tables of this page.
 
 ### Re-record or refresh recordings
 
@@ -317,3 +513,15 @@ the call gave.
 - **Recordings stay small and public:** well-known instruments, at most three
   securities and five rows where the scenario allows it, no machine names.
 - **Releases** are the maintainer's: do not bump the version, tag or publish.
+
+## Before you open a pull request
+
+1. `pytest`, `ruff check .` and `ruff format --check .` pass.
+2. `python tests/record.py --refresh-expected` changes no recording, or only the
+   recordings whose result you meant to change.
+3. If you changed `plbbg.py`, the offline tests also pass on the
+   [minimum dependencies](#run-the-checks).
+4. A bug fix comes with a test that failed before the fix.
+5. A change that users can notice has a line under "Unreleased" in `CHANGELOG.md`,
+   and the docstring and the page in `docs/usage/` say what the code now does.
+6. The version number is untouched.
