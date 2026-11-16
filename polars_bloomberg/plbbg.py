@@ -83,21 +83,21 @@ class BqlResult:
 
         with BQuery() as bq:
             result = bq.bql("get(px_last) for(['IBM US Equity', 'MSFT US Equity'])")
-            df = result.combine()
+            df = result.combine(on="ID")
             print(df)
         ```
 
         Expected output:
         ```python
         shape: (2, 4)
-        ┌───────────────┬─────────┐
-        │ ID            ┆ PX_LAST │
-        │ ---           ┆ ---     │
-        │ str           ┆ f64     │
-        ╞═══════════════╪═════════╡
-        │ IBM US Equity ┆ 125.34  │
-        │ MSFT US Equity┆ 232.33  │
-        └───────────────┴─────────┘
+        ┌────────────────┬─────────┬────────────┬──────────┐
+        │ ID             ┆ px_last ┆ DATE       ┆ CURRENCY │
+        │ ---            ┆ ---     ┆ ---        ┆ ---      │
+        │ str            ┆ f64     ┆ date       ┆ str      │
+        ╞════════════════╪═════════╪════════════╪══════════╡
+        │ IBM US Equity  ┆ 247.13  ┆ 2026-11-16 ┆ USD      │
+        │ MSFT US Equity ┆ 523.88  ┆ 2026-11-16 ┆ USD      │
+        └────────────────┴─────────┴────────────┴──────────┘
         ```
 
         Iterate over the list of DataFrames:
@@ -122,7 +122,8 @@ class BqlResult:
         ```
 
     Methods:
-        combine: Combine all dataframes into one by joining on common columns.
+        combine: Combine all dataframes into one; ``combine(on="ID")`` gives one
+            row per security.
 
     """
 
@@ -140,12 +141,15 @@ class BqlResult:
         """Combine all dataframes into one.
 
         With no arguments, this method preserves the legacy behavior exactly: it
-        merges all DataFrames by performing a full join on all common columns. If no
-        common columns are found, it raises a ValueError.
+        merges all DataFrames by performing a full join on every column they share,
+        not only ``ID``. A row whose shared columns hold nulls matches nothing, so it
+        appears twice: once from each side. This happens, for example, when BQL has
+        no ``DATE`` for a security in two items. If no common columns are found, it
+        raises a ValueError.
 
-        When ``on`` is provided, only those columns are used as join keys. Other
-        overlapping columns are preserved with a suffix unless ``allow_common_columns``
-        is false.
+        Use ``combine(on="ID")`` for one row per security. When ``on`` is provided,
+        only those columns are used as join keys. Other overlapping columns are
+        preserved with a suffix unless ``allow_common_columns`` is false.
 
         Args:
             on: Explicit column or columns to join on. If omitted, legacy common-column
@@ -159,49 +163,57 @@ class BqlResult:
             pl.DataFrame: Combined dataframe.
 
         Raises:
-            ValueError: If no dataframes are present, if no common columns exist in
-                legacy mode, if explicit join keys are missing, or if overlapping
-                non-key columns are disallowed.
+            ValueError: If no dataframes are present (the message includes the BQL
+                error, if any), if no common columns exist in legacy mode, if
+                explicit join keys are missing, or if overlapping non-key columns
+                are disallowed.
 
         Example:
-            Combine results of a BQL query:
+            One row per security; the ``DATE`` of the second item gets a suffix:
 
             ```python
             from polars_bloomberg import BQuery
 
             with BQuery() as bq:
-                result = bq.bql("get(px_last, px_volume) for(['AAPL US Equity', 'MSFT US Equity'])")
-                df = result.combine()
-                print(df)
+                result = bq.bql(
+                    "get(px_last, px_volume) "
+                    "for(['IBM US Equity', 'NOT A SECURITY Equity'])"
+                )
+            print(result.combine(on="ID"))
             ```
 
             Expected output:
             ```python
-            shape: (2, 3)
-            ┌────────────────┬──────────┬────────────┐
-            │ ID             ┆ PX_LAST  ┆ PX_VOLUME  │
-            │ ---            ┆ ---      ┆ ---        │
-            │ str            ┆ f64      ┆ f64        │
-            ╞════════════════╪══════════╪════════════╡
-            │ AAPL US Equity ┆ 150.25   ┆ 30000000.0 │
-            │ MSFT US Equity ┆ 250.80   ┆ 20000000.0 │
-            └────────────────┴──────────┴────────────┘
+            shape: (2, 6)
+            ┌───────────────────────┬─────────┬────────────┬──────────┬───────────┬────────────────┐
+            │ ID                    ┆ px_last ┆ DATE       ┆ CURRENCY ┆ px_volume ┆ DATE_px_volume │
+            │ ---                   ┆ ---     ┆ ---        ┆ ---      ┆ ---       ┆ ---            │
+            │ str                   ┆ f64     ┆ date       ┆ str      ┆ f64       ┆ date           │
+            ╞═══════════════════════╪═════════╪════════════╪══════════╪═══════════╪════════════════╡
+            │ IBM US Equity         ┆ 247.13  ┆ 2026-11-16 ┆ USD      ┆ 4750.0    ┆ 2026-11-16     │
+            │ NOT A SECURITY Equity ┆ null    ┆ null       ┆ null     ┆ null      ┆ null           │
+            └───────────────────────┴─────────┴────────────┴──────────┴───────────┴────────────────┘
             ```
 
-            Handle no common columns:
+            Without ``on``, the join uses ``ID`` and ``DATE``; the security without
+            a ``DATE`` appears twice:
 
             ```python
-            with BQuery() as bq:
-                result = bq.bql("get(px_last) for(['AAPL US Equity'])")
-                try:
-                    df = result.combine()
-                except ValueError as e:
-                    print(e)
+            print(result.combine())
             ```
 
             Expected output:
-            ```
-            No common columns found to join on.
+            ```python
+            shape: (3, 5)
+            ┌───────────────────────┬─────────┬────────────┬──────────┬───────────┐
+            │ ID                    ┆ px_last ┆ DATE       ┆ CURRENCY ┆ px_volume │
+            │ ---                   ┆ ---     ┆ ---        ┆ ---      ┆ ---       │
+            │ str                   ┆ f64     ┆ date       ┆ str      ┆ f64       │
+            ╞═══════════════════════╪═════════╪════════════╪══════════╪═══════════╡
+            │ IBM US Equity         ┆ 247.13  ┆ 2026-11-16 ┆ USD      ┆ 4750.0    │
+            │ NOT A SECURITY Equity ┆ null    ┆ null       ┆ null     ┆ null      │
+            │ NOT A SECURITY Equity ┆ null    ┆ null       ┆ null     ┆ null      │
+            └───────────────────────┴─────────┴────────────┴──────────┴───────────┘
             ```
 
         """  # noqa: E501
@@ -726,9 +738,10 @@ class BQuery:
             of nulls; Bloomberg's reason is logged as one warning per call.
 
         Raises:
-            ConnectionError: If there is an issue with the Bloomberg session.
-            ValueError: If the request parameters are invalid, or a field name
-                is a key column name.
+            BloombergError: If Bloomberg rejects or fails the request.
+            ConnectionError: If the session is not started or is lost.
+            TimeoutError: If Bloomberg sends nothing for ``timeout`` milliseconds.
+            ValueError: If a field name is a key column name.
             TypeError: If the overrides are not a dict or (name, value) pairs, or
                 an override has no value.
 
@@ -861,9 +874,10 @@ class BQuery:
             nulls; Bloomberg's reason is logged as one warning per call.
 
         Raises:
-            ConnectionError: If there is an issue with the Bloomberg session.
-            ValueError: If the request parameters are invalid, or a field name
-                is a key column name.
+            BloombergError: If Bloomberg rejects or fails the request.
+            ConnectionError: If the session is not started or is lost.
+            TimeoutError: If Bloomberg sends nothing for ``timeout`` milliseconds.
+            ValueError: If a field name is a key column name.
             TypeError: If the overrides are not a dict or (name, value) pairs, or
                 an override has no value.
 
@@ -953,7 +967,7 @@ class BQuery:
             security (str): Instrument identifier (for example 'AAPL US Equity').
             event_type (str): One of TRADE, BID, ASK, BEST_BID, BEST_ASK.
             interval (int): Bar length in minutes (1-1440).
-            start_datetime (datetime | date): First bar timestamp; naive vals are
+            start_datetime (datetime | date): First bar timestamp; naive values are
                 treated as UTC, tz-aware values are converted to UTC before the
                 request is sent, and a ``date`` means midnight.
             end_datetime (datetime | date): Last bar timestamp; handled same way as
@@ -967,8 +981,17 @@ class BQuery:
         Returns:
             pl.DataFrame: Bars sorted by security/time with columns
                 ['security', 'time', 'open', 'high', 'low', 'close', 'volume',
-                'numEvents', 'value']. Bloomberg emits `time` in UTC and the DataFrame
-                preserves that timezone.
+                'numEvents', 'value']. ``time`` is the start of each bar, as a naive
+                datetime holding UTC. A window without bars gives an empty frame
+                with these columns.
+
+        Raises:
+            BloombergError: If Bloomberg rejects or fails the request, for example
+                for an unknown security or an interval outside 1-1440.
+            ConnectionError: If the session is not started or is lost.
+            TimeoutError: If Bloomberg sends nothing for ``timeout`` milliseconds.
+            TypeError: If the overrides are not a dict or (name, value) pairs, or
+                an override has no value.
 
         Example:
             ```python
@@ -980,39 +1003,29 @@ class BQuery:
                     "OMX Index",
                     event_type="TRADE",
                     interval=60,
-                    start_datetime=datetime(2025, 11, 5),
-                    end_datetime=datetime(2025, 11, 6),
+                    start_datetime=datetime(2026, 11, 13),
+                    end_datetime=datetime(2026, 11, 13, 12),
                 )
                 print(df)
             ```
 
-             Expected output:
+            Expected output:
             ```python
-            shape: (4, 3)
-            ┌───────────┬──────────────┬──────────┬──────────┬───┬──────────┬────────┬───────────┬───────┐
-            │ security  ┆ time         ┆ open     ┆ high     ┆ … ┆ close    ┆ volume ┆ numEvents ┆ value │
-            │ ---       ┆ ---          ┆ ---      ┆ ---      ┆   ┆ ---      ┆ ---    ┆ ---       ┆ ---   │
-            │ str       ┆ datetime[μs] ┆ f64      ┆ f64      ┆   ┆ f64      ┆ i64    ┆ i64       ┆ f64   │
-            ╞═══════════╪══════════════╪══════════╪══════════╪═══╪══════════╪════════╪═══════════╪═══════╡
-            │ OMX Index ┆ 2025-11-05   ┆ 2726.603 ┆ 2742.014 ┆ … ┆ 2739.321 ┆ 0      ┆ 3591      ┆ 0.0   │
-            │           ┆ 08:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
-            │ OMX Index ┆ 2025-11-05   ┆ 2739.466 ┆ 2739.706 ┆ … ┆ 2733.836 ┆ 0      ┆ 3600      ┆ 0.0   │
-            │           ┆ 09:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
-            │ OMX Index ┆ 2025-11-05   ┆ 2733.747 ┆ 2734.827 ┆ … ┆ 2731.724 ┆ 0      ┆ 3600      ┆ 0.0   │
-            │           ┆ 10:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
-            │ OMX Index ┆ 2025-11-05   ┆ 2731.721 ┆ 2742.015 ┆ … ┆ 2741.185 ┆ 0      ┆ 3600      ┆ 0.0   │
-            │           ┆ 11:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
-            │ OMX Index ┆ 2025-11-05   ┆ 2741.256 ┆ 2747.291 ┆ … ┆ 2747.291 ┆ 0      ┆ 3600      ┆ 0.0   │
-            │           ┆ 12:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
-            │ OMX Index ┆ 2025-11-05   ┆ 2747.291 ┆ 2748.815 ┆ … ┆ 2748.287 ┆ 0      ┆ 3600      ┆ 0.0   │
-            │           ┆ 13:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
-            │ OMX Index ┆ 2025-11-05   ┆ 2748.273 ┆ 2752.301 ┆ … ┆ 2752.181 ┆ 0      ┆ 3600      ┆ 0.0   │
-            │           ┆ 14:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
-            │ OMX Index ┆ 2025-11-05   ┆ 2752.181 ┆ 2758.978 ┆ … ┆ 2752.495 ┆ 0      ┆ 3600      ┆ 0.0   │
-            │           ┆ 15:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
-            │ OMX Index ┆ 2025-11-05   ┆ 2752.402 ┆ 2752.85  ┆ … ┆ 2751.404 ┆ 0      ┆ 2100      ┆ 0.0   │
-            │           ┆ 16:00:00     ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
-            └───────────┴──────────────┴──────────┴──────────┴───┴──────────┴────────┴───────────┴───────┘
+            shape: (4, 9)
+            ┌───────────┬───────────────┬──────────┬──────────┬───┬──────────┬────────┬───────────┬───────┐
+            │ security  ┆ time          ┆ open     ┆ high     ┆ … ┆ close    ┆ volume ┆ numEvents ┆ value │
+            │ ---       ┆ ---           ┆ ---      ┆ ---      ┆   ┆ ---      ┆ ---    ┆ ---       ┆ ---   │
+            │ str       ┆ datetime[μs]  ┆ f64      ┆ f64      ┆   ┆ f64      ┆ i64    ┆ i64       ┆ f64   │
+            ╞═══════════╪═══════════════╪══════════╪══════════╪═══╪══════════╪════════╪═══════════╪═══════╡
+            │ OMX Index ┆ 2026-11-13    ┆ 3351.464 ┆ 3353.647 ┆ … ┆ 3350.421 ┆ 0      ┆ 3591      ┆ 0.0   │
+            │           ┆ 08:00:00      ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+            │ OMX Index ┆ 2026-11-13    ┆ 3350.322 ┆ 3359.014 ┆ … ┆ 3358.95  ┆ 0      ┆ 3600      ┆ 0.0   │
+            │           ┆ 09:00:00      ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+            │ OMX Index ┆ 2026-11-13    ┆ 3358.95  ┆ 3366.616 ┆ … ┆ 3365.006 ┆ 0      ┆ 3600      ┆ 0.0   │
+            │           ┆ 10:00:00      ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+            │ OMX Index ┆ 2026-11-13    ┆ 3365.006 ┆ 3365.888 ┆ … ┆ 3362.596 ┆ 0      ┆ 3600      ┆ 0.0   │
+            │           ┆ 11:00:00      ┆          ┆          ┆   ┆          ┆        ┆           ┆       │
+            └───────────┴───────────────┴──────────┴──────────┴───┴──────────┴────────┴───────────┴───────┘
             ```
 
         """  # noqa: E501
@@ -1129,9 +1142,11 @@ class BQuery:
                 that BQL returns together with an error are kept.
 
         Raises:
-            ConnectionError: If there is an issue with the Bloomberg session.
-            BloombergError: If an item of the answer cannot be turned into a
-                DataFrame; the message names the item.
+            BloombergError: If Bloomberg rejects or fails the request, or an item
+                of the answer cannot be turned into a DataFrame; the message names
+                the item.
+            ConnectionError: If the session is not started or is lost.
+            TimeoutError: If Bloomberg sends nothing for ``timeout`` milliseconds.
 
         Example:
             Simple query to fetch last price:
@@ -1142,50 +1157,43 @@ class BQuery:
             with BQuery() as bq:
                 # Get last price for multiple securities
                 result = bq.bql("get(px_last) for(['IBM US Equity', 'MSFT US Equity'])")
-                df = result.combine()
-                print(df)
+            df = result.combine(on="ID")
+            print(df)
             ```
 
             Expected output:
             ```python
             shape: (2, 4)
-            ┌───────────────┬─────────┐
-            │ ID            ┆ PX_LAST │
-            │ ---           ┆ ---     │
-            │ str           ┆ f64     │
-            ╞═══════════════╪═════════╡
-            │ AAPL US Equity┆ 150.25  │
-            │ MSFT US Equity┆ 250.80  │
-            └───────────────┴─────────┘
+            ┌────────────────┬─────────┬────────────┬──────────┐
+            │ ID             ┆ px_last ┆ DATE       ┆ CURRENCY │
+            │ ---            ┆ ---     ┆ ---        ┆ ---      │
+            │ str            ┆ f64     ┆ date       ┆ str      │
+            ╞════════════════╪═════════╪════════════╪══════════╡
+            │ IBM US Equity  ┆ 247.13  ┆ 2026-11-16 ┆ USD      │
+            │ MSFT US Equity ┆ 523.88  ┆ 2026-11-16 ┆ USD      │
+            └────────────────┴─────────┴────────────┴──────────┘
             ```
 
-            Access individual DataFrames:
+            Access individual DataFrames; with one item, ``result[0]`` is the same
+            frame:
             ```python
             >>> df_px_last = result[0]
-            >>> print(df_px_last)
-            shape: (2, 2)
-            ┌───────────────┬─────────┐
-            │ ID            ┆ PX_LAST │
-            │ ---           ┆ ---     │
-            │ str           ┆ f64     │
-            ╞═══════════════╪═════════╡
-            │ AAPL US Equity┆ 150.25  │
-            │ MSFT US Equity┆ 250.80  │
-            └───────────────┴─────────┘
+            >>> print(df_px_last.shape)
+            (2, 4)
             ```
             Fetch multiple fields and combine results:
             ```python
             >>> result = bq.bql("get(px_last, px_volume) for('AAPL US Equity')")
-            >>> df_combined = result.combine()
+            >>> df_combined = result.combine(on="ID")
             >>> print(df_combined)
-            shape: (1, 3)
-            ┌───────────────┬─────────┬────────────┐
-            │ ID            ┆ PX_LAST ┆ PX_VOLUME  │
-            │ ---           ┆ ---     ┆ ---        │
-            │ str           ┆ f64     ┆ f64        │
-            ╞═══════════════╪═════════╪════════════╡
-            │ AAPL US Equity┆ 150.25  ┆ 30000000.0 │
-            └───────────────┴─────────┴────────────┘
+            shape: (1, 6)
+            ┌────────────────┬─────────┬────────────┬──────────┬───────────┬────────────────┐
+            │ ID             ┆ px_last ┆ DATE       ┆ CURRENCY ┆ px_volume ┆ DATE_px_volume │
+            │ ---            ┆ ---     ┆ ---        ┆ ---      ┆ ---       ┆ ---            │
+            │ str            ┆ f64     ┆ date       ┆ str      ┆ f64       ┆ date           │
+            ╞════════════════╪═════════╪════════════╪══════════╪═══════════╪════════════════╡
+            │ AAPL US Equity ┆ 356.27  ┆ 2026-11-16 ┆ USD      ┆ 112441.0  ┆ 2026-11-16     │
+            └────────────────┴─────────┴────────────┴──────────┴───────────┴────────────────┘
             ```
             Iterate over individual DataFrames:
             ```python
@@ -1366,13 +1374,16 @@ class BQuery:
                 gets a suffix (``Name``, ``Name_1``) and a warning is logged.
 
         Raises:
-            BloombergError: When Bloomberg returns an error and no rows (a subclass
-                of ValueError). An error that comes with rows is logged instead.
-            TimeoutError/ConnectionError: As surfaced by the session helpers.
+            BloombergError: When Bloomberg rejects the request, or the search
+                returns an error and no rows (a subclass of ValueError). An error
+                that comes with rows is logged instead.
+            ConnectionError: If the session is not started or is lost.
+            TimeoutError: If Bloomberg sends nothing for ``timeout`` milliseconds.
 
         Example:
-            Fetch Contingent COnvertible bonds based on Example Search @COCO
-            For sake of example limit number of bonds to two
+            Fetch Contingent Convertible bonds based on Example Search @COCO.
+            For the sake of the example, limit the number of bonds to two; with
+            ``LIMIT`` given, the "reached internal limit" warning is not logged.
 
             ```python
             from polars_bloomberg import BQuery
@@ -1384,15 +1395,14 @@ class BQuery:
 
             Expected output:
             ```python
-            BSRCH response reached internal limit; consider using LIMIT override.
             shape: (2, 1)
             ┌───────────────┐
             │ id            │
             │ ---           │
             │ str           │
             ╞═══════════════╡
-            │ DA785784 Corp │
-            │ DA773901 Corp │
+            │ DS990344 Corp │
+            │ DT301785 Corp │
             └───────────────┘
             ```
 
