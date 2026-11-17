@@ -1,0 +1,1997 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Capital structure analysis with BQL in polars-bloomberg - Swedish bank capital stacks, AT1 and Tier 2 call schedules, CET1 distance to the AT1 trigger, bonds and loans with leverage for a European high-yield issuer, the capital structure (CAST) parent with parent(type=CAST), and debt by parent across a high-yield index.">
+      
+      
+      
+        <link rel="canonical" href="https://marekozana.github.io/polars-bloomberg/recipes/capital-structure/">
+      
+      
+        <link rel="prev" href="../axes/">
+      
+      
+        <link rel="next" href="../spreads/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../images/polars-bloomberg-fav-32x32.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Bonds and Capital Structure in BQL - Polars-Bloomberg</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CCascadia+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Cascadia Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/recipes.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#bonds-and-capital-structure" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Polars-Bloomberg" class="md-header__button md-logo" aria-label="Polars-Bloomberg" data-md-component="logo">
+      
+  <img src="../../images/polars-bloomberg-logo-512x512.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Polars-Bloomberg
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Bonds and Capital Structure in BQL
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="cyan"  aria-label="Switch to Bloomberg mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to Bloomberg mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="amber" data-md-color-accent="gray"  aria-label="Switch to Polars mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to Polars mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/MarekOzana/polars-bloomberg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MarekOzana/polars-bloomberg
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Polars-Bloomberg" class="md-nav__button md-logo" aria-label="Polars-Bloomberg" data-md-component="logo">
+      
+  <img src="../../images/polars-bloomberg-logo-512x512.png" alt="logo">
+
+    </a>
+    Polars-Bloomberg
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/MarekOzana/polars-bloomberg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MarekOzana/polars-bloomberg
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage & Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage & Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/bdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/bdh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BDH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/bdib/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BDIB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/bsrch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BSRCH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/bql/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BQL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recipes
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Recipes
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../new-issues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    New Issues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../axes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dealer Axes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bonds and Capital Structure
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bonds and Capital Structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#swedish-bank-capital-stacks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Swedish bank capital stacks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#at1-and-tier-2-call-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AT1 and Tier 2 call schedule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#at1-distance-to-trigger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AT1 distance to trigger
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bonds-and-loans-with-leverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bonds and loans with leverage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#direct-ultimate-and-cast-parent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Direct, ultimate and CAST parent
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#one-capital-structure-several-issuers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One capital structure, several issuers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#largest-capital-structures-in-a-high-yield-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Largest capital structures in a high-yield index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pitfalls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pitfalls
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spreads/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spread Statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Company Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Market History with BDH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../examples/equity/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/credit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Credits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/macro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Macro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#swedish-bank-capital-stacks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Swedish bank capital stacks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#at1-and-tier-2-call-schedule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AT1 and Tier 2 call schedule
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#at1-distance-to-trigger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AT1 distance to trigger
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bonds-and-loans-with-leverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bonds and loans with leverage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#direct-ultimate-and-cast-parent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Direct, ultimate and CAST parent
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#one-capital-structure-several-issuers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One capital structure, several issuers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#largest-capital-structures-in-a-high-yield-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Largest capital structures in a high-yield index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pitfalls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pitfalls
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  <nav class="md-tags" >
+    
+      
+      
+      
+      
+        <span class="md-tag">AT1</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">BQL</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">Capital structure</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">Credit</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">High yield</span>
+      
+    
+  </nav>
+
+
+  
+  
+
+
+<h1 id="bonds-and-capital-structure">Bonds and Capital Structure<a class="headerlink" href="#bonds-and-capital-structure" title="Permanent link">&para;</a></h1>
+<p class="recipe-lead">Which bonds and loans does a company have, how do they rank, who owns the issuer,
+and how much debt sits at each level?</p>
+<div class="admonition info">
+<p class="admonition-title">Data on this page</p>
+<p>This page answers these questions for the three large Swedish banks, for a
+European high-yield issuer (Virgin Media O2) and for a group with several
+issuers (Heimstaden).</p>
+<p>Amounts are converted to EUR so that they add up across currencies. The outputs
+below are live data as of 2026-11-17 and will differ when you run the queries.
+Before you adapt a query, read the <a href="#pitfalls">Pitfalls</a>.</p>
+</div>
+<h2 id="quick-reference">Quick reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">By task</label><label for="__tabbed_1_2">Parent types</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<table>
+<thead>
+<tr>
+<th>You want</th>
+<th>Use</th>
+<th>One row per</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>All live bonds of an issuer</td>
+<td><code>filter(bondsUniv(ACTIVE, consolidateduplicates=True), ticker in [...])</code></td>
+<td>bond</td>
+</tr>
+<tr>
+<td>Its loans</td>
+<td><code>filter(loansUniv(ACTIVE), ticker == '...')</code></td>
+<td>loan</td>
+</tr>
+<tr>
+<td>Where a bond ranks</td>
+<td><code>normalized_payment_rank()</code> (comparable across issuers), <code>payment_rank()</code> (as issued), <code>basel_iii_designation()</code> (bank capital)</td>
+<td>bond</td>
+</tr>
+<tr>
+<td>Debt per rank, per issuer or per parent</td>
+<td><code>sum(group(amt_outstanding(currency=EUR), ...))</code></td>
+<td>group</td>
+</tr>
+<tr>
+<td>The company that owns the issuer</td>
+<td><code>parent(type=DIRECT)</code>, <code>type=ULTIMATE</code> or <code>type=CAST</code></td>
+<td>company</td>
+</tr>
+<tr>
+<td>The parent's fundamentals next to each bond</td>
+<td><code>value(&lt;field&gt;, parent(type=CAST), mapby=LINEAGE)</code></td>
+<td>bond</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
+<p>The capital structure (CAST) parent is the top company of the capital structure
+you see in <code>CAST &lt;GO&gt;</code>. Unlike the ultimate parent, it stops below private-equity
+sponsors, owners that hold the company as an investment, and governments that
+guarantee less than half of the group's debt. Since May 2026 BQL's <code>parent()</code>
+returns it with <code>type=CAST</code>.</p>
+<table>
+<thead>
+<tr>
+<th><code>parent(type=...)</code></th>
+<th>Returns</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DIRECT</code> (default)</td>
+<td>the immediate parent company</td>
+</tr>
+<tr>
+<td><code>ULTIMATE</code></td>
+<td>the company that ultimately controls the issuer</td>
+</tr>
+<tr>
+<td><code>CAST</code></td>
+<td>the top of the capital structure in <code>CAST &lt;GO&gt;</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<h2 id="swedish-bank-capital-stacks">Swedish bank capital stacks<a class="headerlink" href="#swedish-bank-capital-stacks" title="Permanent link">&para;</a></h2>
+<p class="recipe-uses"><code>normalized_payment_rank()</code>, <code>sum(group(..., [ticker, #rank]))</code></p>
+<p>Covered bonds, senior, senior non-preferred, Tier 2 and AT1 outstanding for SEB,
+Handelsbanken and Swedbank, in EUR billions.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">let(#rank = normalized_payment_rank().value;</span>
+<span class="s2">    #amt = group(amt_outstanding(currency=EUR).value / 1B, [ticker, #rank]);)</span>
+<span class="s2">get(sum(#amt) as #eur_bn)</span>
+<span class="s2">for(filter(bondsUniv(ACTIVE, consolidateduplicates=True),</span>
+<span class="s2">           ticker in ['SEB', 'SHBASS', 'SWEDA']))</span>
+<span class="s2">"""</span>
+<span class="n">layers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"Secured"</span><span class="p">:</span> <span class="s2">"1 Secured (covered)"</span><span class="p">,</span>
+    <span class="s2">"Sr Unsecured"</span><span class="p">:</span> <span class="s2">"2 Senior preferred"</span><span class="p">,</span>
+    <span class="s2">"Senior Bail-In"</span><span class="p">:</span> <span class="s2">"3 Senior non-preferred"</span><span class="p">,</span>
+    <span class="s2">"Subordinated Unsecured"</span><span class="p">:</span> <span class="s2">"4 Tier 2"</span><span class="p">,</span>
+    <span class="s2">"Jr Subordinated Unsecured"</span><span class="p">:</span> <span class="s2">"5 AT1"</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">with_columns</span><span class="p">(</span>
+        <span class="n">layer</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"#RANK"</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">layers</span><span class="p">),</span> <span class="n">eur_bn</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"#eur_bn"</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">"TICKER"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s2">"layer"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">"eur_bn"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">"layer"</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Output
+<div class="no-copy recipe-output highlight"><pre><span></span><code>shape: (5, 4)
+┌────────────────────────┬──────┬────────┬───────┐
+│ layer                  ┆ SEB  ┆ SHBASS ┆ SWEDA │
+│ ---                    ┆ ---  ┆ ---    ┆ ---   │
+│ str                    ┆ f64  ┆ f64    ┆ f64   │
+╞════════════════════════╪══════╪════════╪═══════╡
+│ 1 Secured (covered)    ┆ 32.0 ┆ 56.8   ┆ 36.8  │
+│ 2 Senior preferred     ┆ 11.7 ┆ 27.0   ┆ 14.3  │
+│ 3 Senior non-preferred ┆ 12.0 ┆ 7.6    ┆ 12.5  │
+│ 4 Tier 2               ┆ 2.8  ┆ 2.3    ┆ 2.8   │
+│ 5 AT1                  ┆ 1.9  ┆ 1.4    ┆ 1.5   │
+└────────────────────────┴──────┴────────┴───────┘
+</code></pre></div></p>
+<div class="admonition warning">
+<p class="admonition-title">Watch out</p>
+<p>Swedish banks also issue structured notes and MTNs under the same ticker, so the
+senior preferred counts are large.</p>
+</div>
+<p class="recipe-label">Notes</p>
+<ul>
+<li><code>normalized_payment_rank()</code> maps each bond to one ladder, the same for all issuers.
+  <code>Senior Bail-In</code> is senior non-preferred (MREL), <code>Subordinated</code> is Tier 2 and
+  <code>Jr Subordinated</code> is AT1.</li>
+<li>The group column comes back as <code>#RANK</code> (upper case) and the ticker as <code>TICKER</code>.</li>
+<li><code>consolidateduplicates=True</code> keeps one line per bond instead of one per listing.</li>
+</ul>
+<h2 id="at1-and-tier-2-call-schedule">AT1 and Tier 2 call schedule<a class="headerlink" href="#at1-and-tier-2-call-schedule" title="Permanent link">&para;</a></h2>
+<p class="recipe-uses"><code>basel_iii_designation()</code>, <code>nxt_call_dt</code></p>
+<p>How much AT1 and Tier 2 each bank can call per year, in EUR millions.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">get(ticker, basel_iii_designation, nxt_call_dt,</span>
+<span class="s2">    amt_outstanding(currency=EUR).value / 1M as #eur_m)</span>
+<span class="s2">for(filter(bondsUniv(ACTIVE, consolidateduplicates=True),</span>
+<span class="s2">           ticker in ['SEB', 'SHBASS', 'SWEDA'] and</span>
+<span class="s2">           basel_iii_designation() in ['Additional Tier 1', 'Tier 2']))</span>
+<span class="s2">"""</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
+<span class="n">tier</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"basel_iii_designation"</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+    <span class="p">{</span><span class="s2">"Additional Tier 1"</span><span class="p">:</span> <span class="s2">"AT1"</span><span class="p">,</span> <span class="s2">"Tier 2"</span><span class="p">:</span> <span class="s2">"T2"</span><span class="p">}</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">with_columns</span><span class="p">(</span>
+        <span class="n">bank_tier</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ticker"</span><span class="p">)</span> <span class="o">+</span> <span class="s2">" "</span> <span class="o">+</span> <span class="n">tier</span><span class="p">,</span>
+        <span class="n">call_year</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"nxt_call_dt"</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span><span class="p">(),</span>
+        <span class="n">eur_m</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"#eur_m"</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">Int64</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">"bank_tier"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">"bank_tier"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s2">"call_year"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">"eur_m"</span><span class="p">,</span> <span class="n">aggregate_function</span><span class="o">=</span><span class="s2">"sum"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">"call_year"</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Output
+<div class="no-copy recipe-output highlight"><pre><span></span><code>shape: (7, 7)
+┌───────────┬─────────┬────────┬────────────┬───────────┬───────────┬──────────┐
+│ call_year ┆ SEB AT1 ┆ SEB T2 ┆ SHBASS AT1 ┆ SHBASS T2 ┆ SWEDA AT1 ┆ SWEDA T2 │
+│ ---       ┆ ---     ┆ ---    ┆ ---        ┆ ---       ┆ ---       ┆ ---      │
+│ i32       ┆ i64     ┆ i64    ┆ i64        ┆ i64       ┆ i64       ┆ i64      │
+╞═══════════╪═════════╪════════╪════════════╪═══════════╪═══════════╪══════════╡
+│ 2027      ┆ 466     ┆ 0      ┆ 424        ┆ 594       ┆ 0         ┆ 1258     │
+│ 2028      ┆ 0       ┆ 842    ┆ 0          ┆ 500       ┆ 472       ┆ 393      │
+│ 2029      ┆ 439     ┆ 500    ┆ 0          ┆ 750       ┆ 425       ┆ 0        │
+│ 2030      ┆ 0       ┆ 411    ┆ 0          ┆ 0         ┆ 607       ┆ 500      │
+│ 2031      ┆ 459     ┆ 0      ┆ 975        ┆ 500       ┆ 0         ┆ 675      │
+│ 2032      ┆ 0       ┆ 1007   ┆ 0          ┆ 0         ┆ 0         ┆ 0        │
+│ 2034      ┆ 516     ┆ 0      ┆ 0          ┆ 0         ┆ 0         ┆ 0        │
+└───────────┴─────────┴────────┴────────────┴───────────┴───────────┴──────────┘
+</code></pre></div></p>
+<p class="recipe-label">Notes</p>
+<ul>
+<li><code>nxt_call_dt</code> is the next call date. AT1s are perpetual, so the call date is the
+  date that matters.</li>
+<li><code>basel_iii_designation()</code> is the regulatory tier, a better filter for bank capital
+  than the payment rank.</li>
+</ul>
+<h2 id="at1-distance-to-trigger">AT1 distance to trigger<a class="headerlink" href="#at1-distance-to-trigger" title="Permanent link">&para;</a></h2>
+<p class="recipe-uses"><code>value(..., parent(type=CAST), mapby=LINEAGE)</code>, <code>capital_type_coco_trigger_level()</code></p>
+<p>The USD AT1s of the Swedish banks (the bonds on the <a href="../axes/">Dealer Axes</a> page),
+each with its bank's CET1 ratio and the bond's trigger, in percent of risk-weighted
+assets.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">let(#cet1 = value(bs_tier1_com_equity_ratio(), parent(type=CAST), mapby=LINEAGE);</span>
+<span class="s2">    #trigger = capital_type_coco_trigger_level();)</span>
+<span class="s2">get(name, nxt_call_dt, #cet1, #trigger)</span>
+<span class="s2">for(filter(bondsUniv(ACTIVE, consolidateduplicates=True),</span>
+<span class="s2">           ticker in ['SEB', 'SHBASS', 'SWEDA'] and crncy() == 'USD' and</span>
+<span class="s2">           basel_iii_designation() == 'Additional Tier 1'))</span>
+<span class="s2">"""</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">"ID"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+        <span class="s2">"name"</span><span class="p">,</span>
+        <span class="s2">"nxt_call_dt"</span><span class="p">,</span>
+        <span class="s2">"PERIOD_END_DATE"</span><span class="p">,</span>
+        <span class="s2">"#cet1"</span><span class="p">,</span>
+        <span class="s2">"#trigger"</span><span class="p">,</span>
+        <span class="n">buffer_pp</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"#cet1"</span><span class="p">)</span> <span class="o">-</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"#trigger"</span><span class="p">),</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"nxt_call_dt"</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Output
+<div class="no-copy recipe-output highlight"><pre><span></span><code>shape: (8, 6)
+┌─────────────────┬─────────────┬─────────────────┬───────┬──────────┬───────────┐
+│ name            ┆ nxt_call_dt ┆ PERIOD_END_DATE ┆ #cet1 ┆ #trigger ┆ buffer_pp │
+│ ---             ┆ ---         ┆ ---             ┆ ---   ┆ ---      ┆ ---       │
+│ str             ┆ date        ┆ date            ┆ f64   ┆ f64      ┆ f64       │
+╞═════════════════╪═════════════╪═════════════════╪═══════╪══════════╪═══════════╡
+│ SEB 6 ¾ PERP    ┆ 2031-11-04  ┆ 2026-09-30      ┆ 17.1  ┆ 5.125    ┆ 11.975    │
+│ SEB 6 ¾ PERP    ┆ 2034-06-02  ┆ 2026-09-30      ┆ 17.1  ┆ 5.125    ┆ 11.975    │
+│ SEB 6 ⅞ PERP    ┆ 2027-06-30  ┆ 2026-09-30      ┆ 17.1  ┆ 5.125    ┆ 11.975    │
+│ SHBASS 4 ¾ PERP ┆ 2031-03-01  ┆ 2026-09-30      ┆ 17.0  ┆ 5.125    ┆ 11.875    │
+│ SHBASS 4 ⅜ PERP ┆ 2027-03-01  ┆ 2026-09-30      ┆ 17.0  ┆ 5.125    ┆ 11.875    │
+│ SWEDA 4 PERP    ┆ 2029-03-17  ┆ 2026-09-30      ┆ 17.2  ┆ 5.125    ┆ 12.075    │
+│ SWEDA 7 ¾ PERP  ┆ 2030-03-17  ┆ 2026-09-30      ┆ 17.2  ┆ 5.125    ┆ 12.075    │
+│ SWEDA 7 ⅝ PERP  ┆ 2028-03-17  ┆ 2026-09-30      ┆ 17.2  ┆ 5.125    ┆ 12.075    │
+└─────────────────┴─────────────┴─────────────────┴───────┴──────────┴───────────┘
+</code></pre></div></p>
+<div class="admonition warning">
+<p class="admonition-title">Watch out</p>
+<p>The projected item adds <code>SOURCE_ID</code>, the parent's ID. Join on <code>ID</code>, or the rows of
+the two items do not match.</p>
+</div>
+<p class="recipe-label">Notes</p>
+<ul>
+<li><code>value(..., parent(type=CAST), mapby=LINEAGE)</code> reads the field from each bond's
+  capital structure parent, here the listed bank. <code>PERIOD_END_DATE</code> is the reporting
+  quarter of the CET1 ratio.</li>
+<li>For CET1 against the full capital requirement, see the
+  <a href="../../examples/credit/bank-CET1-vs-requirements/">Bank CET1 Ratio vs Requirements</a>
+  example.</li>
+</ul>
+<h2 id="bonds-and-loans-with-leverage">Bonds and loans with leverage<a class="headerlink" href="#bonds-and-loans-with-leverage" title="Permanent link">&para;</a></h2>
+<p class="recipe-uses"><code>loansUniv(ACTIVE)</code>, <code>ebitda(fpt=LTM)</code></p>
+<p>The whole debt stack of Virgin Media O2, bonds and term loans, by rank. Leverage is
+the debt up to and including each rank divided by last-twelve-months EBITDA.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+
+<span class="n">fields</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">get(name, maturity, normalized_payment_rank().value as #rank,</span>
+<span class="s2">    amt_outstanding(currency=EUR).value / 1M as #eur_m)</span>
+<span class="s2">"""</span>
+<span class="n">bonds</span> <span class="o">=</span> <span class="s2">"for(filter(bondsUniv(ACTIVE, consolidateduplicates=True), ticker == 'VMED'))"</span>
+<span class="n">loans</span> <span class="o">=</span> <span class="s2">"for(filter(loansUniv(ACTIVE), ticker == 'VMED' and amt_outstanding() &gt; 0))"</span>
+<span class="n">parent</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">get(name, ebitda(fpt=LTM, currency=EUR) / 1M as #ebitda)</span>
+<span class="s2">for(parent('ZO388622 Corp', type=CAST))</span>
+<span class="s2">"""</span>
+<span class="n">seniority</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"1st Lien Secured"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"Secured"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"Sr Unsecured"</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">debt</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">fields</span> <span class="o">+</span> <span class="n">bonds</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span><span class="o">.</span><span class="n">with_columns</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s2">"bond"</span><span class="p">)),</span>
+            <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">fields</span> <span class="o">+</span> <span class="n">loans</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span><span class="o">.</span><span class="n">with_columns</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">lit</span><span class="p">(</span><span class="s2">"loan"</span><span class="p">)),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
+<span class="n">ebitda</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s2">"#ebitda"</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">group</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">}</span><span class="s2">: LTM EBITDA EUR </span><span class="si">{</span><span class="n">ebitda</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2">m (</span><span class="si">{</span><span class="n">group</span><span class="p">[</span><span class="s1">'PERIOD_END_DATE'</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">}</span><span class="s2">)"</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="n">debt</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="s2">"#rank"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">agg</span><span class="p">(</span>
+        <span class="n">bonds</span><span class="o">=</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"bond"</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
+        <span class="n">loans</span><span class="o">=</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"loan"</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
+        <span class="n">eur_m</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"#eur_m"</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">Int64</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"#rank"</span><span class="p">)</span><span class="o">.</span><span class="n">replace_strict</span><span class="p">(</span><span class="n">seniority</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">9</span><span class="p">))</span>
+    <span class="o">.</span><span class="n">with_columns</span><span class="p">(</span><span class="n">cum_leverage</span><span class="o">=</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"eur_m"</span><span class="p">)</span><span class="o">.</span><span class="n">cum_sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">ebitda</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Output
+<div class="no-copy recipe-output highlight"><pre><span></span><code>Vmed O2 UK Ltd: LTM EBITDA EUR 3,186m (2025-12-31)
+shape: (3, 5)
+┌──────────────────┬───────┬───────┬───────┬──────────────┐
+│ #rank            ┆ bonds ┆ loans ┆ eur_m ┆ cum_leverage │
+│ ---              ┆ ---   ┆ ---   ┆ ---   ┆ ---          │
+│ str              ┆ u32   ┆ u32   ┆ i64   ┆ f64          │
+╞══════════════════╪═══════╪═══════╪═══════╪══════════════╡
+│ 1st Lien Secured ┆ 5     ┆ 15    ┆ 18972 ┆ 6.0          │
+│ Secured          ┆ 12    ┆ 0     ┆ 10120 ┆ 9.1          │
+│ Sr Unsecured     ┆ 2     ┆ 0     ┆ 1314  ┆ 9.5          │
+└──────────────────┴───────┴───────┴───────┴──────────────┘
+</code></pre></div></p>
+<div class="admonition warning">
+<p class="admonition-title">Watch out</p>
+<ul>
+<li>Put the currency on the item, <code>ebitda(..., currency=EUR)</code>, or use
+  <code>with(currency=EUR)</code>. <code>with(ccy=EUR)</code> is ignored without an error, and the numbers
+  stay in the reporting currency. Check the <code>CURRENCY</code> column.</li>
+<li>The order comes from Bloomberg's normalized rank. Read it as a debt stack, not a
+  legal waterfall: debt of neighbouring ranks can share the same collateral.</li>
+</ul>
+</div>
+<p class="recipe-label">Notes</p>
+<ul>
+<li><code>parent('ZO388622 Corp', type=CAST)</code> turns one bond into its group, Vmed O2 UK Ltd,
+  whose accounts cover all the issuing entities.</li>
+<li>Private groups report less often; <code>PERIOD_END_DATE</code> shows which accounts you got.</li>
+<li><code>loans()</code> on the parent returns nothing for this group, so the loans come from
+  <code>loansUniv(ACTIVE)</code> by ticker. <code>amt_outstanding() &gt; 0</code> drops repaid and undrawn
+  facilities.</li>
+<li>Some <code>VMED</code> bonds are vendor-financing notes issued by separate vehicles. Use
+  <code>issuer()</code> to see the issuing entity of each bond.</li>
+</ul>
+<h2 id="direct-ultimate-and-cast-parent">Direct, ultimate and CAST parent<a class="headerlink" href="#direct-ultimate-and-cast-parent" title="Permanent link">&para;</a></h2>
+<p class="recipe-uses"><code>parent(type=DIRECT)</code>, <code>ULTIMATE</code>, <code>CAST</code></p>
+<p>Heimstaden has two bond issuers: Heimstaden AB and its residential subsidiary
+Heimstaden Bostad. The three parent types answer "who owns this?" differently.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">get(name, issuer(),</span>
+<span class="s2">    value(name, parent(type=DIRECT), mapby=LINEAGE) as #direct,</span>
+<span class="s2">    value(name, parent(type=ULTIMATE), mapby=LINEAGE) as #ultimate,</span>
+<span class="s2">    value(name, parent(type=CAST), mapby=LINEAGE) as #cast)</span>
+<span class="s2">for(['BJ158441 Corp', 'BR871064 Corp'])</span>
+<span class="s2">"""</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">"ID"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">"ID"</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">"issuer()"</span><span class="p">,</span> <span class="s2">"#direct"</span><span class="p">,</span> <span class="s2">"#ultimate"</span><span class="p">,</span> <span class="s2">"#cast"</span><span class="p">))</span>
+</code></pre></div>
+<p>Output
+<div class="no-copy recipe-output highlight"><pre><span></span><code>shape: (2, 6)
+┌───────────────┬─────────────────────┬──────────────────────┬──────────────────────┬──────────────────────┬───────────────┐
+│ ID            ┆ name                ┆ issuer()             ┆ #direct              ┆ #ultimate            ┆ #cast         │
+│ ---           ┆ ---                 ┆ ---                  ┆ ---                  ┆ ---                  ┆ ---           │
+│ str           ┆ str                 ┆ str                  ┆ str                  ┆ str                  ┆ str           │
+╞═══════════════╪═════════════════════╪══════════════════════╪══════════════════════╪══════════════════════╪═══════════════╡
+│ BJ158441 Corp ┆ HEIBOS 2.8 05/04/35 ┆ HEIMSTADEN BOSTAD AB ┆ Heimstaden Bostad AB ┆ Heimstaden Bostad AB ┆ Heimstaden AB │
+│ BR871064 Corp ┆ HEIMST 6 ¾ PERP     ┆ HEIMSTADEN AB        ┆ Fredensborg AS       ┆ Fredensborg 1994 AS  ┆ Heimstaden AB │
+└───────────────┴─────────────────────┴──────────────────────┴──────────────────────┴──────────────────────┴───────────────┘
+</code></pre></div></p>
+<p class="recipe-label">Notes</p>
+<ul>
+<li>For the Heimstaden AB bond the ultimate parent is its owner, Fredensborg. The CAST
+  parent stays at Heimstaden AB, the top of the capital structure.</li>
+<li>For the Heimstaden Bostad bond the CAST parent is Heimstaden AB, which
+  consolidates Bostad. Both issuers belong to one capital structure.</li>
+<li><code>for(parent('BJ158441 Corp', type=CAST))</code> makes the parent the universe, so you
+  can ask for its fundamentals directly.</li>
+</ul>
+<h2 id="one-capital-structure-several-issuers">One capital structure, several issuers<a class="headerlink" href="#one-capital-structure-several-issuers" title="Permanent link">&para;</a></h2>
+<p class="recipe-uses"><code>group(..., [#cast, ticker, #rank])</code></p>
+<p>All Heimstaden bonds grouped by CAST parent, issuer ticker and rank, in EUR
+millions.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">let(#cast = value(name, parent(type=CAST), mapby=LINEAGE);</span>
+<span class="s2">    #rank = normalized_payment_rank().value;</span>
+<span class="s2">    #amt = group(amt_outstanding(currency=EUR).value / 1M, [#cast, ticker, #rank]);)</span>
+<span class="s2">get(sum(#amt) as #eur_m, count(#amt) as #bonds)</span>
+<span class="s2">for(filter(bondsUniv(ACTIVE, consolidateduplicates=True),</span>
+<span class="s2">           ticker in ['HEIBOS', 'HEIMST', 'HEMVLR']))</span>
+<span class="s2">preferences(dropCols=['ORIG_IDS'])</span>
+<span class="s2">"""</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+        <span class="s2">"#CAST"</span><span class="p">,</span>
+        <span class="s2">"TICKER"</span><span class="p">,</span>
+        <span class="s2">"#RANK"</span><span class="p">,</span>
+        <span class="s2">"#bonds"</span><span class="p">,</span>
+        <span class="n">eur_m</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"#eur_m"</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">Int64</span><span class="p">),</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">"TICKER"</span><span class="p">,</span> <span class="s2">"#RANK"</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Output
+<div class="no-copy recipe-output highlight"><pre><span></span><code>shape: (5, 5)
+┌───────────────┬────────┬───────────────────────────┬────────┬───────┐
+│ #CAST         ┆ TICKER ┆ #RANK                     ┆ #bonds ┆ eur_m │
+│ ---           ┆ ---    ┆ ---                       ┆ ---    ┆ ---   │
+│ str           ┆ str    ┆ str                       ┆ i64    ┆ i64   │
+╞═══════════════╪════════╪═══════════════════════════╪════════╪═══════╡
+│ Heimstaden AB ┆ HEIBOS ┆ Jr Subordinated Unsecured ┆ 5      ┆ 3000  │
+│ Heimstaden AB ┆ HEIBOS ┆ Sr Unsecured              ┆ 20     ┆ 5036  │
+│ Heimstaden AB ┆ HEIMST ┆ Jr Subordinated Unsecured ┆ 2      ┆ 730   │
+│ Heimstaden AB ┆ HEIMST ┆ Sr Unsecured              ┆ 3      ┆ 895   │
+│ Heimstaden AB ┆ HEMVLR ┆ Sr Unsecured              ┆ 3      ┆ 74    │
+└───────────────┴────────┴───────────────────────────┴────────┴───────┘
+</code></pre></div></p>
+<div class="admonition warning">
+<p class="admonition-title">Watch out</p>
+<ul>
+<li><code>bonds('&lt;company&gt;')</code> returns the bonds of that company only, not of its
+  subsidiaries, so start from the tickers and let <code>#cast</code> show what belongs
+  together.</li>
+<li><code>dropCols=['ORIG_IDS']</code> matters: a group with one bond carries <code>ORIG_IDS</code> in
+  <code>count()</code> but not in <code>sum()</code>, and the two items would not join.</li>
+</ul>
+</div>
+<p class="recipe-label">Notes</p>
+<ul>
+<li><code>Jr Subordinated</code> here are hybrid bonds, which rank below all senior debt of the
+  same issuer. Heimstaden AB's debt is also structurally below Bostad's, because
+  Heimstaden AB is a holding company.</li>
+</ul>
+<h2 id="largest-capital-structures-in-a-high-yield-index">Largest capital structures in a high-yield index<a class="headerlink" href="#largest-capital-structures-in-a-high-yield-index" title="Permanent link">&para;</a></h2>
+<p class="recipe-uses"><code>sum(group(..., #cast))</code> over <code>members()</code></p>
+<p>The ten CAST parents with the most debt in the Bloomberg Pan-European High Yield
+index, with their share of the index.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
+<span class="s2">let(#cast = value(name, parent(type=CAST), mapby=LINEAGE);</span>
+<span class="s2">    #amt = group(amt_outstanding(currency=EUR).value / 1B, #cast);)</span>
+<span class="s2">get(sum(#amt) as #eur_bn, count(#amt) as #bonds)</span>
+<span class="s2">for(members('LP01TREU Index'))</span>
+<span class="s2">preferences(dropCols=['ORIG_IDS'])</span>
+<span class="s2">"""</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bql</span><span class="p">(</span><span class="n">query</span><span class="p">)</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">"ID"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+        <span class="s2">"#CAST"</span><span class="p">,</span>
+        <span class="s2">"#bonds"</span><span class="p">,</span>
+        <span class="n">eur_bn</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"#eur_bn"</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">share_pct</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"#eur_bn"</span><span class="p">)</span> <span class="o">/</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"#eur_bn"</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"#CAST"</span><span class="p">)</span><span class="o">.</span><span class="n">is_not_null</span><span class="p">())</span>
+    <span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">"eur_bn"</span><span class="p">,</span> <span class="n">descending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Output
+<div class="no-copy recipe-output highlight"><pre><span></span><code>shape: (10, 4)
+┌────────────────────────────────┬────────┬────────┬───────────┐
+│ #CAST                          ┆ #bonds ┆ eur_bn ┆ share_pct │
+│ ---                            ┆ ---    ┆ ---    ┆ ---       │
+│ str                            ┆ i64    ┆ f64    ┆ f64       │
+╞════════════════════════════════╪════════╪════════╪═══════════╡
+│ SoftBank Group Corp            ┆ 15     ┆ 8.7    ┆ 2.1       │
+│ Kemble Water Holdings Ltd      ┆ 17     ┆ 8.5    ┆ 2.0       │
+│ Vmed O2 UK Ltd                 ┆ 11     ┆ 7.9    ┆ 1.9       │
+│ INA-Holding Schaeffler GmbH &amp;  ┆ 11     ┆ 6.8    ┆ 1.6       │
+│ Telefonica SA                  ┆ 7      ┆ 6.6    ┆ 1.6       │
+│ Maya SAS/Paris France          ┆ 10     ┆ 6.2    ┆ 1.5       │
+│ Bayer AG                       ┆ 7      ┆ 6.0    ┆ 1.5       │
+│ Optics Holdco Srl              ┆ 8      ┆ 5.8    ┆ 1.4       │
+│ Zeppelin-Stiftung Ferdinand Gm ┆ 8      ┆ 5.6    ┆ 1.4       │
+│ Next Alt Sarl                  ┆ 9      ┆ 5.5    ┆ 1.3       │
+└────────────────────────────────┴────────┴────────┴───────────┘
+</code></pre></div></p>
+<p class="recipe-label">Notes</p>
+<ul>
+<li>Grouping by CAST parent adds up holding companies, operating companies and
+  finance vehicles of one group, which a ticker would split.</li>
+<li>Bonds without a CAST parent fall into one <code>NullGroup</code> row with a null <code>#CAST</code>.
+  The filter removes it after the share is computed.</li>
+<li><code>combine(on="ID")</code> joins the two items once; the second <code>#CAST</code> column is kept as
+  <code>#CAST_#bonds</code>.</li>
+</ul>
+<h2 id="pitfalls">Pitfalls<a class="headerlink" href="#pitfalls" title="Permanent link">&para;</a></h2>
+<p>What surprised us while writing these recipes.</p>
+<div class="recipe-pitfalls">
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A bond appears on two rows after <code>combine()</code></td>
+<td><code>mapby=LINEAGE</code> adds <code>SOURCE_ID</code>, which differs between items</td>
+<td><code>combine(on="ID")</code>, or <code>preferences(dropCols=['SOURCE_ID'])</code></td>
+</tr>
+<tr>
+<td>Thousands of rows from a parent universe</td>
+<td>A security without a parent returns the ID <code>NULL_ID</code>, a string that matches itself in every join</td>
+<td>Drop <code>NULL_ID</code> rows before combining, or keep one item</td>
+</tr>
+<tr>
+<td>Fundamentals in GBP or SEK although you asked for EUR</td>
+<td><code>with(ccy=EUR)</code> leaves them in the reporting currency, without an error</td>
+<td><code>with(currency=EUR)</code> or <code>field(currency=EUR)</code>; check <code>CURRENCY</code></td>
+</tr>
+<tr>
+<td><code>bonds('&lt;parent&gt;')</code> misses the subsidiaries' bonds</td>
+<td><code>bonds()</code> does not follow the CAST group: Heimstaden AB's list has no Heimstaden Bostad bonds</td>
+<td>Start from tickers or an index and group by <code>parent(type=CAST)</code></td>
+</tr>
+<tr>
+<td>Screening all bonds of a country by CAST parent times out</td>
+<td>The parent is looked up for every bond in the universe</td>
+<td>Narrow the universe first (tickers, an index), then group</td>
+</tr>
+<tr>
+<td>Grouped items do not line up</td>
+<td>One-bond groups carry <code>ORIG_IDS</code> in some items only</td>
+<td><code>preferences(dropCols=['ORIG_IDS'])</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../axes/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Dealer Axes">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Dealer Axes
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../spreads/" class="md-footer__link md-footer__link--next" aria-label="Next: Spread Statistics">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Spread Statistics
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "navigation.footer", "navigation.indexes", "navigation.top", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  <script data-mkdocs-jupyter-mathjax="{&quot;url&quot;: &quot;https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js&quot;, &quot;version&quot;: 4}">
+/* Shared by full pages and Material's instant navigation. */
+(() => {
+  const config = JSON.parse(document.currentScript.dataset.mkdocsJupyterMathjax);
+  if (window.mkdocsJupyterMathJax) return;
+
+  let loading;
+  let queue = Promise.resolve();
+  let previous = [];
+
+  const ready = async () => {
+    if (!loading) {
+      loading = (async () => {
+        let math = window.MathJax;
+        if (!math?.typesetPromise) {
+          const url = new URL(config.url, document.baseURI).href;
+          const existing = Array.from(document.scripts).find(script =>
+            script.src && (script.src === url || script.id === 'MathJax-script' ||
+              (/mathjax/i.test(script.src) &&
+               /\/(?:MathJax|latest|(?:tex|mml)(?:-mml)?-(?:chtml|svg))\.js(?:[?#]|$)/i.test(script.src))));
+          if (existing) {
+            if (!math?.startup?.promise) {
+              await new Promise((resolve, reject) => {
+                existing.addEventListener('load', resolve, { once: true });
+                existing.addEventListener('error', reject, { once: true });
+              });
+            }
+          } else {
+            // Keep site macros, delimiters and startup hooks when supplied.
+            const options = math || {};
+            window.MathJax = {
+              ...options,
+              loader: {
+                ...options.loader,
+                load: Array.from(new Set(['ui/safe', ...(options.loader?.load || [])]))
+              },
+              startup: { typeset: false, ...options.startup },
+              tex: {
+                tags: 'ams',
+                useLabelIds: true,
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true,
+                ...options.tex
+              }
+            };
+            await new Promise((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = config.url;
+              script.id = 'MathJax-script';
+              script.async = true;
+              script.onload = resolve;
+              script.onerror = reject;
+              document.head.appendChild(script);
+            });
+          }
+        }
+        math = window.MathJax;
+        await math.startup.promise;
+        return math;
+      })();
+    }
+    const math = await loading;
+    // A site owner can extend the v3 queue again on each navigation.
+    await math.startup.promise;
+    return math;
+  };
+
+  const unrendered = node => {
+    if (node.matches('mjx-container')) return [];
+    if (!node.querySelector('mjx-container')) return [node];
+    // In v3, scanning generated assistive MathML again produces nested output.
+    return Array.from(node.children).flatMap(unrendered);
+  };
+
+  const refresh = () => {
+    // A separate chain also serializes v3, without changing v4's startup promise.
+    queue = queue.then(async () => {
+      const notebooks = Array.from(document.querySelectorAll('.jupyter-wrapper'));
+      if (!notebooks.length && !previous.length) return;
+      if (notebooks.length === previous.length &&
+          notebooks.every((node, index) => node === previous[index])) return;
+      const math = await ready();
+      if (previous.length) {
+        math.typesetClear(previous);
+        math.texReset();
+      }
+      previous = notebooks.filter(node => node.isConnected);
+      const pending = previous.flatMap(unrendered);
+      if (pending.length) await math.typesetPromise(pending);
+    }).catch(error => console.error('mkdocs-jupyter: MathJax rendering failed', error));
+    return queue;
+  };
+
+  window.mkdocsJupyterMathJax = { refresh };
+  const start = () => {
+    if (typeof document$ !== 'undefined') document$.subscribe(refresh);
+    else refresh();
+  };
+  // Theme bundles and user-provided MathJax scripts can follow notebook content.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else start();
+})();
+
+</script>
+</body>
+</html>

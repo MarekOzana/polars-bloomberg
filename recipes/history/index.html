@@ -1,0 +1,2225 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Historical time series with BDH in polars-bloomberg - weekly OAS of high-yield and CoCo bond indices with periodicitySelection, markets with different holidays on one calendar with nonTradingDayFillOption and nonTradingDayFillMethod, fund NAV, assets under management and net flows, CDS index (iTraxx Main and Crossover) spread vs intrinsic value and basis, US Treasuries hedged into EUR vs Bunds with an FX hedging cost index, fiscal-year EBITDA, net debt and leverage with periodicityAdjustment=FISCAL, and weekly OHLC candles.">
+      
+      
+      
+        <link rel="canonical" href="https://marekozana.github.io/polars-bloomberg/recipes/history/">
+      
+      
+        <link rel="prev" href="../fundamentals/">
+      
+      
+        <link rel="next" href="../../examples/equity/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../images/polars-bloomberg-fav-32x32.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Market History with BDH - Polars-Bloomberg</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CCascadia+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Cascadia Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/recipes.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#market-history-with-bdh" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Polars-Bloomberg" class="md-header__button md-logo" aria-label="Polars-Bloomberg" data-md-component="logo">
+      
+  <img src="../../images/polars-bloomberg-logo-512x512.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Polars-Bloomberg
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Market History with BDH
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="cyan"  aria-label="Switch to Bloomberg mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to Bloomberg mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="amber" data-md-color-accent="gray"  aria-label="Switch to Polars mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to Polars mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/MarekOzana/polars-bloomberg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MarekOzana/polars-bloomberg
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Polars-Bloomberg" class="md-nav__button md-logo" aria-label="Polars-Bloomberg" data-md-component="logo">
+      
+  <img src="../../images/polars-bloomberg-logo-512x512.png" alt="logo">
+
+    </a>
+    Polars-Bloomberg
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/MarekOzana/polars-bloomberg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MarekOzana/polars-bloomberg
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage & Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Usage & Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/bdp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BDP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/bdh/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BDH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/bdib/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BDIB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/bsrch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BSRCH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/bql/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BQL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recipes
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Recipes
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../new-issues/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    New Issues
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../axes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dealer Axes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../capital-structure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bonds and Capital Structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spreads/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spread Statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fundamentals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Company Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Market History with BDH
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Market History with BDH
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#high-yield-spreads-week-by-week" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        High-yield spreads, week by week
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#three-markets-one-calendar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three markets, one calendar
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fund-nav-assets-and-flows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fund NAV, assets and flows
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cds-index-vs-intrinsic-the-basis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CDS index vs intrinsic: the basis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#us-treasuries-hedged-into-euros-vs-bunds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        US Treasuries hedged into euros vs Bunds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fiscal-year-leverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fiscal-year leverage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weekly-candles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Weekly candles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pitfalls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pitfalls
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../examples/equity/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/credit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Credits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/macro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Macro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#high-yield-spreads-week-by-week" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        High-yield spreads, week by week
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#three-markets-one-calendar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Three markets, one calendar
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fund-nav-assets-and-flows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fund NAV, assets and flows
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cds-index-vs-intrinsic-the-basis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CDS index vs intrinsic: the basis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#us-treasuries-hedged-into-euros-vs-bunds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        US Treasuries hedged into euros vs Bunds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fiscal-year-leverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fiscal-year leverage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#weekly-candles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Weekly candles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pitfalls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pitfalls
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  <nav class="md-tags" >
+    
+      
+      
+      
+      
+        <span class="md-tag">BDH</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">CDS</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">Credit</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">FX</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">Fundamentals</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">Funds</span>
+      
+    
+      
+      
+      
+      
+        <span class="md-tag">Rates</span>
+      
+    
+  </nav>
+
+
+  
+  
+
+
+<h1 id="market-history-with-bdh">Market History with BDH<a class="headerlink" href="#market-history-with-bdh" title="Permanent link">&para;</a></h1>
+<p class="recipe-lead">BQL screens a universe and computes. BDH, <code>bq.bdh()</code> here and <code>=BDH()</code> in Excel,
+does something simpler: it returns the history of a few fields for a list of
+securities. The query is short, so the work is in the options.</p>
+<p>The options decide which dates you get (days, Fridays, month-ends, fiscal years)
+and what happens on a day when one market is closed and another is open. Get them
+wrong and you get a frame that looks right but has gaps, half-empty rows or
+misaligned dates.</p>
+<div class="admonition info">
+<p class="admonition-title">Data on this page</p>
+<p>This page uses the series a credit desk pulls every week: bond index spreads, CDS
+indices, fund NAVs and flows, the cost of hedging dollars into euros, government
+yields, fiscal-year fundamentals and price candles.</p>
+<p>The outputs below are live data as of 2026-11-17 and will differ when you run the
+queries. The recipes with fixed dates change only when Bloomberg revises its
+data. Before you adapt a query, read the <a href="#pitfalls">Pitfalls</a>.</p>
+</div>
+<h2 id="quick-reference">Quick reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
+<p><code>bdh()</code> returns a long frame with a <code>security</code> column, a <code>date</code> column and one
+column per field. <code>pivot(on="security", ...)</code> makes one column per security.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">By task</label><label for="__tabbed_1_2">Options</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<table>
+<thead>
+<tr>
+<th>You want</th>
+<th>Use</th>
+<th>One row per</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Weekly, monthly or yearly closes</td>
+<td><code>options={"periodicitySelection": "WEEKLY"}</code>, <code>MONTHLY</code>, <code>YEARLY</code></td>
+<td>security and period</td>
+</tr>
+<tr>
+<td>Markets with different holidays on the same dates</td>
+<td><code>"nonTradingDayFillOption": "NON_TRADING_WEEKDAYS"</code>, <code>"nonTradingDayFillMethod": "PREVIOUS_VALUE"</code></td>
+<td>security and weekday</td>
+</tr>
+<tr>
+<td>A fund's NAV, assets and flows</td>
+<td><code>FUND_NET_ASSET_VAL</code>, <code>FUND_TOTAL_ASSETS</code>, <code>FUND_CLASS_ASSETS</code>, <code>FUND_FLOW</code></td>
+<td>fund and date</td>
+</tr>
+<tr>
+<td>A CDS index against its constituents</td>
+<td><code>CDS_INDEX_INTRINSIC_VALUE</code>, <code>CDS_INDEX_INTRINSIC_BASIS_VALUE</code></td>
+<td>index and date</td>
+</tr>
+<tr>
+<td>FX, hedging cost and yields side by side</td>
+<td>several securities, <code>PX_LAST</code>, then <code>pivot(on="security")</code></td>
+<td>date</td>
+</tr>
+<tr>
+<td>Fundamentals per fiscal year</td>
+<td><code>"periodicitySelection": "YEARLY"</code>, <code>"periodicityAdjustment": "FISCAL"</code></td>
+<td>company and fiscal year</td>
+</tr>
+<tr>
+<td>Values in another currency</td>
+<td><code>"currency": "USD"</code></td>
+<td></td>
+</tr>
+<tr>
+<td>Open, high, low and close</td>
+<td><code>PX_OPEN</code>, <code>PX_HIGH</code>, <code>PX_LOW</code>, <code>PX_LAST</code></td>
+<td>security and day, week or month</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="tabbed-block">
+<p>The options go in one dict, <code>options={...}</code>. The values are strings.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Values</th>
+<th>Default</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>periodicitySelection</code></td>
+<td><code>DAILY</code>, <code>WEEKLY</code>, <code>MONTHLY</code>, <code>QUARTERLY</code>, <code>SEMI_ANNUALLY</code>, <code>YEARLY</code></td>
+<td><code>DAILY</code></td>
+<td>One row per period</td>
+</tr>
+<tr>
+<td><code>periodicityAdjustment</code></td>
+<td><code>CALENDAR</code>, <code>ACTUAL</code>, <code>FISCAL</code></td>
+<td>calendar periods</td>
+<td><code>CALENDAR</code>: weeks end on Friday, months on the last business day. <code>ACTUAL</code>: periods end on <code>end_date</code>, so weeks end on its weekday. <code>FISCAL</code>: on each company's fiscal period end</td>
+</tr>
+<tr>
+<td><code>nonTradingDayFillOption</code></td>
+<td><code>ACTIVE_DAYS_ONLY</code>, <code>NON_TRADING_WEEKDAYS</code>, <code>ALL_CALENDAR_DAYS</code></td>
+<td><code>ACTIVE_DAYS_ONLY</code></td>
+<td>Which dates get a row</td>
+</tr>
+<tr>
+<td><code>nonTradingDayFillMethod</code></td>
+<td><code>PREVIOUS_VALUE</code>, <code>NIL_VALUE</code></td>
+<td><code>PREVIOUS_VALUE</code></td>
+<td>What an added date holds</td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td><code>EUR</code>, <code>USD</code>, <code>SEK</code>, ...</td>
+<td>the security's own</td>
+<td>Converts prices, fund assets and fundamentals</td>
+</tr>
+</tbody>
+</table>
+<p><code>start_date</code> and <code>end_date</code> take a <code>date</code> or a string, <code>"2026-04-01"</code> or
+<code>"20260401"</code>.</p>
+</div>
+</div>
+</div>
+<h2 id="high-yield-spreads-week-by-week">High-yield spreads, week by week<a class="headerlink" href="#high-yield-spreads-week-by-week" title="Permanent link">&para;</a></h2>
+<p class="recipe-uses"><code>periodicitySelection=WEEKLY</code>, <code>INDEX_OAS_TSY_BP</code></p>
+<p>Friday OAS of four Bloomberg bond indices for the last twelve weeks: US High Yield
+(<code>LF98TRUU</code>), its Industrials sector (<code>I00423</code>), Pan-European High Yield
+(<code>LP01TREU</code>) and Contingent Capital EUR (<code>I30904EU</code>). In basis points.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">timedelta</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+
+<span class="n">indices</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"LF98TRUU Index"</span><span class="p">:</span> <span class="s2">"us_hy"</span><span class="p">,</span>
+    <span class="s2">"I00423 Index"</span><span class="p">:</span> <span class="s2">"us_hy_industrials"</span><span class="p">,</span>
+    <span class="s2">"LP01TREU Index"</span><span class="p">:</span> <span class="s2">"euro_hy"</span><span class="p">,</span>
+    <span class="s2">"I30904EU Index"</span><span class="p">:</span> <span class="s2">"eur_coco"</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span>
+        <span class="nb">list</span><span class="p">(</span><span class="n">indices</span><span class="p">),</span>
+        <span class="p">[</span><span class="s2">"INDEX_OAS_TSY_BP"</span><span class="p">],</span>
+        <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">weeks</span><span class="o">=</span><span class="mi">12</span><span class="p">),</span>
+        <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">(),</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">"periodicitySelection"</span><span class="p">:</span> <span class="s2">"WEEKLY"</span><span class="p">},</span>
+    <span class="p">)</span>
+<span class="n">oas</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">with_columns</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"security"</span><span class="p">)</span><span class="o">.</span><span class="n">replace_strict</span><span class="p">(</span><span class="n">indices</span><span class="p">))</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span>
+    <span class="n">on</span><span class="o">=</span><span class="s2">"security"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s2">"date"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">"INDEX_OAS_TSY_BP"</span>
+<span class="p">)</span>
+<span class="k">with</span> <span class="n">pl</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">tbl_rows</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">oas</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">"date"</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">indices</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">Int64</span><span class="p">)))</span>
+</code></pre></div>
+<p>Output
+<div class="no-copy recipe-output highlight"><pre><span></span><code>shape: (12, 5)
+┌────────────┬───────┬───────────────────┬─────────┬──────────┐
+│ date       ┆ us_hy ┆ us_hy_industrials ┆ euro_hy ┆ eur_coco │
+│ ---        ┆ ---   ┆ ---               ┆ ---     ┆ ---      │
+│ date       ┆ i64   ┆ i64               ┆ i64     ┆ i64      │
+╞════════════╪═══════╪═══════════════════╪═════════╪══════════╡
+│ 2026-08-28 ┆ 260   ┆ 268               ┆ 277     ┆ 224      │
+│ 2026-09-04 ┆ 266   ┆ 276               ┆ 285     ┆ 227      │
+│ 2026-09-11 ┆ 266   ┆ 274               ┆ 286     ┆ 230      │
+│ 2026-09-18 ┆ 268   ┆ 275               ┆ 286     ┆ 230      │
+│ 2026-09-25 ┆ 295   ┆ 300               ┆ 300     ┆ 248      │
+│ 2026-10-02 ┆ 310   ┆ 312               ┆ 347     ┆ 297      │
+│ 2026-10-09 ┆ 310   ┆ 313               ┆ 342     ┆ 279      │
+│ 2026-10-16 ┆ 334   ┆ 340               ┆ 356     ┆ 274      │
+│ 2026-10-23 ┆ 343   ┆ 347               ┆ 395     ┆ 303      │
+│ 2026-10-30 ┆ 345   ┆ 349               ┆ 384     ┆ 296      │
+│ 2026-11-06 ┆ 337   ┆ 345               ┆ 378     ┆ 287      │
+│ 2026-11-13 ┆ 318   ┆ 323               ┆ 354     ┆ 270      │
+└────────────┴───────┴───────────────────┴─────────┴──────────┘
+</code></pre></div></p>
+<div class="admonition warning">
+<p class="admonition-title">Watch out</p>
+<ul>
+<li><code>WEEKLY</code> gives each week's Friday close. The current week is not there until it
+  is complete. For the latest close, add a daily request or use BQL's <code>per=W</code>, as in
+  <a href="../spreads/#index-yield-and-spread-week-by-week">Index yield and spread, week by week</a>.</li>
+<li><code>"periodicityAdjustment": "ACTUAL"</code> ends each week on the weekday of <code>end_date</code>.
+  Run it on a Wednesday and you get Wednesday closes.</li>
+</ul>
+</div>
+<p class="recipe-label">Notes</p>
+<ul>
+<li><code>INDEX_OAS_TSY_BP</code> is the OAS in basis points, and <code>INDEX_OAS_TSY</code> is the same
+  number in percent. <code>INDEX_Z_SPREAD_BP</code> is the Z-spread.</li>
+<li>Field ids work as well as mnemonics: <code>"BX218"</code> is <code>INDEX_OAS_TSY_BP</code> and
+  <code>"BX326"</code> is <code>INDEX_Z_SPREAD_BP</code>. The column is named as you asked, so <code>BX218</code>.
+  Look fields up with <code>FLDS &lt;GO&gt;</code>.</li>
+<li><code>replace_strict</code> turns tickers into short names before the pivot. It raises an
+  error for a ticker that is missing from the dict, so a typo does not go unnoticed.</li>
+</ul>
+<h2 id="three-markets-one-calendar">Three markets, one calendar<a class="headerlink" href="#three-markets-one-calendar" title="Permanent link">&para;</a></h2>
+<p class="recipe-uses"><code>nonTradingDayFillOption</code>, <code>nonTradingDayFillMethod</code></p>
+<p>The S&amp;P 500, Euro Stoxx 50 and OMX Stockholm 30 around Easter 2026. On Good Friday,
+3 April, all three were closed. On Easter Monday, 6 April, only New York traded.
+The recipe asks for every weekday, carries the last close into holidays and lists
+the markets that were closed.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+
+<span class="n">markets</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"SPX Index"</span><span class="p">,</span> <span class="s2">"SX5E Index"</span><span class="p">,</span> <span class="s2">"OMX Index"</span><span class="p">]</span>
+<span class="n">every_weekday</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"nonTradingDayFillOption"</span><span class="p">:</span> <span class="s2">"NON_TRADING_WEEKDAYS"</span><span class="p">,</span>
+    <span class="s2">"nonTradingDayFillMethod"</span><span class="p">:</span> <span class="s2">"PREVIOUS_VALUE"</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">traded</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span><span class="n">markets</span><span class="p">,</span> <span class="s2">"PX_LAST"</span><span class="p">,</span> <span class="s2">"2026-04-01"</span><span class="p">,</span> <span class="s2">"2026-04-08"</span><span class="p">)</span>
+    <span class="n">filled</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span>
+        <span class="n">markets</span><span class="p">,</span> <span class="s2">"PX_LAST"</span><span class="p">,</span> <span class="s2">"2026-04-01"</span><span class="p">,</span> <span class="s2">"2026-04-08"</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">every_weekday</span>
+    <span class="p">)</span>
+<span class="n">closed</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">filled</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">traded</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s2">"security"</span><span class="p">,</span> <span class="s2">"date"</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s2">"anti"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="s2">"date"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">closed</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"security"</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">" Index"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">", "</span><span class="p">))</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="n">filled</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">"security"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s2">"date"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">"PX_LAST"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">closed</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">"date"</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">"date"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">"date"</span><span class="p">,</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"date"</span><span class="p">)</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">"</span><span class="si">%a</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">alias</span><span class="p">(</span><span class="s2">"day"</span><span class="p">),</span> <span class="o">*</span><span class="n">markets</span><span class="p">,</span> <span class="s2">"closed"</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Output
+<div class="no-copy recipe-output highlight"><pre><span></span><code>shape: (6, 6)
+┌────────────┬─────┬───────────┬────────────┬───────────┬────────────────┐
+│ date       ┆ day ┆ SPX Index ┆ SX5E Index ┆ OMX Index ┆ closed         │
+│ ---        ┆ --- ┆ ---       ┆ ---        ┆ ---       ┆ ---            │
+│ date       ┆ str ┆ f64       ┆ f64        ┆ f64       ┆ str            │
+╞════════════╪═════╪═══════════╪════════════╪═══════════╪════════════════╡
+│ 2026-04-01 ┆ Wed ┆ 6575.32   ┆ 5732.71    ┆ 3006.37   ┆ null           │
+│ 2026-04-02 ┆ Thu ┆ 6582.69   ┆ 5692.86    ┆ 2965.688  ┆ null           │
+│ 2026-04-03 ┆ Fri ┆ 6582.69   ┆ 5692.86    ┆ 2965.688  ┆ OMX, SPX, SX5E │
+│ 2026-04-06 ┆ Mon ┆ 6611.83   ┆ 5692.86    ┆ 2965.688  ┆ OMX, SX5E      │
+│ 2026-04-07 ┆ Tue ┆ 6616.85   ┆ 5633.22    ┆ 2967.917  ┆ null           │
+│ 2026-04-08 ┆ Wed ┆ 6782.81   ┆ 5913.37    ┆ 3094.161  ┆ null           │
+└────────────┴─────┴───────────┴────────────┴───────────┴────────────────┘
+</code></pre></div></p>
+<div class="admonition warning">
+<p class="admonition-title">Watch out</p>
+<ul>
+<li>Without options (<code>traded</code>) each security keeps its own trading days. Good Friday
+  has no row at all, and Easter Monday has one only for the S&amp;P 500. After a pivot
+  Europe is null on Easter Monday. Computed per security, Europe's return on
+  Tuesday covers Thursday to Tuesday, and New York's only Monday to Tuesday.</li>
+<li><code>nonTradingDayFillMethod</code> alone changes nothing. The default
+  <code>nonTradingDayFillOption</code>, <code>ACTIVE_DAYS_ONLY</code>, adds no days to fill.</li>
+</ul>
+</div>
+<p class="recipe-label">Notes</p>
+<ul>
+<li><code>NON_TRADING_WEEKDAYS</code> gives a row for every Monday to Friday. <code>PREVIOUS_VALUE</code>
+  repeats the last close on the added days, so the return on a holiday is 0.</li>
+<li><code>ALL_CALENDAR_DAYS</code> adds Saturdays and Sundays too, which helps when a month ends
+  on a weekend. <code>NIL_VALUE</code> adds the days but leaves them null.</li>
+<li>The anti join finds the rows that only the fill created. Those are the holidays.</li>
+</ul>
+<h2 id="fund-nav-assets-and-flows">Fund NAV, assets and flows<a class="headerlink" href="#fund-nav-assets-and-flows" title="Permanent link">&para;</a></h2>
+<p class="recipe-uses"><code>FUND_TOTAL_ASSETS</code>, <code>FUND_FLOW</code>, <code>MONTHLY</code></p>
+<p>Month-end NAV, return and assets of two AT1 funds: the SEB Hybrid Capital Bond
+Fund (<code>SEBVVGD</code>, a UCITS fund, share class R EUR) and the Invesco USD AT1 CoCo
+Bond UCITS ETF (<code>AT1 LN</code>). <code>class_flow</code> is Bloomberg's flow into the share class.
+<code>fund_flow</code> estimates the flow into the whole fund from its assets and the NAV
+return. Assets and flows are in millions of the fund's currency, EUR and USD.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">timedelta</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span>
+        <span class="p">[</span><span class="s2">"SEBVVGD SS Equity"</span><span class="p">,</span> <span class="s2">"AT1 LN Equity"</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"FUND_NET_ASSET_VAL"</span><span class="p">,</span> <span class="s2">"FUND_TOTAL_ASSETS"</span><span class="p">,</span> <span class="s2">"FUND_FLOW"</span><span class="p">],</span>
+        <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">200</span><span class="p">),</span>
+        <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">(),</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">"periodicitySelection"</span><span class="p">:</span> <span class="s2">"MONTHLY"</span><span class="p">},</span>
+    <span class="p">)</span>
+<span class="n">growth</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"FUND_NET_ASSET_VAL"</span><span class="p">)</span> <span class="o">/</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"FUND_NET_ASSET_VAL"</span><span class="p">)</span><span class="o">.</span><span class="n">shift</span><span class="p">()</span>
+<span class="n">aum</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"FUND_TOTAL_ASSETS"</span><span class="p">)</span>
+<span class="n">table</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">with_columns</span><span class="p">(</span>
+        <span class="n">ret_pct</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="n">growth</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="s2">"security"</span><span class="p">),</span>
+        <span class="n">fund_flow</span><span class="o">=</span><span class="p">(</span><span class="n">aum</span> <span class="o">-</span> <span class="n">aum</span><span class="o">.</span><span class="n">shift</span><span class="p">()</span> <span class="o">*</span> <span class="n">growth</span><span class="p">)</span><span class="o">.</span><span class="n">over</span><span class="p">(</span><span class="s2">"security"</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">drop_nulls</span><span class="p">(</span><span class="s2">"fund_flow"</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">select</span><span class="p">(</span>
+        <span class="n">fund</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"security"</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">" "</span><span class="p">)</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">first</span><span class="p">(),</span>
+        <span class="n">month</span><span class="o">=</span><span class="s2">"date"</span><span class="p">,</span>
+        <span class="n">nav</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"FUND_NET_ASSET_VAL"</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+        <span class="n">ret_pct</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ret_pct"</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+        <span class="n">aum</span><span class="o">=</span><span class="n">aum</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">class_flow</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"FUND_FLOW"</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">fund_flow</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"fund_flow"</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="k">with</span> <span class="n">pl</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">tbl_rows</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+</code></pre></div>
+<p>Output
+<div class="no-copy recipe-output highlight"><pre><span></span><code>shape: (10, 7)
+┌─────────┬────────────┬────────┬─────────┬────────┬────────────┬───────────┐
+│ fund    ┆ month      ┆ nav    ┆ ret_pct ┆ aum    ┆ class_flow ┆ fund_flow │
+│ ---     ┆ ---        ┆ ---    ┆ ---     ┆ ---    ┆ ---        ┆ ---       │
+│ str     ┆ date       ┆ f64    ┆ f64     ┆ f64    ┆ f64        ┆ f64       │
+╞═════════╪════════════╪════════╪═════════╪════════╪════════════╪═══════════╡
+│ SEBVVGD ┆ 2026-06-30 ┆ 133.68 ┆ 0.78    ┆ 209.4  ┆ 0.0        ┆ -4.4      │
+│ SEBVVGD ┆ 2026-07-31 ┆ 133.28 ┆ -0.3    ┆ 221.7  ┆ -0.1       ┆ 12.9      │
+│ SEBVVGD ┆ 2026-08-31 ┆ 133.74 ┆ 0.34    ┆ 220.0  ┆ -1.6       ┆ -2.4      │
+│ SEBVVGD ┆ 2026-09-30 ┆ 130.96 ┆ -2.08   ┆ 188.0  ┆ 0.0        ┆ -27.4     │
+│ SEBVVGD ┆ 2026-10-30 ┆ 130.78 ┆ -0.14   ┆ 192.1  ┆ -0.4       ┆ 4.4       │
+│ AT1     ┆ 2026-06-30 ┆ 30.32  ┆ 0.56    ┆ 1657.1 ┆ 4.5        ┆ -16.7     │
+│ AT1     ┆ 2026-07-31 ┆ 30.23  ┆ -0.3    ┆ 1633.8 ┆ -19.2      ┆ -18.2     │
+│ AT1     ┆ 2026-08-31 ┆ 30.41  ┆ 0.58    ┆ 1645.8 ┆ -0.1       ┆ 2.5       │
+│ AT1     ┆ 2026-09-30 ┆ 29.76  ┆ -2.13   ┆ 1557.1 ┆ -40.3      ┆ -53.7     │
+│ AT1     ┆ 2026-10-30 ┆ 29.78  ┆ 0.06    ┆ 1500.0 ┆ -28.6      ┆ -58.1     │
+└─────────┴────────────┴────────┴─────────┴────────┴────────────┴───────────┘
+</code></pre></div></p>
+<div class="admonition warning">
+<p class="admonition-title">Watch out</p>
+<ul>
+<li>With <code>MONTHLY</code>, <code>FUND_FLOW</code> is the sum of the month's daily flows. NAV and assets
+  are month-end values. The current month is missing until it ends.</li>
+<li><code>PX_LAST</code> of a mutual fund is its NAV. For an ETF it is the exchange price, and
+  <code>PX_LAST / FUND_NET_ASSET_VAL - 1</code> is the premium to NAV.</li>
+</ul>
+</div>
+<p class="recipe-label">Notes</p>
+<ul>
+<li><code>FUND_TOTAL_ASSETS</code> is the whole fund, all share classes together.
+  <code>FUND_CLASS_ASSETS</code> is the share class of the ticker you ask for, and
+  <code>FUND_TOTAL_ASSETS_CRNCY</code> gives the currency.</li>
+<li>Assets are shares times NAV. So the change in assets less the NAV return is the
+  money that came in or went out. Computed with <code>FUND_CLASS_ASSETS</code>, it comes close
+  to Bloomberg's <code>FUND_FLOW</code>. With <code>FUND_TOTAL_ASSETS</code> it is an estimate for the
+  whole fund, because the other share classes earn slightly different returns
+  (other currencies, other fees).</li>
+<li>A month where <code>class_flow</code> is close to 0 and <code>fund_flow</code> is large means money
+  moved in the fund's other share classes.</li>
+<li><code>"currency": "SEK"</code> returns the assets in SEK. Bloomberg converts them.</li>
+</ul>
+<h2 id="cds-index-vs-intrinsic-the-basis">CDS index vs intrinsic: the basis<a class="headerlink" href="#cds-index-vs-intrinsic-the-basis" title="Permanent link">&para;</a></h2>
+<p class="recipe-uses"><code>CDS_INDEX_INTRINSIC_BASIS_VALUE</code></p>
+<p>iTraxx Europe Main and Crossover, 5-year, for the last three weeks. For each index
+the quoted spread, the intrinsic spread (the index spread implied by the CDS of its
+constituents) and the basis between them, in basis points.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">timedelta</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+
+<span class="n">indices</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"ITRXEBE Index"</span><span class="p">:</span> <span class="s2">"main"</span><span class="p">,</span> <span class="s2">"ITRXEXE Index"</span><span class="p">:</span> <span class="s2">"xover"</span><span class="p">}</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span>
+        <span class="nb">list</span><span class="p">(</span><span class="n">indices</span><span class="p">),</span>
+        <span class="p">[</span><span class="s2">"PX_LAST"</span><span class="p">,</span> <span class="s2">"CDS_INDEX_INTRINSIC_VALUE"</span><span class="p">,</span> <span class="s2">"CDS_INDEX_INTRINSIC_BASIS_VALUE"</span><span class="p">],</span>
+        <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">weeks</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+        <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">(),</span>
+    <span class="p">)</span>
+<span class="n">wide</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+    <span class="s2">"date"</span><span class="p">,</span>
+    <span class="n">index</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"security"</span><span class="p">)</span><span class="o">.</span><span class="n">replace_strict</span><span class="p">(</span><span class="n">indices</span><span class="p">),</span>
+    <span class="n">spread</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"PX_LAST"</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">intrinsic</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"CDS_INDEX_INTRINSIC_VALUE"</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">basis</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"CDS_INDEX_INTRINSIC_BASIS_VALUE"</span><span class="p">),</span>
+<span class="p">)</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s2">"index"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s2">"date"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="s2">"spread"</span><span class="p">,</span> <span class="s2">"intrinsic"</span><span class="p">,</span> <span class="s2">"basis"</span><span class="p">])</span>
+<span class="k">with</span> <span class="n">pl</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">tbl_rows</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="n">wide</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+            <span class="s2">"date"</span><span class="p">,</span>
+            <span class="s2">"spread_main"</span><span class="p">,</span>
+            <span class="s2">"intrinsic_main"</span><span class="p">,</span>
+            <span class="s2">"basis_main"</span><span class="p">,</span>
+            <span class="s2">"spread_xover"</span><span class="p">,</span>
+            <span class="s2">"intrinsic_xover"</span><span class="p">,</span>
+            <span class="s2">"basis_xover"</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+</code></pre></div>
+<p>Output
+<div class="no-copy recipe-output highlight"><pre><span></span><code>shape: (16, 7)
+┌────────────┬─────────────┬────────────────┬────────────┬──────────────┬─────────────────┬─────────────┐
+│ date       ┆ spread_main ┆ intrinsic_main ┆ basis_main ┆ spread_xover ┆ intrinsic_xover ┆ basis_xover │
+│ ---        ┆ ---         ┆ ---            ┆ ---        ┆ ---          ┆ ---             ┆ ---         │
+│ date       ┆ f64         ┆ f64            ┆ f64        ┆ f64          ┆ f64             ┆ f64         │
+╞════════════╪═════════════╪════════════════╪════════════╪══════════════╪═════════════════╪═════════════╡
+│ 2026-10-27 ┆ 64.8        ┆ 67.3           ┆ -2.44      ┆ 322.1        ┆ 331.5           ┆ -9.37       │
+│ 2026-10-28 ┆ 64.2        ┆ 65.7           ┆ -1.53      ┆ 317.0        ┆ 323.0           ┆ -5.99       │
+│ 2026-10-29 ┆ 63.2        ┆ 64.2           ┆ -1.0       ┆ 313.4        ┆ 318.0           ┆ -4.59       │
+│ 2026-10-30 ┆ 65.9        ┆ 65.3           ┆ 0.53       ┆ 326.2        ┆ 320.1           ┆ 6.14        │
+│ 2026-11-02 ┆ 64.3        ┆ 65.0           ┆ -0.65      ┆ 318.6        ┆ 318.0           ┆ 0.62        │
+│ 2026-11-03 ┆ 65.1        ┆ 65.3           ┆ -0.2       ┆ 323.1        ┆ 319.0           ┆ 4.06        │
+│ 2026-11-04 ┆ 61.3        ┆ 63.0           ┆ -1.73      ┆ 306.0        ┆ 310.3           ┆ -4.36       │
+│ 2026-11-05 ┆ 62.3        ┆ 62.4           ┆ -0.14      ┆ 310.3        ┆ 306.2           ┆ 4.1         │
+│ 2026-11-06 ┆ 62.6        ┆ 63.3           ┆ -0.69      ┆ 311.0        ┆ 307.8           ┆ 3.18        │
+│ 2026-11-09 ┆ 59.8        ┆ 61.8           ┆ -1.95      ┆ 298.3        ┆ 306.5           ┆ -8.2        │
+│ 2026-11-10 ┆ 60.4        ┆ 60.7           ┆ -0.25      ┆ 298.9        ┆ 298.8           ┆ 0.02        │
+│ 2026-11-11 ┆ 58.9        ┆ 59.8           ┆ -0.85      ┆ 290.5        ┆ 297.2           ┆ -6.62       │
+│ 2026-11-12 ┆ 58.8        ┆ 60.2           ┆ -1.38      ┆ 290.4        ┆ 297.8           ┆ -7.43       │
+│ 2026-11-13 ┆ 59.2        ┆ 60.7           ┆ -1.48      ┆ 292.5        ┆ 299.6           ┆ -7.06       │
+│ 2026-11-16 ┆ 60.3        ┆ 61.2           ┆ -0.93      ┆ 296.4        ┆ 300.6           ┆ -4.24       │
+│ 2026-11-17 ┆ 61.0        ┆ null           ┆ null       ┆ 299.8        ┆ null            ┆ null        │
+└────────────┴─────────────┴────────────────┴────────────┴──────────────┴─────────────────┴─────────────┘
+</code></pre></div></p>
+<div class="admonition warning">
+<p class="admonition-title">Watch out</p>
+<ul>
+<li><code>basis</code> is the quoted spread minus the intrinsic spread, although the field's
+  description says it the other way round. A positive basis means the index trades
+  wider than its constituents.</li>
+<li><code>ITRXEBE</code> and <code>ITRXEXE</code> follow the current series. They roll to a new series
+  around 20 March and 20 September. The spread jumps on the roll, because the new
+  series runs six months longer and some of its companies change. Main closed at
+  54.6 on Friday 18 September 2026 and at 58.2 on the roll day, Monday 21
+  September; Crossover went from 260 to 284.</li>
+</ul>
+</div>
+<p class="recipe-label">Notes</p>
+<ul>
+<li>Today's quoted spread is there during the day, but the intrinsic spread and the
+  basis are still null. <code>drop_nulls("basis_main")</code> removes that row.</li>
+<li><code>values=[...]</code> in <code>pivot</code> gives one column per field and index, named
+  <code>&lt;field&gt;_&lt;index&gt;</code>.</li>
+<li>For the return of selling protection on Main, use the excess return index
+  <code>ERIXITEU Index</code>.</li>
+</ul>
+<h2 id="us-treasuries-hedged-into-euros-vs-bunds">US Treasuries hedged into euros vs Bunds<a class="headerlink" href="#us-treasuries-hedged-into-euros-vs-bunds" title="Permanent link">&para;</a></h2>
+<p class="recipe-uses"><code>FXHCEUUS Index</code>, <code>pivot(on="security")</code></p>
+<p>Should a euro investor buy 5-year US Treasuries hedged back into euros, or 5-year
+Bunds? Month-end EURUSD, the cost of hedging dollars into euros with 3-month
+forwards, both yields, and the hedged pickup over Bunds. Four securities, one
+field, one wide frame.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">timedelta</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+
+<span class="n">names</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"EURUSD Curncy"</span><span class="p">:</span> <span class="s2">"eurusd"</span><span class="p">,</span>
+    <span class="s2">"FXHCEUUS Index"</span><span class="p">:</span> <span class="s2">"hedge_cost"</span><span class="p">,</span>
+    <span class="s2">"USGG5YR Index"</span><span class="p">:</span> <span class="s2">"ust_5y"</span><span class="p">,</span>
+    <span class="s2">"GDBR5 Index"</span><span class="p">:</span> <span class="s2">"bund_5y"</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span>
+        <span class="nb">list</span><span class="p">(</span><span class="n">names</span><span class="p">),</span>
+        <span class="s2">"PX_LAST"</span><span class="p">,</span>
+        <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">365</span><span class="p">),</span>
+        <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">(),</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">"periodicitySelection"</span><span class="p">:</span> <span class="s2">"MONTHLY"</span><span class="p">},</span>
+    <span class="p">)</span>
+<span class="n">wide</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">with_columns</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"security"</span><span class="p">)</span><span class="o">.</span><span class="n">replace_strict</span><span class="p">(</span><span class="n">names</span><span class="p">))</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span>
+    <span class="n">on</span><span class="o">=</span><span class="s2">"security"</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s2">"date"</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s2">"PX_LAST"</span>
+<span class="p">)</span>
+<span class="n">hedged</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"ust_5y"</span><span class="p">)</span> <span class="o">+</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"hedge_cost"</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">pl</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">tbl_rows</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="n">wide</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+            <span class="s2">"date"</span><span class="p">,</span>
+            <span class="o">*</span><span class="n">names</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>
+            <span class="n">ust_hedged</span><span class="o">=</span><span class="n">hedged</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+            <span class="n">pickup_bp</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="n">hedged</span> <span class="o">-</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"bund_5y"</span><span class="p">)))</span><span class="o">.</span><span class="n">round</span><span class="p">(),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+</code></pre></div>
+<p>Output
+<div class="no-copy recipe-output highlight"><pre><span></span><code>shape: (12, 7)
+┌────────────┬────────┬────────────┬────────┬─────────┬────────────┬───────────┐
+│ date       ┆ eurusd ┆ hedge_cost ┆ ust_5y ┆ bund_5y ┆ ust_hedged ┆ pickup_bp │
+│ ---        ┆ ---    ┆ ---        ┆ ---    ┆ ---     ┆ ---        ┆ ---       │
+│ date       ┆ f64    ┆ f64        ┆ f64    ┆ f64     ┆ f64        ┆ f64       │
+╞════════════╪════════╪════════════╪════════╪═════════╪════════════╪═══════════╡
+│ 2025-11-28 ┆ 1.1598 ┆ -1.8702    ┆ 3.5964 ┆ 2.288   ┆ 1.73       ┆ -56.0     │
+│ 2025-12-31 ┆ 1.1746 ┆ -1.6823    ┆ 3.7252 ┆ 2.448   ┆ 2.04       ┆ -41.0     │
+│ 2026-01-30 ┆ 1.1851 ┆ -1.6871    ┆ 3.7881 ┆ 2.417   ┆ 2.1        ┆ -32.0     │
+│ 2026-02-27 ┆ 1.1812 ┆ -1.706     ┆ 3.5017 ┆ 2.239   ┆ 1.8        ┆ -44.0     │
+│ 2026-03-31 ┆ 1.1553 ┆ -1.6378    ┆ 3.9427 ┆ 2.727   ┆ 2.3        ┆ -42.0     │
+│ 2026-04-30 ┆ 1.1731 ┆ -1.5603    ┆ 4.0055 ┆ 2.748   ┆ 2.45       ┆ -30.0     │
+│ 2026-05-29 ┆ 1.1659 ┆ -1.4989    ┆ 4.1407 ┆ 2.637   ┆ 2.64       ┆ 0.0       │
+│ 2026-06-30 ┆ 1.1422 ┆ -1.5013    ┆ 4.2265 ┆ 2.595   ┆ 2.73       ┆ 13.0      │
+│ 2026-07-31 ┆ 1.1527 ┆ -1.4253    ┆ 4.4489 ┆ 2.943   ┆ 3.02       ┆ 8.0       │
+│ 2026-08-31 ┆ 1.1618 ┆ -1.3948    ┆ 4.5002 ┆ 3.064   ┆ 3.11       ┆ 4.0       │
+│ 2026-09-30 ┆ 1.133  ┆ -1.5442    ┆ 5.0859 ┆ 3.355   ┆ 3.54       ┆ 19.0      │
+│ 2026-10-30 ┆ 1.116  ┆ -1.5169    ┆ 4.7198 ┆ 3.128   ┆ 3.2        ┆ 7.0       │
+└────────────┴────────┴────────────┴────────┴─────────┴────────────┴───────────┘
+</code></pre></div></p>
+<div class="admonition warning">
+<p class="admonition-title">Watch out</p>
+<p><code>FXHCEUUS</code> (Bloomberg EURUSD 3 Month Hedging Cost) is the annualised return, in
+percent, of selling dollars three months forward for euros. It is negative when
+hedging costs a euro investor money, so add it to the dollar yield. It follows
+the forward points. On 13 November 2026, EURUSD at 1.1023 and 3-month points of
+44.77 (<code>EUR3M Curncy</code>) came to about -1.6% a year, and the index stood at -1.59.</p>
+</div>
+<p class="recipe-label">Notes</p>
+<ul>
+<li><code>FXHCUSEU</code> is the other side: a dollar investor hedging euros earns about the
+  same amount.</li>
+<li>The hedge is rolled every three months. <code>ust_hedged</code> holds only while the gap
+  between dollar and euro short rates stays where it is.</li>
+<li>Holidays differ between New York, Frankfurt and the FX market. Month-ends hide
+  that. For daily data, add the options from
+  <a href="#three-markets-one-calendar">Three markets, one calendar</a>.</li>
+<li>To get the hedge cost known on each trade date, sort both frames by date and use
+  <code>trades.join_asof(hedge, on="date")</code>. Each trade gets the last value on or before
+  its date.</li>
+</ul>
+<h2 id="fiscal-year-leverage">Fiscal-year leverage<a class="headerlink" href="#fiscal-year-leverage" title="Permanent link">&para;</a></h2>
+<p class="recipe-uses"><code>YEARLY</code>, <code>periodicityAdjustment=FISCAL</code>, <code>currency</code></p>
+<p>Reported and adjusted EBITDA, net debt and net leverage for each fiscal year, for
+three companies whose years end in different months: IBM (December), Vodafone
+(March) and Microsoft (June). In USD billions.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span>
+        <span class="p">[</span><span class="s2">"IBM US Equity"</span><span class="p">,</span> <span class="s2">"VOD LN Equity"</span><span class="p">,</span> <span class="s2">"MSFT US Equity"</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"TRAIL_12M_EBITDA"</span><span class="p">,</span> <span class="s2">"EBITDA_ADJUSTED"</span><span class="p">,</span> <span class="s2">"NET_DEBT"</span><span class="p">],</span>
+        <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">year</span> <span class="o">-</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">(),</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">"periodicitySelection"</span><span class="p">:</span> <span class="s2">"YEARLY"</span><span class="p">,</span>
+            <span class="s2">"periodicityAdjustment"</span><span class="p">:</span> <span class="s2">"FISCAL"</span><span class="p">,</span>
+            <span class="s2">"currency"</span><span class="p">:</span> <span class="s2">"USD"</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+<span class="k">with</span> <span class="n">pl</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">tbl_rows</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+            <span class="n">company</span><span class="o">=</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"security"</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">" "</span><span class="p">)</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">first</span><span class="p">(),</span>
+            <span class="n">fiscal_year_end</span><span class="o">=</span><span class="s2">"date"</span><span class="p">,</span>
+            <span class="n">ebitda</span><span class="o">=</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"TRAIL_12M_EBITDA"</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">ebitda_adj</span><span class="o">=</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"EBITDA_ADJUSTED"</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">net_debt</span><span class="o">=</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"NET_DEBT"</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">leverage</span><span class="o">=</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"NET_DEBT"</span><span class="p">)</span> <span class="o">/</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"EBITDA_ADJUSTED"</span><span class="p">))</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+</code></pre></div>
+<p>Output
+<div class="no-copy recipe-output highlight"><pre><span></span><code>shape: (14, 6)
+┌─────────┬─────────────────┬────────┬────────────┬──────────┬──────────┐
+│ company ┆ fiscal_year_end ┆ ebitda ┆ ebitda_adj ┆ net_debt ┆ leverage │
+│ ---     ┆ ---             ┆ ---    ┆ ---        ┆ ---      ┆ ---      │
+│ str     ┆ date            ┆ f64    ┆ f64        ┆ f64      ┆ f64      │
+╞═════════╪═════════════════╪════════╪════════════╪══════════╪══════════╡
+│ IBM     ┆ 2022-12-31      ┆ 13.3   ┆ 13.0       ┆ 45.3     ┆ 3.5      │
+│ IBM     ┆ 2023-12-31      ┆ 13.9   ┆ 14.3       ┆ 46.5     ┆ 3.2      │
+│ IBM     ┆ 2024-12-31      ┆ 14.0   ┆ 18.2       ┆ 43.8     ┆ 2.4      │
+│ IBM     ┆ 2025-12-31      ┆ 16.9   ┆ 17.6       ┆ 50.2     ┆ 2.9      │
+│ VOD     ┆ 2022-03-31      ┆ 18.3   ┆ 18.7       ┆ 60.6     ┆ 3.2      │
+│ VOD     ┆ 2023-03-31      ┆ 25.3   ┆ 16.2       ┆ 51.8     ┆ 3.2      │
+│ VOD     ┆ 2024-03-31      ┆ 15.4   ┆ 15.7       ┆ 49.3     ┆ 3.1      │
+│ VOD     ┆ 2025-03-31      ┆ 11.3   ┆ 15.7       ┆ 37.9     ┆ 2.4      │
+│ VOD     ┆ 2026-03-31      ┆ 18.2   ┆ 18.4       ┆ 42.6     ┆ 2.3      │
+│ MSFT    ┆ 2022-06-30      ┆ 100.3  ┆ 100.3      ┆ -26.4    ┆ -0.3     │
+│ MSFT    ┆ 2023-06-30      ┆ 105.3  ┆ 106.4      ┆ -31.8    ┆ -0.3     │
+│ MSFT    ┆ 2024-06-30      ┆ 135.3  ┆ 135.3      ┆ 22.3     ┆ 0.2      │
+│ MSFT    ┆ 2025-06-30      ┆ 168.2  ┆ 168.2      ┆ 17.6     ┆ 0.1      │
+│ MSFT    ┆ 2026-06-30      ┆ 200.7  ┆ 200.7      ┆ 52.0     ┆ 0.3      │
+└─────────┴─────────────────┴────────┴────────────┴──────────┴──────────┘
+</code></pre></div></p>
+<div class="admonition warning">
+<p class="admonition-title">Watch out</p>
+<ul>
+<li><code>"periodicityAdjustment": "FISCAL"</code> puts every field on the company's fiscal year
+  end. Without it, <code>TRAIL_12M_EBITDA</code> lands on the last trading day of each
+  calendar year and <code>NET_DEBT</code> on the fiscal year end. When the two dates differ,
+  as they do every year for Vodafone and Microsoft, the year has two rows, each
+  half null.</li>
+<li><code>CALENDAR</code> does not calendarise the figures; it only relabels them. Microsoft's
+  fiscal year to June 2023 and Vodafone's to March 2023 both come back dated
+  2022-12-30. Keep <code>FISCAL</code> and the real period end.</li>
+<li>Vodafone reports in EUR and <code>"currency": "USD"</code> converts. EBITDA is converted at
+  the average rate of the year and net debt at the rate at year end: about 1.16
+  and 1.11 USD per EUR for fiscal 2022. So leverage in USD can differ from
+  leverage in the reporting currency.</li>
+</ul>
+</div>
+<p class="recipe-label">Notes</p>
+<ul>
+<li><code>TRAIL_12M_EBITDA</code> is EBITDA as reported. <code>EBITDA_ADJUSTED</code> takes out one-off
+  items. Vodafone's fiscal 2023 shows the difference: 25.3 reported, 16.2
+  adjusted.</li>
+<li>Amounts are in millions; the recipe divides by 1,000. Negative net debt is net
+  cash.</li>
+<li>For period offsets, segments, adjusted figures and estimates in BQL, see
+  <a href="../fundamentals/">Company Fundamentals</a>.</li>
+</ul>
+<h2 id="weekly-candles">Weekly candles<a class="headerlink" href="#weekly-candles" title="Permanent link">&para;</a></h2>
+<p class="recipe-uses"><code>PX_OPEN</code>, <code>PX_HIGH</code>, <code>PX_LOW</code>, <code>WEEKLY</code></p>
+<p>Weekly open, high, low and close of the S&amp;P 500 for the last eight weeks, with the
+week's range and change in percent.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">timedelta</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">polars</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">polars_bloomberg</span><span class="w"> </span><span class="kn">import</span> <span class="n">BQuery</span>
+
+<span class="k">with</span> <span class="n">BQuery</span><span class="p">()</span> <span class="k">as</span> <span class="n">bq</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">bq</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span>
+        <span class="s2">"SPX Index"</span><span class="p">,</span>
+        <span class="p">[</span><span class="s2">"PX_OPEN"</span><span class="p">,</span> <span class="s2">"PX_HIGH"</span><span class="p">,</span> <span class="s2">"PX_LOW"</span><span class="p">,</span> <span class="s2">"PX_LAST"</span><span class="p">],</span>
+        <span class="n">start_date</span><span class="o">=</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">weeks</span><span class="o">=</span><span class="mi">8</span><span class="p">),</span>
+        <span class="n">end_date</span><span class="o">=</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">(),</span>
+        <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">"periodicitySelection"</span><span class="p">:</span> <span class="s2">"WEEKLY"</span><span class="p">},</span>
+    <span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+        <span class="n">week_ending</span><span class="o">=</span><span class="s2">"date"</span><span class="p">,</span>
+        <span class="nb">open</span><span class="o">=</span><span class="s2">"PX_OPEN"</span><span class="p">,</span>
+        <span class="n">high</span><span class="o">=</span><span class="s2">"PX_HIGH"</span><span class="p">,</span>
+        <span class="n">low</span><span class="o">=</span><span class="s2">"PX_LOW"</span><span class="p">,</span>
+        <span class="n">close</span><span class="o">=</span><span class="s2">"PX_LAST"</span><span class="p">,</span>
+        <span class="n">range_pct</span><span class="o">=</span><span class="p">(</span>
+            <span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"PX_HIGH"</span><span class="p">)</span> <span class="o">-</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"PX_LOW"</span><span class="p">))</span> <span class="o">/</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"PX_LAST"</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">chg_pct</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">pl</span><span class="o">.</span><span class="n">col</span><span class="p">(</span><span class="s2">"PX_LAST"</span><span class="p">)</span><span class="o">.</span><span class="n">pct_change</span><span class="p">())</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Output
+<div class="no-copy recipe-output highlight"><pre><span></span><code>shape: (8, 7)
+┌─────────────┬─────────┬─────────┬─────────┬─────────┬───────────┬─────────┐
+│ week_ending ┆ open    ┆ high    ┆ low     ┆ close   ┆ range_pct ┆ chg_pct │
+│ ---         ┆ ---     ┆ ---     ┆ ---     ┆ ---     ┆ ---       ┆ ---     │
+│ date        ┆ f64     ┆ f64     ┆ f64     ┆ f64     ┆ f64       ┆ f64     │
+╞═════════════╪═════════╪═════════╪═════════╪═════════╪═══════════╪═════════╡
+│ 2026-09-25  ┆ 7692.83 ┆ 7782.19 ┆ 7662.57 ┆ 7743.41 ┆ 1.5       ┆ null    │
+│ 2026-10-02  ┆ 7721.7  ┆ 7754.67 ┆ 7616.78 ┆ 7722.72 ┆ 1.8       ┆ -0.3    │
+│ 2026-10-09  ┆ 7730.86 ┆ 7844.52 ┆ 7727.59 ┆ 7811.54 ┆ 1.5       ┆ 1.2     │
+│ 2026-10-16  ┆ 7813.04 ┆ 7821.67 ┆ 7631.77 ┆ 7659.44 ┆ 2.5       ┆ -1.9    │
+│ 2026-10-23  ┆ 7702.77 ┆ 7770.4  ┆ 7612.07 ┆ 7623.68 ┆ 2.1       ┆ -0.5    │
+│ 2026-10-30  ┆ 7639.7  ┆ 7758.43 ┆ 7527.56 ┆ 7580.07 ┆ 3.0       ┆ -0.6    │
+│ 2026-11-06  ┆ 7610.83 ┆ 7715.57 ┆ 7350.35 ┆ 7376.86 ┆ 5.0       ┆ -2.7    │
+│ 2026-11-13  ┆ 7422.24 ┆ 7652.76 ┆ 7422.24 ┆ 7561.67 ┆ 3.0       ┆ 2.5     │
+└─────────────┴─────────┴─────────┴─────────┴─────────┴───────────┴─────────┘
+</code></pre></div></p>
+<p class="recipe-label">Notes</p>
+<ul>
+<li>With <code>WEEKLY</code>, BDH builds real weekly bars: the open of the first day, the
+  highest high, the lowest low and the last close. <code>group_by_dynamic("date",
+  every="1w")</code> over daily data gives the same bars, dated by their Monday instead
+  of their Friday. <code>MONTHLY</code> builds monthly bars the same way.</li>
+<li>A start date in the middle of a week still gives the whole first week. The
+  current week appears once it is complete.</li>
+<li>To check the data, test <code>low &lt;= min(open, close)</code> and <code>max(open, close) &lt;= high</code>
+  on each row.</li>
+<li>For a chart, plotly's <code>go.Candlestick(x=..., open=..., high=..., low=...,
+  close=...)</code> takes these columns as they are.</li>
+</ul>
+<h2 id="pitfalls">Pitfalls<a class="headerlink" href="#pitfalls" title="Permanent link">&para;</a></h2>
+<p>What surprised us while writing these recipes.</p>
+<div class="recipe-pitfalls">
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Weekly rows on Wednesdays</td>
+<td><code>"periodicityAdjustment": "ACTUAL"</code> ends weeks on the weekday of <code>end_date</code></td>
+<td>Leave it out, or <code>CALENDAR</code>, for Friday closes</td>
+</tr>
+<tr>
+<td>The current week or month is missing</td>
+<td>Weekly and monthly BDH return complete periods only</td>
+<td>Add a daily request, or use BQL with <code>per=W</code></td>
+</tr>
+<tr>
+<td>Nulls after a pivot, holidays missing</td>
+<td>Each security keeps its own trading days</td>
+<td><code>NON_TRADING_WEEKDAYS</code> with <code>PREVIOUS_VALUE</code></td>
+</tr>
+<tr>
+<td><code>"nonTradingDayFillMethod": "PREVIOUS_VALUE"</code> changes nothing</td>
+<td>The default fill option adds no days</td>
+<td>Add <code>"nonTradingDayFillOption": "NON_TRADING_WEEKDAYS"</code> or <code>ALL_CALENDAR_DAYS</code></td>
+</tr>
+<tr>
+<td>Two rows per year, each half null</td>
+<td><code>YEARLY</code> without <code>FISCAL</code>: trailing fields on calendar year ends, reported fields on fiscal year ends</td>
+<td><code>"periodicityAdjustment": "FISCAL"</code></td>
+</tr>
+<tr>
+<td>Microsoft's fiscal 2023 dated 2022-12-30</td>
+<td><code>CALENDAR</code> relabels fiscal years</td>
+<td><code>FISCAL</code></td>
+</tr>
+<tr>
+<td>A column named <code>BX218</code></td>
+<td>Field ids are accepted, and the column keeps the name you asked for</td>
+<td>Use the mnemonic, <code>INDEX_OAS_TSY_BP</code>, or rename</td>
+</tr>
+<tr>
+<td>Index OAS 100 times smaller than in BQL</td>
+<td><code>INDEX_OAS_TSY</code> is in percent</td>
+<td><code>INDEX_OAS_TSY_BP</code></td>
+</tr>
+<tr>
+<td>The CDS basis has the opposite sign to its description</td>
+<td><code>CDS_INDEX_INTRINSIC_BASIS_VALUE</code> is quoted minus intrinsic</td>
+<td>Read positive as "index wider than its constituents"</td>
+</tr>
+<tr>
+<td>Today's intrinsic spread is null</td>
+<td>During the day only the quoted spread is there</td>
+<td><code>drop_nulls()</code>, or end yesterday</td>
+</tr>
+<tr>
+<td>A CDS index jumps around 20 March or 20 September</td>
+<td>The generic ticker rolled to a new series</td>
+<td>Mark the roll dates, or use the series' own ticker</td>
+</tr>
+<tr>
+<td><code>FUND_FLOW</code> is 0 while the fund's assets fell</td>
+<td><code>FUND_FLOW</code> is for one share class, <code>FUND_TOTAL_ASSETS</code> for all of them</td>
+<td>Compare with <code>FUND_CLASS_ASSETS</code>, or estimate the fund's flows</td>
+</tr>
+<tr>
+<td>Leverage in USD differs from leverage in EUR</td>
+<td>EBITDA converts at the year's average rate, net debt at the year-end rate</td>
+<td>Compute leverage in the reporting currency</td>
+</tr>
+<tr>
+<td>The hedged yield is too high</td>
+<td><code>FXHCEUUS</code> is negative when hedging costs money</td>
+<td>Add it to the yield; do not subtract it</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="admonition abstract">
+<p class="admonition-title">Related</p>
+<p>See also <code>FLDS &lt;GO&gt;</code> for field mnemonics and ids, and <code>HP &lt;GO&gt;</code> for one security's
+history on the Terminal. For how <code>bdh()</code> works, see <a href="../../usage/bdh/">BDH</a>.</p>
+</div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../fundamentals/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Company Fundamentals">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Company Fundamentals
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../examples/equity/" class="md-footer__link md-footer__link--next" aria-label="Next: Equity">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Equity
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "navigation.footer", "navigation.indexes", "navigation.top", "toc.follow"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  <script data-mkdocs-jupyter-mathjax="{&quot;url&quot;: &quot;https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js&quot;, &quot;version&quot;: 4}">
+/* Shared by full pages and Material's instant navigation. */
+(() => {
+  const config = JSON.parse(document.currentScript.dataset.mkdocsJupyterMathjax);
+  if (window.mkdocsJupyterMathJax) return;
+
+  let loading;
+  let queue = Promise.resolve();
+  let previous = [];
+
+  const ready = async () => {
+    if (!loading) {
+      loading = (async () => {
+        let math = window.MathJax;
+        if (!math?.typesetPromise) {
+          const url = new URL(config.url, document.baseURI).href;
+          const existing = Array.from(document.scripts).find(script =>
+            script.src && (script.src === url || script.id === 'MathJax-script' ||
+              (/mathjax/i.test(script.src) &&
+               /\/(?:MathJax|latest|(?:tex|mml)(?:-mml)?-(?:chtml|svg))\.js(?:[?#]|$)/i.test(script.src))));
+          if (existing) {
+            if (!math?.startup?.promise) {
+              await new Promise((resolve, reject) => {
+                existing.addEventListener('load', resolve, { once: true });
+                existing.addEventListener('error', reject, { once: true });
+              });
+            }
+          } else {
+            // Keep site macros, delimiters and startup hooks when supplied.
+            const options = math || {};
+            window.MathJax = {
+              ...options,
+              loader: {
+                ...options.loader,
+                load: Array.from(new Set(['ui/safe', ...(options.loader?.load || [])]))
+              },
+              startup: { typeset: false, ...options.startup },
+              tex: {
+                tags: 'ams',
+                useLabelIds: true,
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true,
+                ...options.tex
+              }
+            };
+            await new Promise((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = config.url;
+              script.id = 'MathJax-script';
+              script.async = true;
+              script.onload = resolve;
+              script.onerror = reject;
+              document.head.appendChild(script);
+            });
+          }
+        }
+        math = window.MathJax;
+        await math.startup.promise;
+        return math;
+      })();
+    }
+    const math = await loading;
+    // A site owner can extend the v3 queue again on each navigation.
+    await math.startup.promise;
+    return math;
+  };
+
+  const unrendered = node => {
+    if (node.matches('mjx-container')) return [];
+    if (!node.querySelector('mjx-container')) return [node];
+    // In v3, scanning generated assistive MathML again produces nested output.
+    return Array.from(node.children).flatMap(unrendered);
+  };
+
+  const refresh = () => {
+    // A separate chain also serializes v3, without changing v4's startup promise.
+    queue = queue.then(async () => {
+      const notebooks = Array.from(document.querySelectorAll('.jupyter-wrapper'));
+      if (!notebooks.length && !previous.length) return;
+      if (notebooks.length === previous.length &&
+          notebooks.every((node, index) => node === previous[index])) return;
+      const math = await ready();
+      if (previous.length) {
+        math.typesetClear(previous);
+        math.texReset();
+      }
+      previous = notebooks.filter(node => node.isConnected);
+      const pending = previous.flatMap(unrendered);
+      if (pending.length) await math.typesetPromise(pending);
+    }).catch(error => console.error('mkdocs-jupyter: MathJax rendering failed', error));
+    return queue;
+  };
+
+  window.mkdocsJupyterMathJax = { refresh };
+  const start = () => {
+    if (typeof document$ !== 'undefined') document$.subscribe(refresh);
+    else refresh();
+  };
+  // Theme bundles and user-provided MathJax scripts can follow notebook content.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else start();
+})();
+
+</script>
+</body>
+</html>
