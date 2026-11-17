@@ -23,6 +23,11 @@ All notable changes to polars-bloomberg are listed here.
   fund NAV, assets and net flows, the iTraxx basis to intrinsic, US Treasuries
   hedged into EUR vs Bunds, fiscal-year leverage (`periodicityAdjustment=FISCAL`)
   and weekly OHLC candles.
+- `llms.txt` and `llms-full.txt` on the docs site for coding agents
+  (https://llmstxt.org/). `docs/llms.txt` is a hand-written index of the docs;
+  the MkDocs hook `dev/llms_full.py` writes `llms-full.txt`, the full text of the
+  pages it links to with the API docstrings, at every build. A link to a page or
+  heading that no longer exists fails the build and `tests/unit/test_llms_txt.py`.
 
 ### Changed
 

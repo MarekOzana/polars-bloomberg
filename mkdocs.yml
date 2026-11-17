@@ -67,6 +67,9 @@ plugins:
         remove_input_tags:
           - hide_code
 
+hooks:
+  - dev/llms_full.py  # writes llms-full.txt from docs/llms.txt at every build
+
 
 nav:
   - Home: index.md

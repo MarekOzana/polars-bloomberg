@@ -1,0 +1,80 @@
+# polars-bloomberg
+
+> Python library for the Bloomberg API (blpapi) that returns Polars DataFrames. One class, `BQuery`, runs BDP (reference data), BDH (historical time series), BDIB (intraday bars), BSRCH (Bloomberg searches) and BQL (Bloomberg Query Language) requests, named after the Bloomberg Excel functions they mirror.
+
+Requirements: Python 3.12 or later and a Bloomberg Terminal that is running and logged in on the same machine. `BQuery()` connects to the Bloomberg Desktop API on `localhost:8194`; `BQuery(host=..., port=...)` connects elsewhere. Without a Terminal session, starting `BQuery` raises `ConnectionError`.
+
+Install: `blpapi` comes from Bloomberg's package index, not from PyPI, so add that index:
+
+```bash
+pip install --extra-index-url https://blpapi.bloomberg.com/repository/releases/python/simple/ polars-bloomberg
+```
+
+The package is `polars-bloomberg` and the import is `polars_bloomberg`:
+
+```python
+from datetime import date
+
+from polars_bloomberg import BQuery
+
+with BQuery() as bq:  # opens the Bloomberg session and closes it at the end
+    ref = bq.bdp(["AAPL US Equity", "IBM US Equity"], ["PX_LAST", "CRNCY"])
+    hist = bq.bdh(["AAPL US Equity"], ["PX_LAST"], date(2025, 1, 2), date(2025, 1, 31))
+    res = bq.bql("get(name, px_last) for(['IBM US Equity'])")
+    df = res.combine(on="ID")  # one DataFrame per get() item, joined on ID
+```
+
+Things to know when writing code with it:
+
+- Every method returns a `polars.DataFrame`, not pandas. `bql()` returns a `BqlResult`: a list of DataFrames, one per `get()` item (`res[0]`, `len(res)`, iteration), with `combine()` to join them.
+- Securities are Bloomberg identifiers such as `"AAPL US Equity"`; fields are Bloomberg mnemonics such as `PX_LAST`. Field overrides go in `overrides={"FIELD": value}`; request options such as `periodicitySelection` for `bdh()` go in `options={...}`.
+- An invalid security or field in `bdp()` or `bdh()` does not raise: it gives nulls (or no rows in `bdh()`) and logs one warning. A request that Bloomberg rejects raises `BloombergError`, a subclass of `ValueError`. No message from Bloomberg within `timeout` milliseconds (default 32000) raises `TimeoutError`.
+- A BQL query that fails does not raise: `bql()` returns an empty `BqlResult` with Bloomberg's message in `res.errors`, and `combine()` on it raises `ValueError`.
+- `BQuery(debug=True)` writes every request and Bloomberg's raw answer to a JSON file in `debug_cases/`. Use one `BQuery` per thread.
+
+All the pages below, outside the Optional section, are in one file with the API signatures and docstrings: https://marekozana.github.io/polars-bloomberg/llms-full.txt
+
+## Docs
+
+- [Home and quick start](https://marekozana.github.io/polars-bloomberg/): Requirements, installation, a first `bdp()` call and a cheat sheet of the five methods.
+- [BDP - reference data](https://marekozana.github.io/polars-bloomberg/usage/bdp/): Current values for many securities and fields, typed columns, field overrides and date overrides.
+- [BDH - historical data](https://marekozana.github.io/polars-bloomberg/usage/bdh/): Time series between two dates for several securities and fields, with options such as `periodicitySelection`.
+- [BQL - Bloomberg Query Language](https://marekozana.github.io/polars-bloomberg/usage/bql/): `bql()`, `BqlResult` and `combine()`; screening, aggregation per group, dealer axes, segments, time series and technical analysis.
+- [BSRCH - Bloomberg search](https://marekozana.github.io/polars-bloomberg/usage/bsrch/): SRCH, BI and COMDTY search grids, with `LIMIT` and `BIKEY` overrides.
+- [BDIB - intraday bars](https://marekozana.github.io/polars-bloomberg/usage/bdib/): OHLCV bars of 1 to 1440 minutes for `TRADE`, `BID`, `ASK`, `BEST_BID` and `BEST_ASK` events; naive datetimes are read as UTC.
+
+## API reference
+
+- [API reference](https://marekozana.github.io/polars-bloomberg/api/): Signatures and docstrings of `BQuery` (`bdp`, `bdh`, `bdib`, `bsrch`, `bql`, `start`, `stop`) and `BqlResult` (`combine`, indexing, `errors`).
+
+## Troubleshooting
+
+- [Errors, warnings and empty results](https://github.com/MarekOzana/polars-bloomberg#errors-warnings-and-empty-results): What each failure gives (`BloombergError`, `ConnectionError`, `TimeoutError`, null rows, an empty `BqlResult` with `errors`), the `timeout` and `debug` options, using `BQuery` without a `with` block, and threads.
+- [Find where a bug is](https://marekozana.github.io/polars-bloomberg/developer-guide/#find-where-a-bug-is): Capture the request and Bloomberg's raw answer with `BQuery(debug=True)` and read the debug dump.
+
+## Recipes
+
+- [Recipes overview](https://marekozana.github.io/polars-bloomberg/recipes/): Short, copy-paste queries grouped by workflow, each with the query, the Python code and its output.
+- [New Issues](https://marekozana.github.io/polars-bloomberg/recipes/new-issues/): BQL screens of the primary bond market: new AT1 and RT1 deals, new Technology deals and the pipeline by currency.
+- [Dealer Axes](https://marekozana.github.io/polars-bloomberg/recipes/axes/): Dealer axes (IMGR AXE, QMGR AXE) on AT1 bonds with BQL: per bond, per dealer and per issuer, large axes, changes over 1 and 5 weeks, axes next to spreads and the top dealers.
+- [Bonds and Capital Structure](https://marekozana.github.io/polars-bloomberg/recipes/capital-structure/): Bank capital stacks, AT1 and Tier 2 call schedules, CET1 distance to the AT1 trigger, bonds and loans of a high-yield issuer with leverage, and debt by capital-structure parent with `parent(type=CAST)`.
+- [Spread Statistics](https://marekozana.github.io/polars-bloomberg/recipes/spreads/): OAS quartiles and medians per rating for AT1 (CoCo) and other bonds, monthly and daily spread history, index yield to worst vs OAS, and YAS Z-spread and discount margin at any price.
+- [Company Fundamentals](https://marekozana.github.io/polars-bloomberg/recipes/fundamentals/): From a bond to the company that reports with `fundamentalTicker()`, revenue and EBITDA, `segments()` by product and country, bank CET1 and ROE, median leverage per sector, and Bloomberg Intelligence templates with BSRCH.
+- [Market History with BDH](https://marekozana.github.io/polars-bloomberg/recipes/history/): Weekly index OAS with `periodicitySelection`, markets with different holidays with `nonTradingDayFillOption`, fund NAV and flows, CDS index basis, hedged Treasuries vs Bunds, fiscal-year leverage and weekly OHLC candles.
+
+## Credit examples
+
+- [CET1 capital vs requirements and trigger levels](https://marekozana.github.io/polars-bloomberg/examples/credit/bank-CET1-vs-requirements/): Notebook comparing bank CET1 capital with regulatory requirements and AT1 trigger levels.
+- [Bank capital, asset quality and profitability](https://marekozana.github.io/polars-bloomberg/examples/credit/bank-capital-history/): Notebook on the history of bank CET1, NPL and ROE, as cross-bank averages with dispersion.
+- [Equity cushion vs credit spread](https://marekozana.github.io/polars-bloomberg/examples/credit/equity-cushion-vs-spread/): Notebook relating a company's equity cushion to the credit spreads of its bonds.
+- [AT1 bond valuation](https://marekozana.github.io/polars-bloomberg/examples/credit/at1-valuation/): Notebook on the pricing and risk sensitivities of Additional Tier 1 bonds.
+- [AT1 vs credits OAS per rating](https://marekozana.github.io/polars-bloomberg/examples/credit/at1-vs-credits-oas/): Notebook comparing historical AT1 (CoCo) and senior credit OAS per rating with BQL.
+
+## Optional
+
+- [Developer guide](https://marekozana.github.io/polars-bloomberg/developer-guide/): How a call flows through the source, the Bloomberg quirks the code handles, and how to turn a failing case into an offline test that needs no Terminal.
+- [Equity examples](https://marekozana.github.io/polars-bloomberg/examples/equity/): Notebooks on S&P 500 annual returns, S&P 500 EPS estimates and Mag7 market caps.
+- [Macro examples](https://marekozana.github.io/polars-bloomberg/examples/macro/): Notebooks on central bank policy rates, Fed policy vs expectations, regional P/E, S&P 500 valuation scenarios, earnings revisions breadth and US economic data surprises.
+- [Changelog](https://github.com/MarekOzana/polars-bloomberg/blob/main/CHANGELOG.md): Changes per release.
+- [Source code](https://github.com/MarekOzana/polars-bloomberg): GitHub repository, Apache-2.0 license.
+- [PyPI package](https://pypi.org/project/polars-bloomberg/): Released versions.
