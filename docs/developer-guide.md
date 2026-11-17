@@ -307,6 +307,14 @@ raw answer. Where no recording shows the quirk, the table names a test.
 | Minimum dependencies | see below | before a pull request that changes `plbbg.py` |
 | Docs build | `mkdocs build --strict` | after a change to `docs/` or to a public docstring |
 | Live tests | `pytest --bbg` | when you have a Bloomberg Terminal on this machine |
+| Recipe outputs | `python dev/refresh_recipes.py`, then review `git diff docs/recipes` | at a Terminal, after adding or changing a recipe in `docs/recipes/`, or when its output is stale |
+
+A recipe in `docs/recipes/` is a self-contained ```` ```python ```` block that prints
+its result, followed by a line starting with `Output` and a fenced block. The
+script runs each recipe, pastes what it printed into that block and sets the page's
+"as of" date. To add a recipe, write the code with an empty output block and run
+the script. A page with a failing recipe is not written, and that includes a screen
+that matches nothing on the day.
 
 The recordings check repeats what `pytest` does, but more strictly: `pytest`
 compares numbers with a tolerance, and `git diff` shows every difference.

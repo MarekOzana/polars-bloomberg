@@ -66,6 +66,9 @@ nav:
     - BDIB: usage/bdib.md
     - BSRCH: usage/bsrch.md
     - BQL: usage/bql.md
+  - Recipes:
+    - recipes/index.md
+    - New Issues: recipes/new-issues.md
   - Examples:
     - Equity: examples/equity/index.md
     - Credits: examples/credit/index.md

@@ -54,3 +54,7 @@ If you see a price in `df`, your setup is working 🤩!!!
 | `bdib()` | Download intraday bar data at minute resolution. [more.. ](usage/bdib.md)  |
 | `bsrch()` | Excel-style search grids (SRCH/BI/COMDTY domains). [more.. ](usage/bsrch.md)  |
 | `bql()` | Execute complex Bloomberg Query Language requests. [more.. ](usage/bql.md)  |
+
+Looking for a ready-made query? The [Recipes](recipes/index.md) are short,
+copy-paste queries grouped by workflow, for example
+[New Issues](recipes/new-issues.md).

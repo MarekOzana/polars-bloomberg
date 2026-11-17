@@ -2,6 +2,15 @@
 
 All notable changes to polars-bloomberg are listed here.
 
+## Unreleased
+
+### Added
+
+- A Recipes section in the docs: short reference queries with their output,
+  starting with New Issues (new AT1/RT1 deals, new Technology deals, the
+  pipeline by currency). `dev/refresh_recipes.py` re-runs the recipes at a
+  Terminal and pastes their fresh output into the page.
+
 ## 0.7.2 - 2026-11-16
 
 ### Changed
