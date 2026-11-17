@@ -105,14 +105,16 @@ for(filter(bondsUniv(ACTIVE),
 """
 with BQuery() as bq:
     df = bq.bql(query).combine(on="ID", how="inner")
-print(df.select(
-    "name",
-    dealer=pl.coalesce("BID_DEALER", "ASK_DEALER"),
-    bid_mm=pl.col("BID_SIZE") / 1e6,
-    ask_mm=pl.col("ASK_SIZE") / 1e6,
-    bid_px="BID_PRICE",
-    ask_px="ASK_PRICE",
-).sort("name", "dealer"))
+print(
+    df.select(
+        "name",
+        dealer=pl.coalesce("BID_DEALER", "ASK_DEALER"),
+        bid_mm=pl.col("BID_SIZE") / 1e6,
+        ask_mm=pl.col("ASK_SIZE") / 1e6,
+        bid_px="BID_PRICE",
+        ask_px="ASK_PRICE",
+    ).sort("name", "dealer")
+)
 ```
 
 Output
@@ -166,13 +168,15 @@ for(filter(bondsUniv(ACTIVE),
 with BQuery() as bq:
     df = bq.bql(query).combine(on="ID")
 net = pl.col("#bid").fill_null(0) - pl.col("#ask").fill_null(0)
-print(df.select(
-    issuer="ID",
-    bid_mm="#bid",
-    ask_mm="#ask",
-    net_mm=net,
-    dealers=pl.when(net > 0).then(pl.lit("buyers")).otherwise(pl.lit("sellers")),
-))
+print(
+    df.select(
+        issuer="ID",
+        bid_mm="#bid",
+        ask_mm="#ask",
+        net_mm=net,
+        dealers=pl.when(net > 0).then(pl.lit("buyers")).otherwise(pl.lit("sellers")),
+    )
+)
 ```
 
 Output
@@ -224,11 +228,13 @@ for(filter(bondsUniv(ACTIVE),
 with BQuery() as bq:
     row = bq.bql(query).combine(on="ID").row(0, named=True)
 windows = ["today", "1w", "5w"]
-df = pl.DataFrame({
-    "window": windows,
-    "bid_mm": [row[f"#bid_{w}"] for w in windows],
-    "ask_mm": [row[f"#ask_{w}"] for w in windows],
-}).with_columns(net_mm=pl.col("bid_mm") - pl.col("ask_mm"))
+df = pl.DataFrame(
+    {
+        "window": windows,
+        "bid_mm": [row[f"#bid_{w}"] for w in windows],
+        "ask_mm": [row[f"#ask_{w}"] for w in windows],
+    }
+).with_columns(net_mm=pl.col("bid_mm") - pl.col("ask_mm"))
 print(df)
 ```
 
@@ -334,14 +340,16 @@ for(filter(bondsUniv(ACTIVE),
 """
 with BQuery() as bq:
     df = bq.bql(query).combine(on="ID")
-print(df.select(
-    "name",
-    call="nxt_call_dt",
-    back_end="#back_end",
-    oas=pl.col("#oas").round(0),
-    bid_mm=pl.col("BID_TOTAL_SIZE") / 1e6,
-    ask_mm=pl.col("ASK_TOTAL_SIZE") / 1e6,
-).sort("oas", descending=True))
+print(
+    df.select(
+        "name",
+        call="nxt_call_dt",
+        back_end="#back_end",
+        oas=pl.col("#oas").round(0),
+        bid_mm=pl.col("BID_TOTAL_SIZE") / 1e6,
+        ask_mm=pl.col("ASK_TOTAL_SIZE") / 1e6,
+    ).sort("oas", descending=True)
+)
 ```
 
 Output

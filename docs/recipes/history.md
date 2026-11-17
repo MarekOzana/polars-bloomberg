@@ -164,7 +164,9 @@ every_weekday = {
 }
 with BQuery() as bq:
     traded = bq.bdh(markets, "PX_LAST", "2026-04-01", "2026-04-08")
-    filled = bq.bdh(markets, "PX_LAST", "2026-04-01", "2026-04-08", options=every_weekday)
+    filled = bq.bdh(
+        markets, "PX_LAST", "2026-04-01", "2026-04-08", options=every_weekday
+    )
 closed = (
     filled.join(traded, on=["security", "date"], how="anti")
     .group_by("date")
@@ -337,8 +339,12 @@ with pl.Config(tbl_rows=30):
     print(
         wide.select(
             "date",
-            "spread_main", "intrinsic_main", "basis_main",
-            "spread_xover", "intrinsic_xover", "basis_xover",
+            "spread_main",
+            "intrinsic_main",
+            "basis_main",
+            "spread_xover",
+            "intrinsic_xover",
+            "basis_xover",
         )
     )
 ```
@@ -601,7 +607,9 @@ print(
         high="PX_HIGH",
         low="PX_LOW",
         close="PX_LAST",
-        range_pct=(100 * (pl.col("PX_HIGH") - pl.col("PX_LOW")) / pl.col("PX_LAST")).round(1),
+        range_pct=(
+            100 * (pl.col("PX_HIGH") - pl.col("PX_LOW")) / pl.col("PX_LAST")
+        ).round(1),
         chg_pct=(100 * pl.col("PX_LAST").pct_change()).round(1),
     )
 )

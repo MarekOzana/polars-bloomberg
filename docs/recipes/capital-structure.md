@@ -80,7 +80,9 @@ layers = {
 with BQuery() as bq:
     df = bq.bql(query).combine()
 print(
-    df.with_columns(layer=pl.col("#RANK").replace(layers), eur_bn=pl.col("#eur_bn").round(1))
+    df.with_columns(
+        layer=pl.col("#RANK").replace(layers), eur_bn=pl.col("#eur_bn").round(1)
+    )
     .pivot(on="TICKER", index="layer", values="eur_bn")
     .sort("layer")
 )
@@ -136,7 +138,9 @@ for(filter(bondsUniv(ACTIVE, consolidateduplicates=True),
 """
 with BQuery() as bq:
     df = bq.bql(query).combine()
-tier = pl.col("basel_iii_designation").replace({"Additional Tier 1": "AT1", "Tier 2": "T2"})
+tier = pl.col("basel_iii_designation").replace(
+    {"Additional Tier 1": "AT1", "Tier 2": "T2"}
+)
 print(
     df.with_columns(
         bank_tier=pl.col("ticker") + " " + tier,
@@ -200,7 +204,11 @@ with BQuery() as bq:
     df = bq.bql(query).combine(on="ID")
 print(
     df.select(
-        "name", "nxt_call_dt", "PERIOD_END_DATE", "#cet1", "#trigger",
+        "name",
+        "nxt_call_dt",
+        "PERIOD_END_DATE",
+        "#cet1",
+        "#trigger",
         buffer_pp=pl.col("#cet1") - pl.col("#trigger"),
     ).sort("name", "nxt_call_dt")
 )
@@ -264,13 +272,17 @@ for(parent('ZO388622 Corp', type=CAST))
 """
 seniority = {"1st Lien Secured": 1, "Secured": 2, "Sr Unsecured": 3}
 with BQuery() as bq:
-    debt = pl.concat([
-        bq.bql(fields + bonds).combine().with_columns(kind=pl.lit("bond")),
-        bq.bql(fields + loans).combine().with_columns(kind=pl.lit("loan")),
-    ])
+    debt = pl.concat(
+        [
+            bq.bql(fields + bonds).combine().with_columns(kind=pl.lit("bond")),
+            bq.bql(fields + loans).combine().with_columns(kind=pl.lit("loan")),
+        ]
+    )
     group = bq.bql(parent).combine()
 ebitda = group["#ebitda"].item()
-print(f"{group['name'].item()}: LTM EBITDA EUR {ebitda:,.0f}m ({group['PERIOD_END_DATE'].item()})")
+print(
+    f"{group['name'].item()}: LTM EBITDA EUR {ebitda:,.0f}m ({group['PERIOD_END_DATE'].item()})"
+)
 print(
     debt.group_by("#rank")
     .agg(
@@ -388,8 +400,13 @@ preferences(dropCols=['ORIG_IDS'])
 with BQuery() as bq:
     df = bq.bql(query).combine()
 print(
-    df.select("#CAST", "TICKER", "#RANK", "#bonds", eur_m=pl.col("#eur_m").round().cast(pl.Int64))
-    .sort("TICKER", "#RANK")
+    df.select(
+        "#CAST",
+        "TICKER",
+        "#RANK",
+        "#bonds",
+        eur_m=pl.col("#eur_m").round().cast(pl.Int64),
+    ).sort("TICKER", "#RANK")
 )
 ```
 
@@ -447,7 +464,8 @@ with BQuery() as bq:
     df = bq.bql(query).combine(on="ID")
 print(
     df.select(
-        "#CAST", "#bonds",
+        "#CAST",
+        "#bonds",
         eur_bn=pl.col("#eur_bn").round(1),
         share_pct=(100 * pl.col("#eur_bn") / pl.col("#eur_bn").sum()).round(1),
     )

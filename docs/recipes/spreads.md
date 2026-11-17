@@ -84,7 +84,8 @@ stats = df.select(
     q3=pl.col("#q3").round().cast(pl.Int64),
 )
 print(
-    stats.filter(~pl.col("at1")).drop("at1")
+    stats.filter(~pl.col("at1"))
+    .drop("at1")
     .join(stats.filter(pl.col("at1")).drop("at1"), on="rating", suffix="_at1")
     .with_columns(premium=pl.col("median_at1") - pl.col("median"))
     .sort("rating")

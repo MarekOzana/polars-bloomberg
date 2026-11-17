@@ -153,7 +153,8 @@ preferences(dropCols=['AS_OF_DATE', 'REVISION_DATE'])
 with BQuery() as bq:
     df = bq.bql(query).combine()
 table = df.sort("name", "PERIOD_END_DATE").select(
-    "name", "PERIOD_END_DATE",
+    "name",
+    "PERIOD_END_DATE",
     revenue=pl.col("#revenue").round().cast(pl.Int64),
     ebitda=pl.col("#ebitda").round().cast(pl.Int64),
     margin_pct=(100 * pl.col("#ebitda") / pl.col("#revenue")).round(1),
@@ -223,9 +224,9 @@ preferences(dropCols=['AS_OF_DATE', 'REVISION_DATE'])
 with BQuery() as bq:
     df = bq.bql(query).combine()
 print(
-    df.sort("name")
-    .select(
-        "name", "PERIOD_END_DATE",
+    df.sort("name").select(
+        "name",
+        "PERIOD_END_DATE",
         reported=pl.col("#reported").round().cast(pl.Int64),
         adjusted=pl.col("#adjusted").round().cast(pl.Int64),
         adj_pct=(100 * (pl.col("#adjusted") / pl.col("#reported") - 1)).round(1),
@@ -415,19 +416,24 @@ for(members('LP01TREU Index'))
 """
 with BQuery() as bq:
     result = bq.bql(query)
-labels = {"#issuerOf": "issuerOf", "#cast": "parent(type=CAST)",
-          "#fundamentalTicker": "fundamentalTicker"}
+labels = {
+    "#issuerOf": "issuerOf",
+    "#cast": "parent(type=CAST)",
+    "#fundamentalTicker": "fundamentalTicker",
+}
 weights = result[0].select("ID", "#weight")
 rows = []
 for name, item in zip(result.names[1:], result.dataframes[1:]):
     covered = item.filter(pl.col(name).is_not_null()).join(weights, on="ID")
-    rows.append({
-        "mapping": labels[name],
-        "bonds": covered.height,
-        "pct_bonds": round(100 * covered.height / weights.height, 1),
-        "pct_weight": round(covered["#weight"].sum(), 1),
-        "companies": covered["SOURCE_ID"].n_unique(),
-    })
+    rows.append(
+        {
+            "mapping": labels[name],
+            "bonds": covered.height,
+            "pct_bonds": round(100 * covered.height / weights.height, 1),
+            "pct_weight": round(covered["#weight"].sum(), 1),
+            "companies": covered["SOURCE_ID"].n_unique(),
+        }
+    )
 print(pl.DataFrame(rows))
 ```
 
@@ -576,7 +582,9 @@ import polars as pl
 from polars_bloomberg import BQuery
 
 with BQuery() as bq:
-    grid = bq.bsrch("BI:TPD", overrides={"BIKEY": "DKOCVGXJVU8II8M90W8JSQEKR", "LIMIT": 20000})
+    grid = bq.bsrch(
+        "BI:TPD", overrides={"BIKEY": "DKOCVGXJVU8II8M90W8JSQEKR", "LIMIT": 20000}
+    )
 quarters = [c for c in grid.columns if c[:2].isdigit()]
 tidy = grid.unpivot(
     index=["Main_Category_Custom_Name", "Category"], on=quarters, variable_name="quarter"
