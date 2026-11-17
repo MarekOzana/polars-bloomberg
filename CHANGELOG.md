@@ -10,6 +10,9 @@ All notable changes to polars-bloomberg are listed here.
   starting with New Issues (new AT1/RT1 deals, new Technology deals, the
   pipeline by currency). `dev/refresh_recipes.py` re-runs the recipes at a
   Terminal and pastes their fresh output into the page.
+- Recipes: Dealer Axes, on the USD AT1s of Swedish banks - axes per bond, large
+  dealer axes, net axes per issuer, totals and per-bond axes against the last 1
+  and 5 weeks, axes in a relative-value screen, and the top 3 dealers.
 
 ## 0.7.2 - 2026-11-16
 

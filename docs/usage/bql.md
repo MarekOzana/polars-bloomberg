@@ -273,7 +273,9 @@ shape: (5, 11)
 
 
 ## Axes
-Get current axes of all Swedish USD AT1 bonds
+Get current axes of all Swedish USD AT1 bonds. More axes queries (per dealer, large
+axes, net axes, the last 1 and 5 weeks) are in the [Dealer Axes](../recipes/axes.md)
+recipes.
 ```python
 # Get current axes for Swedish AT1 bonds in USD
 query="""

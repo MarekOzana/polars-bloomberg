@@ -69,6 +69,7 @@ nav:
   - Recipes:
     - recipes/index.md
     - New Issues: recipes/new-issues.md
+    - Dealer Axes: recipes/axes.md
   - Examples:
     - Equity: examples/equity/index.md
     - Credits: examples/credit/index.md
