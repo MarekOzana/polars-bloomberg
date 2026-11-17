@@ -9,6 +9,12 @@ theme:
   name: material
   logo: images/polars-bloomberg-logo-512x512.png
   favicon: images/polars-bloomberg-fav-32x32.png
+  features:
+    - content.code.copy     # copy button on code; recipe outputs opt out with .no-copy
+    - navigation.footer     # previous / next page links, to read recipe pages in order
+    - navigation.indexes    # "Recipes" in the nav opens recipes/index.md
+    - navigation.top        # back-to-top button on long pages
+    - toc.follow            # the table of contents follows the scroll
   font:
     text: "Roboto"
     code: "Cascadia Mono" # "Cascadia Mono"
@@ -38,10 +44,14 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
+extra_css:
+  - stylesheets/recipes.css
 
 plugins:
   - search

@@ -15,42 +15,57 @@ tags:
 A bond has no EBITDA. Often its issuer has none either. Virgin Media O2 issues bonds
 through eight vehicles, and the accounts a credit analyst reads belong to none of
 them. So before you ask for leverage, you have to find the company that reports
-it. BQL's `fundamentalTicker()` does that for bonds and loans. In May 2026 Bloomberg
-changed how it chooses that company. It now skips financing vehicles and SPVs, and
-it prefers operating or holding companies with current, frequently reported
-accounts.
+it. BQL's `fundamentalTicker()` does that for bonds and loans.
+{ .recipe-lead }
 
-This page starts from bonds, as a credit investor does. It covers European high-yield
-issuers (Virgin Media O2, INEOS, Altice, Telecom Italia, iliad), the AT1 issuers SEB,
-Handelsbanken and Swedbank, and the Bloomberg Pan-European High Yield index.
+!!! note "Changed in May 2026"
+    In May 2026 Bloomberg changed how it chooses that company. It now skips
+    financing vehicles and SPVs, and it prefers operating or holding companies with
+    current, frequently reported accounts.
 
-| You want | Use | One row per |
-|---|---|---|
-| The company whose accounts cover a bond or loan | `fundamentalTicker(<bonds>)` as the universe | company |
-| A company's figure next to each bond | `value(<field>, fundamentalticker, mapby=LINEAGE)` | bond |
-| Annual, half-year, quarterly or LTM figures | `with(fa_period_type=A, fa_period_offset=range(-1Y, 0Y))`, `fpt=S`, `Q`, `LTM` | company and period |
-| Reported or adjusted figures | `fa_adjusted=N` or `Y`; `fa_act_est_data=A` for actuals | company and period |
-| Revenue per business line or country | `segments('<equity>', type=reported, hierarchy=PRODUCT)` or `hierarchy=LOCATION` | segment and period |
-| Bank capital and profitability | `bs_tier1_com_equity_ratio()`, `normalized_roe()` with `fpt=Q` | bank and quarter |
-| A statistic per sector | `median(group(<field>, classification_name(BCLASS, 3)))` over the index's companies | sector |
-| Bloomberg Intelligence's sector figures | `bq.bsrch("BI:TPD", overrides={"BIKEY": ...})` | row of the template |
+!!! info "Data on this page"
+    This page starts from bonds, as a credit investor does. It covers European
+    high-yield issuers (Virgin Media O2, INEOS, Altice, Telecom Italia, iliad), the
+    AT1 issuers SEB, Handelsbanken and Swedbank, and the Bloomberg Pan-European High
+    Yield index.
 
-The period parameters work on any fundamental field, either in `with(...)` for the
-whole query or on one field, as in `ebitda(fpt=LTM)`.
+    Amounts are in millions. The outputs below are live data as of 2026-11-17 and will
+    differ when you run the queries. Before you adapt a query, read the
+    [Pitfalls](#pitfalls).
 
-| Parameter | Short | Example values | Meaning |
-|---|---|---|---|
-| `fa_period_type` | `fpt` | `A`, `S`, `Q`, `LTM` | annual, half-year, quarter, last twelve months |
-| `fa_period_offset` | `fpo` | `0`, `-1`, `range(-3Q, 0Q)` | periods counted back from the company's latest report |
-| `fa_period_reference` | `fpr` | `2026Q3`, `range(2026Q1, 2026Q3)` | calendar periods, the same for every company |
-| `fa_adjusted` | | `N`, `Y` | as reported, or Bloomberg-adjusted |
-| `fa_act_est_data` | | `A`, `E` | actuals or estimates |
-| `currency` | | `EUR` | the currency of the result; check the `CURRENCY` column |
+## Quick reference
 
-Amounts are in millions. The outputs below are live data as of 2026-11-17 and will
-differ when you run the queries.
+=== "By task"
+
+    | You want | Use | One row per |
+    |---|---|---|
+    | The company whose accounts cover a bond or loan | `fundamentalTicker(<bonds>)` as the universe | company |
+    | A company's figure next to each bond | `value(<field>, fundamentalticker, mapby=LINEAGE)` | bond |
+    | Annual, half-year, quarterly or LTM figures | `with(fa_period_type=A, fa_period_offset=range(-1Y, 0Y))`, `fpt=S`, `Q`, `LTM` | company and period |
+    | Reported or adjusted figures | `fa_adjusted=N` or `Y`; `fa_act_est_data=A` for actuals | company and period |
+    | Revenue per business line or country | `segments('<equity>', type=reported, hierarchy=PRODUCT)` or `hierarchy=LOCATION` | segment and period |
+    | Bank capital and profitability | `bs_tier1_com_equity_ratio()`, `normalized_roe()` with `fpt=Q` | bank and quarter |
+    | A statistic per sector | `median(group(<field>, classification_name(BCLASS, 3)))` over the index's companies | sector |
+    | Bloomberg Intelligence's sector figures | `bq.bsrch("BI:TPD", overrides={"BIKEY": ...})` | row of the template |
+
+=== "Period parameters"
+
+    The period parameters work on any fundamental field, either in `with(...)` for the
+    whole query or on one field, as in `ebitda(fpt=LTM)`.
+
+    | Parameter | Short | Example values | Meaning |
+    |---|---|---|---|
+    | `fa_period_type` | `fpt` | `A`, `S`, `Q`, `LTM` | annual, half-year, quarter, last twelve months |
+    | `fa_period_offset` | `fpo` | `0`, `-1`, `range(-3Q, 0Q)` | periods counted back from the company's latest report |
+    | `fa_period_reference` | `fpr` | `2026Q3`, `range(2026Q1, 2026Q3)` | calendar periods, the same for every company |
+    | `fa_adjusted` | | `N`, `Y` | as reported, or Bloomberg-adjusted |
+    | `fa_act_est_data` | | `A`, `E` | actuals or estimates |
+    | `currency` | | `EUR` | the currency of the result; check the `CURRENCY` column |
 
 ## From a bond to the company that reports
+
+`value(..., fundamentalticker, mapby=LINEAGE)`
+{ .recipe-uses }
 
 For each ticker, the issuing entities of its live bonds, the company whose accounts
 `fundamentalTicker` uses, and the capital structure (CAST) parent.
@@ -74,8 +89,9 @@ print(
     .sort("ticker", "bonds", descending=[False, True])
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (8, 5)
 ┌────────┬───────────────────────────────┬───────────────────────────────┬─────────┬───────┐
 │ ticker ┆ #accounts                     ┆ #cast                         ┆ issuers ┆ bonds │
@@ -93,7 +109,15 @@ shape: (8, 5)
 └────────┴───────────────────────────────┴───────────────────────────────┴─────────┴───────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    - Heimstaden Bostad bonds map to Heimstaden AB, although Bostad publishes its own
+      accounts. For a subsidiary's own figures, query its equity directly:
+      `issuerOf('<bond>')` gives `1546973D SS Equity` for Heimstaden Bostad.
+    - The projected items add `SOURCE_ID`, so join on `ID`.
+
+Notes
+{ .recipe-label }
 
 - Eight Virgin Media O2 vehicles, from Virgin Media Secured Finance to the vendor
   financing DACs, lead to one set of accounts. Bloomberg's own example is INEOS:
@@ -106,12 +130,11 @@ Notes:
   the bond.
 - One `TITIM` bond is issued by TIM SA, the Brazilian subsidiary, and maps to TIM's
   own accounts.
-- Heimstaden Bostad bonds map to Heimstaden AB, although Bostad publishes its own
-  accounts. For a subsidiary's own figures, query its equity directly:
-  `issuerOf('<bond>')` gives `1546973D SS Equity` for Heimstaden Bostad.
-- The projected items add `SOURCE_ID`, so join on `ID`.
 
 ## Annual revenue and EBITDA, last two years
+
+`fundamentalticker(...)`, `fa_period_type=A`, `fa_period_offset=range(-1Y, 0Y)`
+{ .recipe-uses }
 
 Revenue, EBITDA and EBITDA margin of the high-yield companies above, for the last
 two fiscal years, in EUR millions.
@@ -139,8 +162,9 @@ table = df.sort("name", "PERIOD_END_DATE").select(
 with pl.Config(tbl_rows=20):
     print(table)
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (12, 6)
 ┌───────────────────────────┬─────────────────┬─────────┬────────┬────────────┬────────────────┐
 │ name                      ┆ PERIOD_END_DATE ┆ revenue ┆ ebitda ┆ margin_pct ┆ ebitda_chg_pct │
@@ -162,17 +186,24 @@ shape: (12, 6)
 └───────────────────────────┴─────────────────┴─────────┴────────┴────────────┴────────────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    - `fa_period_offset=range(-1Y, 0Y)` is the last two years each company has
+      reported. A company with a March year-end gets other dates than one with a
+      December year-end, so keep `PERIOD_END_DATE`.
+    - `dropCols=['AS_OF_DATE', 'REVISION_DATE']`: two fields of the same year can carry
+      different revision dates, and `combine()` would then put them on two rows.
+
+Notes
+{ .recipe-label }
 
 - `fundamentalticker(...)` around a bond screen returns each company once, however
   many bonds and issuers it has.
-- `fa_period_offset=range(-1Y, 0Y)` is the last two years each company has
-  reported. A company with a March year-end gets other dates than one with a
-  December year-end, so keep `PERIOD_END_DATE`.
-- `dropCols=['AS_OF_DATE', 'REVISION_DATE']`: two fields of the same year can carry
-  different revision dates, and `combine()` would then put them on two rows.
 
 ## Reported vs adjusted EBITDA
+
+`fa_adjusted=N` / `Y`, `fa_act_est_data=A`
+{ .recipe-uses }
 
 Bloomberg's adjusted EBITDA next to the reported one, for the last fiscal year.
 
@@ -201,8 +232,9 @@ print(
     )
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (6, 5)
 ┌───────────────────────────┬─────────────────┬──────────┬──────────┬─────────┐
 │ name                      ┆ PERIOD_END_DATE ┆ reported ┆ adjusted ┆ adj_pct │
@@ -218,17 +250,24 @@ shape: (6, 5)
 └───────────────────────────┴─────────────────┴──────────┴──────────┴─────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    With `fa_period_type=LTM` the same query returns null for VMED O2 UK Holdings,
+    although its quarters are there. See the pitfalls below.
+
+Notes
+{ .recipe-label }
 
 - Put the parameter on each field, `ebitda(fa_adjusted=Y)`, to get both versions
   in one query. `with(...)` sets it for every field.
 - `fa_act_est_data=A` asks for reported actuals, not analysts' estimates.
 - The INEOS figures match the example in Bloomberg's announcement of the new
   mapping: EUR 1,194m reported, 1,315m adjusted.
-- With `fa_period_type=LTM` the same query returns null for VMED O2 UK Holdings,
-  although its quarters are there. See the pitfalls below.
 
 ## Revenue by product and by country
+
+`segments(..., hierarchy=PRODUCT)`, `hierarchy=LOCATION`
+{ .recipe-uses }
 
 iliad, the French telecom group, reports revenue per business line and per country.
 One request per hierarchy, then one table.
@@ -254,8 +293,9 @@ print(
     .pivot(on="half", index=["hierarchy", "#segment"], values="#revenue")
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (7, 4)
 ┌───────────┬───────────────────┬────────────┬────────────┐
 │ hierarchy ┆ #segment          ┆ 2025-12-31 ┆ 2026-06-30 │
@@ -272,19 +312,26 @@ shape: (7, 4)
 └───────────┴───────────────────┴────────────┴────────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
 
-- `hierarchy=PRODUCT` gives business lines and `hierarchy=LOCATION` gives countries.
-  `hierarchy=GEOGRAPHY` fails with "Incorrect parameters provided".
+    - `hierarchy=PRODUCT` gives business lines and `hierarchy=LOCATION` gives countries.
+      `hierarchy=GEOGRAPHY` fails with "Incorrect parameters provided".
+    - Banks report segments too, but `sales_rev_turn` per segment is null for SEB.
+
+Notes
+{ .recipe-label }
+
 - iliad reports half-years, hence `fpt=S`. For a quarterly reporter use `fpt=Q` and
   `fpo=range(-1Q, 0Q)`.
 - `segments()` needs the equity ticker. Get it from a bond with
   `fundamentalticker` (first recipe): the `ILDFP` bonds map to `ILD FP Equity`.
 - Segment rows that do not add up, such as `Adjustment` or `Intra-group sales`, are
   part of the reported split. A segment without a figure for a period is null.
-- Banks report segments too, but `sales_rev_turn` per segment is null for SEB.
 
 ## Swedish AT1 issuers: CET1 and ROE by quarter
+
+`bs_tier1_com_equity_ratio()`, `normalized_roe()`, `fpt=Q`
+{ .recipe-uses }
 
 Start from the AT1 bonds of SEB, Handelsbanken and Swedbank. `fundamentalTicker`
 turns them into the three banks; then fetch four quarters of CET1 ratio and
@@ -316,8 +363,9 @@ print(
     .sort("PERIOD_END_DATE")
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (4, 7)
 ┌─────────────────┬───────────┬───────────┬────────────┬──────────┬──────────┬───────────┐
 │ PERIOD_END_DATE ┆ cet1_SEBA ┆ cet1_SHBA ┆ cet1_SWEDA ┆ roe_SEBA ┆ roe_SHBA ┆ roe_SWEDA │
@@ -331,16 +379,23 @@ shape: (4, 7)
 └─────────────────┴───────────┴───────────┴────────────┴──────────┴──────────┴───────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    `fpt=Q, fpo=range(-3Q, 0Q)` is the last four reported quarters. Before you
+    compare banks, check that `PERIOD_END_DATE` is the same for all of them.
+
+Notes
+{ .recipe-label }
 
 - The bank tickers (`SEBA`, `SHBA`, `SWEDA`) come from the mapping, not from the
   query. The same code works for any list of bank bonds.
-- `fpt=Q, fpo=range(-3Q, 0Q)` is the last four reported quarters. Before you
-  compare banks, check that `PERIOD_END_DATE` is the same for all of them.
 - For CET1 against the AT1 trigger of each bond, see
   [AT1 distance to trigger](capital-structure.md#at1-distance-to-trigger).
 
 ## How much of a high-yield index has fundamentals?
+
+`issuerOf` vs `parent(type=CAST)` vs `fundamentalticker`
+{ .recipe-uses }
 
 Three ways to reach a company from each bond of the Pan-European High Yield index
 (`LP01TREU`): the issuer, the CAST parent and `fundamentalTicker`. For each, the
@@ -375,8 +430,9 @@ for name, item in zip(result.names[1:], result.dataframes[1:]):
     })
 print(pl.DataFrame(rows))
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (3, 5)
 ┌───────────────────┬───────┬───────────┬────────────┬───────────┐
 │ mapping           ┆ bonds ┆ pct_bonds ┆ pct_weight ┆ companies │
@@ -389,7 +445,13 @@ shape: (3, 5)
 └───────────────────┴───────┴───────────┴────────────┴───────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    The CAST parent can be a shareholder, such as Poste Italiane for Telecom Italia,
+    and a shareholder's leverage is not the bond's.
+
+Notes
+{ .recipe-label }
 
 - `fundamentalTicker` finds a leverage figure for about three bonds in four, the
   other two mappings for a little over half. It skips financing vehicles without
@@ -398,13 +460,14 @@ Notes:
   `fundamentalTicker` leads to fewer companies than `issuerOf`, because it puts
   the vehicles of one group under one company. More of those companies have
   figures, though.
-- The CAST parent can be a shareholder, such as Poste Italiane for Telecom Italia,
-  and a shareholder's leverage is not the bond's.
 - `id().weights` is the index weight in percent; the weights add up to 100.
 - The three items are used one by one here, because each has its own `SOURCE_ID`
   and `PERIOD_END_DATE`.
 
 ## Median leverage per sector
+
+`median(group(..., classification_name(BCLASS, 3)))`
+{ .recipe-uses }
 
 Median net debt / EBITDA per Bloomberg (BCLASS) sector, over the companies behind
 the Pan-European High Yield index. The query runs twice, once over the index's
@@ -440,8 +503,9 @@ table = (
 with pl.Config(tbl_rows=30):
     print(table)
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (22, 5)
 ┌───────────────────────────────────┬──────┬────────┬──────┬───────────┐
 │ sector                            ┆ n    ┆ median ┆ n_ft ┆ median_ft │
@@ -473,20 +537,24 @@ shape: (22, 5)
 └───────────────────────────────────┴──────┴────────┴──────┴───────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    - Drop `PERIOD_END_DATE` and `REVISION_DATE` from grouped items. A group's dates
+      come from one of its companies and differ between `count` and `median`, so the
+      two items would not join.
+    - Join on `ID`, the group's name. The group of companies without a sector has
+      `ID` `NullGroup` and a null `#SECTOR`, and `combine()` does not match null keys.
+    - Leverage of banks and other financials means something else; read those rows
+      with care.
+
+Notes
+{ .recipe-label }
 
 - `n` is the number of companies with a figure, `median` the median net debt /
   EBITDA. Columns ending in `_ft` are for `fundamentalTicker`.
 - `fundamentalTicker` gives more companies with a figure in most sectors. Some of
   the companies it chooses have no BCLASS sector of their own; they end up in
   `(no BCLASS sector)`.
-- Drop `PERIOD_END_DATE` and `REVISION_DATE` from grouped items. A group's dates
-  come from one of its companies and differ between `count` and `median`, so the
-  two items would not join.
-- Join on `ID`, the group's name. The group of companies without a sector has
-  `ID` `NullGroup` and a null `#SECTOR`, and `combine()` does not match null keys.
-- Leverage of banks and other financials means something else; read those rows
-  with care.
 - For an index-weighted figure, Bloomberg's announcement averages over the bonds:
   `wavg(group(#x, #sector), group(weights, #sector))` with
   `#x = value(<field>, fundamentalticker, mapby=LINEAGE)` over `members(...)`.
@@ -494,6 +562,9 @@ Notes:
   or negative, so check the inputs.
 
 ## Bloomberg Intelligence sector template
+
+BSRCH: `bsrch("BI:TPD", {"BIKEY": ...})`
+{ .recipe-uses }
 
 Bloomberg Intelligence (BI) publishes sector figures as dashboards. Each one has a
 `BIKEY`, the key in the `=@BSRCH("BI:TPD","BIKEY=...")` formula it exports to Excel.
@@ -529,8 +600,9 @@ print(
     .sort("rating")
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 3 quarters, the latest 2025-06-30
 shape: (3, 3)
 ┌────────┬──────────────┬────────────────────┐
@@ -544,19 +616,25 @@ shape: (3, 3)
 └────────┴──────────────┴────────────────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    The grid has the columns of the saved dashboard. Check the latest quarter before
+    you use the numbers, and use the `BIKEY` of your own dashboard for other sectors
+    or fields.
+
+Notes
+{ .recipe-label }
 
 - The grid has a column per quarter with the date as `MM/DD/YYYY` text; `unpivot`
   and `str.to_date` make it a tidy table.
-- The grid has the columns of the saved dashboard. Check the latest quarter before
-  you use the numbers, and use the `BIKEY` of your own dashboard for other sectors
-  or fields.
 - `LIMIT` set high avoids a "reached internal limit" warning; the grid is the same.
 - See [BSRCH](../usage/bsrch.md) for overrides and column types.
 
 ## Pitfalls
 
 What surprised us while writing these recipes.
+
+<div class="recipe-pitfalls" markdown>
 
 | Symptom | Cause | Fix |
 |---|---|---|
@@ -570,3 +648,5 @@ What surprised us while writing these recipes.
 | `segments(..., hierarchy=GEOGRAPHY)` fails | The hierarchy is called `LOCATION` | `hierarchy=LOCATION` |
 | Segment revenue of a bank is null | `sales_rev_turn` is not filled for bank segments | Use group figures, or a field the bank reports per segment |
 | Fundamentals in the reporting currency although you asked for EUR | `with(ccy=EUR)` is ignored without an error | `with(currency=EUR)` or `field(currency=EUR)`; check `CURRENCY` |
+
+</div>

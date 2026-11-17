@@ -13,6 +13,17 @@ tags:
 An axe is a dealer's signal that it wants to buy (bid) or sell (ask) a bond. BQL
 returns the axes you see in `IMGR AXE <GO>` and `QMGR AXE <GO>`, so you can rank,
 join and chart them in Python.
+{ .recipe-lead }
+
+!!! info "Data on this page"
+    Every recipe uses the same universe: the USD AT1 bonds of Swedish banks, a handful of
+    SEB, Handelsbanken and Swedbank perpetuals. For other bonds, change the `for()`
+    clause. Sizes are face amounts in the bond's currency.
+
+    The outputs below are live data as of 2026-11-17 and will differ when you run the
+    queries.
+
+## Quick reference
 
 | You want | Use | One row per |
 |---|---|---|
@@ -21,14 +32,10 @@ join and chart them in Python.
 | Axe size over the last week or five weeks | `axes(calc_interval=1w)` or `5w`, columns `BID_HIST_AGG_SIZE`, `ASK_HIST_AGG_SIZE` | bond |
 | Only bonds that have live axes | universe `axedUniv('all')` (or `'bid'`, `'ask'`), filter `is_axed()` | bond |
 
-Every recipe uses the same universe: the USD AT1 bonds of Swedish banks, a handful of
-SEB, Handelsbanken and Swedbank perpetuals. For other bonds, change the `for()`
-clause. Sizes are face amounts in the bond's currency.
-
-The outputs below are live data as of 2026-11-17 and will differ when you run the
-queries.
-
 ## AT1 axes by bond
+
+`axes()`
+{ .recipe-uses }
 
 Which bonds are axed, by how many dealers, and for how much in total.
 
@@ -45,8 +52,9 @@ with BQuery() as bq:
     df = bq.bql(query).combine(on="ID")
 print(df)
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (8, 7)
 ┌───────────────┬─────────────────┬─────┬───────────┬───────────┬────────────────┬────────────────┐
 │ ID            ┆ name            ┆ #ax ┆ ASK_DEPTH ┆ BID_DEPTH ┆ ASK_TOTAL_SIZE ┆ BID_TOTAL_SIZE │
@@ -64,7 +72,8 @@ shape: (8, 7)
 └───────────────┴─────────────────┴─────┴───────────┴───────────┴────────────────┴────────────────┘
 ```
 
-Notes:
+Notes
+{ .recipe-label }
 
 - `#ax` is `Y` when the bond has at least one live axe.
 - `BID_DEPTH` is the number of dealers bidding and `BID_TOTAL_SIZE` the sum of their
@@ -75,6 +84,9 @@ Notes:
   `bondsUniv(ACTIVE)`.
 
 ## Large axes only
+
+`axes_by_dealer()`, `matches()`, `dropna()`
+{ .recipe-uses }
 
 Dealer axes of 10 million or more, filtered by Bloomberg before the data is sent.
 
@@ -102,8 +114,9 @@ print(df.select(
     ask_px="ASK_PRICE",
 ).sort("name", "dealer"))
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (4, 6)
 ┌─────────────────┬────────┬────────┬────────┬─────────┬────────┐
 │ name            ┆ dealer ┆ bid_mm ┆ ask_mm ┆ bid_px  ┆ ask_px │
@@ -117,17 +130,24 @@ shape: (4, 6)
 └─────────────────┴────────┴────────┴────────┴─────────┴────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    Compare dealers on price or yield. A dealer's spread can be `0` or quoted on
+    another basis.
+
+Notes
+{ .recipe-label }
 
 - `axes_by_dealer()` has one row per dealer and bond. Most dealers are axed on one
   side only, so the other side is null.
 - `matches()` keeps the rows that pass the test and `dropna(..., remove_id=True)`
   removes the others. `how="inner"` then keeps only the bonds with a large axe.
 - `10M` is BQL shorthand for 10,000,000, and `K` stands for thousands.
-- Compare dealers on price or yield. A dealer's spread can be `0` or quoted on
-  another basis.
 
 ## Net axes per issuer
+
+`sum(group(..., ticker))`
+{ .recipe-uses }
 
 Are dealers buyers or sellers of each issuer's AT1s? A bid axe is a dealer that
 wants to buy, an ask axe a dealer that wants to sell.
@@ -154,8 +174,9 @@ print(df.select(
     dealers=pl.when(net > 0).then(pl.lit("buyers")).otherwise(pl.lit("sellers")),
 ))
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (3, 5)
 ┌────────┬────────┬────────┬────────┬─────────┐
 │ issuer ┆ bid_mm ┆ ask_mm ┆ net_mm ┆ dealers │
@@ -168,13 +189,20 @@ shape: (3, 5)
 └────────┴────────┴────────┴────────┴─────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    `/ 1M` turns the sizes into millions. Sizes add up in each bond's own currency; for
+    bonds in several currencies, add `with(currency=USD)`.
+
+Notes
+{ .recipe-label }
 
 - With `group(..., ticker)` the `ID` column holds the ticker, not a bond.
-- `/ 1M` turns the sizes into millions. Sizes add up in each bond's own currency; for
-  bonds in several currencies, add `with(currency=USD)`.
 
 ## Total axes: today, 1 week, 5 weeks
+
+`calc_interval`, `*_HIST_AGG_SIZE`
+{ .recipe-uses }
 
 All bid and ask axes on the universe, now and over the last one and five weeks.
 
@@ -203,8 +231,9 @@ df = pl.DataFrame({
 }).with_columns(net_mm=pl.col("bid_mm") - pl.col("ask_mm"))
 print(df)
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (3, 4)
 ┌────────┬─────────┬────────┬────────┐
 │ window ┆ bid_mm  ┆ ask_mm ┆ net_mm │
@@ -217,17 +246,24 @@ shape: (3, 4)
 └────────┴─────────┴────────┴────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    BQL has no day-by-day axe history: `calc_interval` takes only `1w` and `5w`,
+    `axes(dates=...)` is rejected and `with(dates=...)` has no effect. For a daily
+    series, store the output of the first recipe every day.
+
+Notes
+{ .recipe-label }
 
 - `group()` without a key puts every bond in one group, whose `ID` is
   `IdentityGroup`.
 - `*_HIST_AGG_SIZE` is on the same scale as today's `*_TOTAL_SIZE` (the 5-week value
   is not five times the 1-week value), so the rows compare directly.
-- BQL has no day-by-day axe history: `calc_interval` takes only `1w` and `5w`,
-  `axes(dates=...)` is rejected and `with(dates=...)` has no effect. For a daily
-  series, store the output of the first recipe every day.
 
 ## Per bond: today vs 1 and 5 weeks
+
+`calc_interval`, `*_HIST_AGG_SIZE`
+{ .recipe-uses }
 
 Is today's axe size normal for each bond, or has one side dried up?
 
@@ -250,8 +286,9 @@ with BQuery() as bq:
     df = bq.bql(query).combine(on="ID")
 print(df.drop("ID"))
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (8, 7)
 ┌─────────────────┬──────┬─────────┬─────────┬──────┬─────────┬─────────┐
 │ name            ┆ #bid ┆ #bid_1w ┆ #bid_5w ┆ #ask ┆ #ask_1w ┆ #ask_5w │
@@ -269,12 +306,16 @@ shape: (8, 7)
 └─────────────────┴──────┴─────────┴─────────┴──────┴─────────┴─────────┘
 ```
 
-Notes:
+Notes
+{ .recipe-label }
 
 - A bid well below its 5-week level means fewer dealers want the bond than usual.
 - A null means no axes on that side today, or over the whole window.
 
 ## Axes in a relative-value screen
+
+`flt_spread()`, `spread(spread_type=OAS)`
+{ .recipe-uses }
 
 Spreads next to axes: can you buy the cheap bonds, and sell the rich ones?
 
@@ -302,8 +343,9 @@ print(df.select(
     ask_mm=pl.col("ASK_TOTAL_SIZE") / 1e6,
 ).sort("oas", descending=True))
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (8, 6)
 ┌─────────────────┬────────────┬──────────┬───────┬────────┬────────┐
 │ name            ┆ call       ┆ back_end ┆ oas   ┆ bid_mm ┆ ask_mm │
@@ -321,7 +363,8 @@ shape: (8, 6)
 └─────────────────┴────────────┴──────────┴───────┴────────┴────────┘
 ```
 
-Notes:
+Notes
+{ .recipe-label }
 
 - `flt_spread()` is the back end: the margin the coupon resets to if the bond is not
   called. `#oas` is the option-adjusted spread.
@@ -331,6 +374,9 @@ Notes:
   `combine(on="ID")` joins every item on the bond.
 
 ## Top 3 dealers
+
+`axes_by_dealer()`
+{ .recipe-uses }
 
 The dealers with the most axes on these bonds, bid and ask together.
 
@@ -359,8 +405,9 @@ top = (
 )
 print(top)
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (3, 5)
 ┌────────┬───────┬────────┬────────┬──────────┐
 │ dealer ┆ bonds ┆ bid_mm ┆ ask_mm ┆ total_mm │
@@ -373,12 +420,14 @@ shape: (3, 5)
 └────────┴───────┴────────┴────────┴──────────┘
 ```
 
-Notes:
+Notes
+{ .recipe-label }
 
 - A dealer axed on both sides of a bond has its bid and ask on one row, so
   `coalesce()` gives one dealer per row.
 - `preferences(addcols=all)` adds `BID_TIMESTAMP` and `ASK_TIMESTAMP` as UTC
   `Datetime` columns, useful for dropping axes that were not updated today.
 
-See also `IMGR AXE <GO>`, `QMGR AXE <GO>` and `BQLX <GO>`. For how `bql()` and
-`combine()` work, see [BQL](../usage/bql.md).
+!!! abstract "Related"
+    See also `IMGR AXE <GO>`, `QMGR AXE <GO>` and `BQLX <GO>`. For how `bql()` and
+    `combine()` work, see [BQL](../usage/bql.md).

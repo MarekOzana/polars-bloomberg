@@ -24,6 +24,13 @@ All notable changes to polars-bloomberg are listed here.
   hedged into EUR vs Bunds, fiscal-year leverage (`periodicityAdjustment=FISCAL`)
   and weekly OHLC candles.
 
+### Changed
+
+- Recipe pages have a new layout: workflow cards on the index, a quick-reference
+  tab set per page, a numbered heading and a "Uses" line per recipe, a labelled
+  output block that is not highlighted as Python, and the traps of each recipe in
+  a "Watch out" box. Code blocks have a copy button. The recipes are unchanged.
+
 ## 0.7.2 - 2026-11-16
 
 ### Changed

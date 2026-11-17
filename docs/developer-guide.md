@@ -316,6 +316,39 @@ script runs each recipe, pastes what it printed into that block and sets the pag
 the script. A page with a failing recipe is not written, and that includes a screen
 that matches nothing on the day.
 
+A recipe on the page looks like this; `docs/stylesheets/recipes.css` styles it.
+
+````markdown
+## Large axes only
+
+`axes_by_dealer()`, `matches()`, `dropna()`
+{ .recipe-uses }
+
+One sentence: the question the recipe answers.
+
+```python
+...
+```
+
+Output
+``` { .text .no-copy .recipe-output }
+```
+
+!!! warning "Watch out"
+    Only traps that give a wrong number or an error.
+
+Notes
+{ .recipe-label }
+
+- How to read the output and adapt the query.
+````
+
+- The `{ .recipe-uses }` line is the "Uses" cell of the recipe's row in
+  `recipes/index.md`; keep the two the same. It also numbers the heading.
+- Keep the blank line before `Output`. Without it the label is not a paragraph and
+  loses its style.
+- The output block is `text`, not `python`, and has no copy button.
+
 The recordings check repeats what `pytest` does, but more strictly: `pytest`
 compares numbers with a tolerance, and `git diff` shows every difference.
 

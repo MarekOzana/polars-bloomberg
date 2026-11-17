@@ -12,35 +12,49 @@ tags:
 # Bonds and Capital Structure
 
 Which bonds and loans does a company have, how do they rank, who owns the issuer,
-and how much debt sits at each level? This page answers these questions for the
-three large Swedish banks, for a European high-yield issuer (Virgin Media O2) and
-for a group with several issuers (Heimstaden).
+and how much debt sits at each level?
+{ .recipe-lead }
 
-| You want | Use | One row per |
-|---|---|---|
-| All live bonds of an issuer | `filter(bondsUniv(ACTIVE, consolidateduplicates=True), ticker in [...])` | bond |
-| Its loans | `filter(loansUniv(ACTIVE), ticker == '...')` | loan |
-| Where a bond ranks | `normalized_payment_rank()` (comparable across issuers), `payment_rank()` (as issued), `basel_iii_designation()` (bank capital) | bond |
-| Debt per rank, per issuer or per parent | `sum(group(amt_outstanding(currency=EUR), ...))` | group |
-| The company that owns the issuer | `parent(type=DIRECT)`, `type=ULTIMATE` or `type=CAST` | company |
-| The parent's fundamentals next to each bond | `value(<field>, parent(type=CAST), mapby=LINEAGE)` | bond |
+!!! info "Data on this page"
+    This page answers these questions for the three large Swedish banks, for a
+    European high-yield issuer (Virgin Media O2) and for a group with several
+    issuers (Heimstaden).
 
-The capital structure (CAST) parent is the top company of the capital structure
-you see in `CAST <GO>`. Unlike the ultimate parent, it stops below private-equity
-sponsors, owners that hold the company as an investment, and governments that
-guarantee less than half of the group's debt. Since May 2026 BQL's `parent()`
-returns it with `type=CAST`.
+    Amounts are converted to EUR so that they add up across currencies. The outputs
+    below are live data as of 2026-11-17 and will differ when you run the queries.
+    Before you adapt a query, read the [Pitfalls](#pitfalls).
 
-| `parent(type=...)` | Returns |
-|---|---|
-| `DIRECT` (default) | the immediate parent company |
-| `ULTIMATE` | the company that ultimately controls the issuer |
-| `CAST` | the top of the capital structure in `CAST <GO>` |
+## Quick reference
 
-Amounts are converted to EUR so that they add up across currencies. The outputs
-below are live data as of 2026-11-17 and will differ when you run the queries.
+=== "By task"
+
+    | You want | Use | One row per |
+    |---|---|---|
+    | All live bonds of an issuer | `filter(bondsUniv(ACTIVE, consolidateduplicates=True), ticker in [...])` | bond |
+    | Its loans | `filter(loansUniv(ACTIVE), ticker == '...')` | loan |
+    | Where a bond ranks | `normalized_payment_rank()` (comparable across issuers), `payment_rank()` (as issued), `basel_iii_designation()` (bank capital) | bond |
+    | Debt per rank, per issuer or per parent | `sum(group(amt_outstanding(currency=EUR), ...))` | group |
+    | The company that owns the issuer | `parent(type=DIRECT)`, `type=ULTIMATE` or `type=CAST` | company |
+    | The parent's fundamentals next to each bond | `value(<field>, parent(type=CAST), mapby=LINEAGE)` | bond |
+
+=== "Parent types"
+
+    The capital structure (CAST) parent is the top company of the capital structure
+    you see in `CAST <GO>`. Unlike the ultimate parent, it stops below private-equity
+    sponsors, owners that hold the company as an investment, and governments that
+    guarantee less than half of the group's debt. Since May 2026 BQL's `parent()`
+    returns it with `type=CAST`.
+
+    | `parent(type=...)` | Returns |
+    |---|---|
+    | `DIRECT` (default) | the immediate parent company |
+    | `ULTIMATE` | the company that ultimately controls the issuer |
+    | `CAST` | the top of the capital structure in `CAST <GO>` |
 
 ## Swedish bank capital stacks
+
+`normalized_payment_rank()`, `sum(group(..., [ticker, #rank]))`
+{ .recipe-uses }
 
 Covered bonds, senior, senior non-preferred, Tier 2 and AT1 outstanding for SEB,
 Handelsbanken and Swedbank, in EUR billions.
@@ -71,8 +85,9 @@ print(
     .sort("layer")
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (5, 4)
 ┌────────────────────────┬──────┬────────┬───────┐
 │ layer                  ┆ SEB  ┆ SHBASS ┆ SWEDA │
@@ -87,17 +102,24 @@ shape: (5, 4)
 └────────────────────────┴──────┴────────┴───────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    Swedish banks also issue structured notes and MTNs under the same ticker, so the
+    senior preferred counts are large.
+
+Notes
+{ .recipe-label }
 
 - `normalized_payment_rank()` maps each bond to one ladder, the same for all issuers.
   `Senior Bail-In` is senior non-preferred (MREL), `Subordinated` is Tier 2 and
   `Jr Subordinated` is AT1.
 - The group column comes back as `#RANK` (upper case) and the ticker as `TICKER`.
 - `consolidateduplicates=True` keeps one line per bond instead of one per listing.
-- Swedish banks also issue structured notes and MTNs under the same ticker, so the
-  senior preferred counts are large.
 
 ## AT1 and Tier 2 call schedule
+
+`basel_iii_designation()`, `nxt_call_dt`
+{ .recipe-uses }
 
 How much AT1 and Tier 2 each bank can call per year, in EUR millions.
 
@@ -126,8 +148,9 @@ print(
     .sort("call_year")
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (7, 7)
 ┌───────────┬─────────┬────────┬────────────┬───────────┬───────────┬──────────┐
 │ call_year ┆ SEB AT1 ┆ SEB T2 ┆ SHBASS AT1 ┆ SHBASS T2 ┆ SWEDA AT1 ┆ SWEDA T2 │
@@ -144,7 +167,8 @@ shape: (7, 7)
 └───────────┴─────────┴────────┴────────────┴───────────┴───────────┴──────────┘
 ```
 
-Notes:
+Notes
+{ .recipe-label }
 
 - `nxt_call_dt` is the next call date. AT1s are perpetual, so the call date is the
   date that matters.
@@ -152,6 +176,9 @@ Notes:
   than the payment rank.
 
 ## AT1 distance to trigger
+
+`value(..., parent(type=CAST), mapby=LINEAGE)`, `capital_type_coco_trigger_level()`
+{ .recipe-uses }
 
 The USD AT1s of the Swedish banks (the bonds on the [Dealer Axes](axes.md) page),
 each with its bank's CET1 ratio and the bond's trigger, in percent of risk-weighted
@@ -178,8 +205,9 @@ print(
     ).sort("name", "nxt_call_dt")
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (8, 6)
 ┌─────────────────┬─────────────┬─────────────────┬───────┬──────────┬───────────┐
 │ name            ┆ nxt_call_dt ┆ PERIOD_END_DATE ┆ #cet1 ┆ #trigger ┆ buffer_pp │
@@ -197,18 +225,25 @@ shape: (8, 6)
 └─────────────────┴─────────────┴─────────────────┴───────┴──────────┴───────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    The projected item adds `SOURCE_ID`, the parent's ID. Join on `ID`, or the rows of
+    the two items do not match.
+
+Notes
+{ .recipe-label }
 
 - `value(..., parent(type=CAST), mapby=LINEAGE)` reads the field from each bond's
   capital structure parent, here the listed bank. `PERIOD_END_DATE` is the reporting
   quarter of the CET1 ratio.
-- The projected item adds `SOURCE_ID`, the parent's ID. Join on `ID`, or the rows of
-  the two items do not match.
 - For CET1 against the full capital requirement, see the
   [Bank CET1 Ratio vs Requirements](../examples/credit/bank-CET1-vs-requirements.ipynb)
   example.
 
 ## Bonds and loans with leverage
+
+`loansUniv(ACTIVE)`, `ebitda(fpt=LTM)`
+{ .recipe-uses }
 
 The whole debt stack of Virgin Media O2, bonds and term loans, by rank. Leverage is
 the debt up to and including each rank divided by last-twelve-months EBITDA.
@@ -247,8 +282,9 @@ print(
     .with_columns(cum_leverage=(pl.col("eur_m").cum_sum() / ebitda).round(1))
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 Vmed O2 UK Ltd: LTM EBITDA EUR 3,186m (2025-12-31)
 shape: (3, 5)
 ┌──────────────────┬───────┬───────┬───────┬──────────────┐
@@ -262,15 +298,19 @@ shape: (3, 5)
 └──────────────────┴───────┴───────┴───────┴──────────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    - Put the currency on the item, `ebitda(..., currency=EUR)`, or use
+      `with(currency=EUR)`. `with(ccy=EUR)` is ignored without an error, and the numbers
+      stay in the reporting currency. Check the `CURRENCY` column.
+    - The order comes from Bloomberg's normalized rank. Read it as a debt stack, not a
+      legal waterfall: debt of neighbouring ranks can share the same collateral.
+
+Notes
+{ .recipe-label }
 
 - `parent('ZO388622 Corp', type=CAST)` turns one bond into its group, Vmed O2 UK Ltd,
   whose accounts cover all the issuing entities.
-- Put the currency on the item, `ebitda(..., currency=EUR)`, or use
-  `with(currency=EUR)`. `with(ccy=EUR)` is ignored without an error, and the numbers
-  stay in the reporting currency. Check the `CURRENCY` column.
-- The order comes from Bloomberg's normalized rank. Read it as a debt stack, not a
-  legal waterfall: debt of neighbouring ranks can share the same collateral.
 - Private groups report less often; `PERIOD_END_DATE` shows which accounts you got.
 - `loans()` on the parent returns nothing for this group, so the loans come from
   `loansUniv(ACTIVE)` by ticker. `amt_outstanding() > 0` drops repaid and undrawn
@@ -279,6 +319,9 @@ Notes:
   `issuer()` to see the issuing entity of each bond.
 
 ## Direct, ultimate and CAST parent
+
+`parent(type=DIRECT)`, `ULTIMATE`, `CAST`
+{ .recipe-uses }
 
 Heimstaden has two bond issuers: Heimstaden AB and its residential subsidiary
 Heimstaden Bostad. The three parent types answer "who owns this?" differently.
@@ -297,8 +340,9 @@ with BQuery() as bq:
     df = bq.bql(query).combine(on="ID")
 print(df.select("ID", "name", "issuer()", "#direct", "#ultimate", "#cast"))
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (2, 6)
 ┌───────────────┬─────────────────────┬──────────────────────┬──────────────────────┬──────────────────────┬───────────────┐
 │ ID            ┆ name                ┆ issuer()             ┆ #direct              ┆ #ultimate            ┆ #cast         │
@@ -310,7 +354,8 @@ shape: (2, 6)
 └───────────────┴─────────────────────┴──────────────────────┴──────────────────────┴──────────────────────┴───────────────┘
 ```
 
-Notes:
+Notes
+{ .recipe-label }
 
 - For the Heimstaden AB bond the ultimate parent is its owner, Fredensborg. The CAST
   parent stays at Heimstaden AB, the top of the capital structure.
@@ -320,6 +365,9 @@ Notes:
   can ask for its fundamentals directly.
 
 ## One capital structure, several issuers
+
+`group(..., [#cast, ticker, #rank])`
+{ .recipe-uses }
 
 All Heimstaden bonds grouped by CAST parent, issuer ticker and rank, in EUR
 millions.
@@ -344,8 +392,9 @@ print(
     .sort("TICKER", "#RANK")
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (5, 5)
 ┌───────────────┬────────┬───────────────────────────┬────────┬───────┐
 │ #CAST         ┆ TICKER ┆ #RANK                     ┆ #bonds ┆ eur_m │
@@ -360,18 +409,25 @@ shape: (5, 5)
 └───────────────┴────────┴───────────────────────────┴────────┴───────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    - `bonds('<company>')` returns the bonds of that company only, not of its
+      subsidiaries, so start from the tickers and let `#cast` show what belongs
+      together.
+    - `dropCols=['ORIG_IDS']` matters: a group with one bond carries `ORIG_IDS` in
+      `count()` but not in `sum()`, and the two items would not join.
+
+Notes
+{ .recipe-label }
 
 - `Jr Subordinated` here are hybrid bonds, which rank below all senior debt of the
   same issuer. Heimstaden AB's debt is also structurally below Bostad's, because
   Heimstaden AB is a holding company.
-- `bonds('<company>')` returns the bonds of that company only, not of its
-  subsidiaries, so start from the tickers and let `#cast` show what belongs
-  together.
-- `dropCols=['ORIG_IDS']` matters: a group with one bond carries `ORIG_IDS` in
-  `count()` but not in `sum()`, and the two items would not join.
 
 ## Largest capital structures in a high-yield index
+
+`sum(group(..., #cast))` over `members()`
+{ .recipe-uses }
 
 The ten CAST parents with the most debt in the Bloomberg Pan-European High Yield
 index, with their share of the index.
@@ -400,8 +456,9 @@ print(
     .head(10)
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (10, 4)
 ┌────────────────────────────────┬────────┬────────┬───────────┐
 │ #CAST                          ┆ #bonds ┆ eur_bn ┆ share_pct │
@@ -421,7 +478,8 @@ shape: (10, 4)
 └────────────────────────────────┴────────┴────────┴───────────┘
 ```
 
-Notes:
+Notes
+{ .recipe-label }
 
 - Grouping by CAST parent adds up holding companies, operating companies and
   finance vehicles of one group, which a ticker would split.
@@ -434,6 +492,8 @@ Notes:
 
 What surprised us while writing these recipes.
 
+<div class="recipe-pitfalls" markdown>
+
 | Symptom | Cause | Fix |
 |---|---|---|
 | A bond appears on two rows after `combine()` | `mapby=LINEAGE` adds `SOURCE_ID`, which differs between items | `combine(on="ID")`, or `preferences(dropCols=['SOURCE_ID'])` |
@@ -442,3 +502,5 @@ What surprised us while writing these recipes.
 | `bonds('<parent>')` misses the subsidiaries' bonds | `bonds()` does not follow the CAST group: Heimstaden AB's list has no Heimstaden Bostad bonds | Start from tickers or an index and group by `parent(type=CAST)` |
 | Screening all bonds of a country by CAST parent times out | The parent is looked up for every bond in the universe | Narrow the universe first (tickers, an index), then group |
 | Grouped items do not line up | One-bond groups carry `ORIG_IDS` in some items only | `preferences(dropCols=['ORIG_IDS'])` |
+
+</div>

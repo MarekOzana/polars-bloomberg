@@ -11,18 +11,33 @@ tags:
 
 BQL can see bonds that are announced but not yet priced, in line with
 `SRCH <GO>` and `PREL <GO>`. The universe covers deals that are announced and
-unpriced, or that priced within the last calendar day. Each deal's progress is
-in `LATST_STATS_FOR_MOST_RECENT_DEAL` (Mandate → Guidance → IPT → New Deal).
+unpriced, or that priced within the last calendar day.
+{ .recipe-lead }
+
+Each deal's progress is in `LATST_STATS_FOR_MOST_RECENT_DEAL`:
+
+<div class="recipe-flow" markdown>
+
+1. Mandate
+2. Guidance
+3. IPT
+4. New Deal
+
+</div>
 
 !!! note "Two switches are needed"
     `bondsUniv(INCLUDEPRELIMINARYSECURITIES='Y')` adds preliminary securities
     to the universe, and `PRELIMINARY_SECURITY=='Y'` keeps only those.
     Without the filter you get the whole active bond universe.
 
-The outputs below are live data as of 2026-11-17 and will differ when you run the
-queries.
+!!! info "Data on this page"
+    The outputs below are live data as of 2026-11-17 and will differ when you run the
+    queries.
 
 ## New AT1 / RT1 deals in USD, EUR, GBP
+
+`INCLUDEPRELIMINARYSECURITIES`, `issuance_pricing`, `as #alias`
+{ .recipe-uses }
 
 Bank AT1s and insurance RT1s currently in the pipeline, with deal status,
 marketed tenor and initial price talk.
@@ -43,8 +58,9 @@ with BQuery() as bq:
     df = bq.bql(query).combine(on="ID")
 print(df)
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (2, 6)
 ┌───────────────┬───────────────┬──────────────────────────────────┬─────────────────┬──────┬──────────────┐
 │ ID            ┆ name          ┆ LATST_STATS_FOR_MOST_RECENT_DEAL ┆ marketing_tenor ┆ #IPT ┆ PRICING_TYPE │
@@ -56,7 +72,8 @@ shape: (2, 6)
 └───────────────┴───────────────┴──────────────────────────────────┴─────────────────┴──────┴──────────────┘
 ```
 
-Notes:
+Notes
+{ .recipe-label }
 
 - `as #IPT` renames a column without a `let()` block.
 - `#IPT` and `PRICING_TYPE` stay `null` until the deal reaches the IPT stage.
@@ -66,6 +83,9 @@ Notes:
   row per bond.
 
 ## New Technology deals in USD, EUR, GBP
+
+`classification_name(BCLASS)`
+{ .recipe-uses }
 
 The same screen by sector instead of capital tier, using Bloomberg's BCLASS
 classification at level 3.
@@ -88,8 +108,9 @@ with BQuery() as bq:
     df = bq.bql(query).combine(on="ID")
 print(df)
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (8, 7)
 ┌───────────────┬───────────────────┬──────────────────────────────────┬─────────────────┬───────┬────────────────┬────────────┐
 │ ID            ┆ name              ┆ LATST_STATS_FOR_MOST_RECENT_DEAL ┆ marketing_tenor ┆ #IPT  ┆ PRICING_TYPE   ┆ #sector    │
@@ -107,17 +128,24 @@ shape: (8, 7)
 └───────────────┴───────────────────┴──────────────────────────────────┴─────────────────┴───────┴────────────────┴────────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
 
-- `#IPT` is in the unit that `PRICING_TYPE` names: `Yield` in percent,
-  `Floater Spread` in basis points. Don't compare the numbers across rows
-  without it.
+    `#IPT` is in the unit that `PRICING_TYPE` names: `Yield` in percent,
+    `Floater Spread` in basis points. Don't compare the numbers across rows
+    without it.
+
+Notes
+{ .recipe-label }
+
 - Without `as #sector`, the column is named after the whole
   `classification_name(...)` expression.
 - To screen another sector, change `'Technology'` to another BCLASS level-3
   name.
 
 ## Pipeline by currency
+
+`count(group(...))`
+{ .recipe-uses }
 
 How many deals are in the pipeline in each currency.
 
@@ -133,8 +161,9 @@ with BQuery() as bq:
     df = bq.bql(query)[0]
 print(df.select(currency="ID", deals="#n").sort("deals", descending=True).head(6))
 ```
-Output (top 6 currencies):
-```python
+
+Output (top 6 currencies)
+``` { .text .no-copy .recipe-output }
 shape: (6, 2)
 ┌──────────┬───────┐
 │ currency ┆ deals │
@@ -150,11 +179,13 @@ shape: (6, 2)
 └──────────┴───────┘
 ```
 
-Notes:
+Notes
+{ .recipe-label }
 
 - With `group(...)`, the `ID` column holds the group key, not a security.
 - The result also has `ORIG_IDS:*` columns, which are filled only when a group
   has one member. The `select()` drops them.
 
-See also `BQLX <GO>`. The Bloomberg Excel templates "BQL for Primary Markets"
-and "BQL for Issuance Pricing Analysis" cover the same workflows.
+!!! abstract "Related"
+    See also `BQLX <GO>`. The Bloomberg Excel templates "BQL for Primary Markets"
+    and "BQL for Issuance Pricing Analysis" cover the same workflows.

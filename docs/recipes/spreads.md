@@ -13,32 +13,48 @@ tags:
 
 How wide are spreads for each rating? How much more does an AT1 pay than a bond
 with the same rating? Is the market wider than last month? And what spread does a
-bond have at the price you are about to pay? BQL answers the first three for a
-whole index in one request: it groups the bonds' spreads and sends back only the
-statistics. The last one is the YAS calculator (`YAS <GO>`), which BQL runs at any
-price and workout you give it.
+bond have at the price you are about to pay?
+{ .recipe-lead }
 
-| You want | Use | One row per |
-|---|---|---|
-| Count, median and quartiles of spreads per rating | `count()`, `median()`, `quantile(..., 0.75)` of `group(spread(...), by=[bb_composite(), ...])` | group |
-| The same statistics month by month | `spread(dates=range(-6M, 0D), per=M)`, grouped by `year()` and `month()` of its `DATE` | group and month |
-| One number per day for all bonds of an index | `avg(group(#s, by=#s().DATE))` | day |
-| An index's own yield and spread | `yield(yield_type=YTW, universe_type=PROJECTED)`, `spread(spread_type=OAS_SOVEREIGN, universe_type=RETURNS)` | date |
-| Spread or yield at your price, to call, maturity or a date | `spread(price=..., workout=TO_NEXT_CALL)`, `TO_MATURITY`, `TO_WORST`, `TO_CUSTOM` | bond |
-| Discount margin of a floating rate note | `discount_margin(price=...)` | bond |
+BQL answers the first three for a whole index in one request: it groups the bonds'
+spreads and sends back only the statistics. The last one is the YAS calculator
+(`YAS <GO>`), which BQL runs at any price and workout you give it.
 
-| `spread_type=` | Spread | Works for |
-|---|---|---|
-| `Z` (the default) | Z-spread: constant spread over the swap zero curve | bonds, indices |
-| `OAS` | option-adjusted spread | bonds |
-| `G`, `I`, `ASW` | over government yields, over swap rates, asset swap | bonds |
-| `OAS_SOVEREIGN`, `OAS_SWAP` | index OAS over government or swap curve | indices |
+!!! info "Data on this page"
+    Spreads are in basis points, yields in percent. The outputs below are live data
+    as of 2026-11-17 and will differ when you run the queries. Before you adapt a
+    query, read the [Pitfalls](#pitfalls).
 
-`spread()` without `spread_type` is the Z-spread, not the OAS, so every recipe
-names the type. Spreads are in basis points, yields in percent. The outputs below
-are live data as of 2026-11-17 and will differ when you run the queries.
+## Quick reference
+
+=== "By task"
+
+    | You want | Use | One row per |
+    |---|---|---|
+    | Count, median and quartiles of spreads per rating | `count()`, `median()`, `quantile(..., 0.75)` of `group(spread(...), by=[bb_composite(), ...])` | group |
+    | The same statistics month by month | `spread(dates=range(-6M, 0D), per=M)`, grouped by `year()` and `month()` of its `DATE` | group and month |
+    | One number per day for all bonds of an index | `avg(group(#s, by=#s().DATE))` | day |
+    | An index's own yield and spread | `yield(yield_type=YTW, universe_type=PROJECTED)`, `spread(spread_type=OAS_SOVEREIGN, universe_type=RETURNS)` | date |
+    | Spread or yield at your price, to call, maturity or a date | `spread(price=..., workout=TO_NEXT_CALL)`, `TO_MATURITY`, `TO_WORST`, `TO_CUSTOM` | bond |
+    | Discount margin of a floating rate note | `discount_margin(price=...)` | bond |
+
+=== "Spread types"
+
+    | `spread_type=` | Spread | Works for |
+    |---|---|---|
+    | `Z` (the default) | Z-spread: constant spread over the swap zero curve | bonds, indices |
+    | `OAS` | option-adjusted spread | bonds |
+    | `G`, `I`, `ASW` | over government yields, over swap rates, asset swap | bonds |
+    | `OAS_SOVEREIGN`, `OAS_SWAP` | index OAS over government or swap curve | indices |
+
+!!! warning "Name the spread type"
+    `spread()` without `spread_type` is the Z-spread, not the OAS, so every recipe
+    names the type.
 
 ## OAS by rating: AT1 vs other bonds
+
+`median()`, `quantile()`, `group(..., by=[bb_composite(), ...])`
+{ .recipe-uses }
 
 Count, median and upper quartile OAS per rating from BBB+ to BB-, for AT1s (CoCos) and
 for all other bonds of three European indices: Bloomberg Contingent Capital Western
@@ -74,8 +90,9 @@ print(
     .sort("rating")
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (6, 8)
 ┌────────┬──────┬────────┬─────┬───────┬────────────┬────────┬─────────┐
 │ rating ┆ n    ┆ median ┆ q3  ┆ n_at1 ┆ median_at1 ┆ q3_at1 ┆ premium │
@@ -91,14 +108,18 @@ shape: (6, 8)
 └────────┴──────┴────────┴─────┴───────┴────────────┴────────┴─────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    `if(capital_contingent_security(), true, false)` matters. The flag itself is
+    null for most bonds that are not CoCos, their groups get a null key, and
+    `combine()` cannot join them (see [Pitfalls](#pitfalls)).
+
+Notes
+{ .recipe-label }
 
 - `n` is the number of bonds, `median` and `q3` the 50th and 75th percentile OAS
   of the group. Columns ending in `_at1` are the AT1s. `premium` is how much wider
   the median AT1 is than the median bond of the same rating.
-- `if(capital_contingent_security(), true, false)` matters. The flag itself is
-  null for most bonds that are not CoCos, their groups get a null key, and
-  `combine()` cannot join them (see [Pitfalls](#pitfalls)).
 - A group column is named after its expression in upper case: `BB_COMPOSITE()`,
   `#IS_COCO`. The `ID` column holds the whole group key, such as `BB+:true`.
 - `bb_composite()` is today's rating. For a box plot, add `quantile(#oas, 0.25)`
@@ -108,6 +129,9 @@ Notes:
   example.
 
 ## Median OAS by rating, month by month
+
+`per=M`, `month()`, `year()`
+{ .recipe-uses }
 
 Median OAS at the last six month-ends and today, for the ratings around the line
 between investment grade and high yield, in the Pan-European High Yield and
@@ -140,8 +164,9 @@ print(
     )
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (7, 6)
 ┌────────────┬──────┬───────┬───────┬───────┬───────────┐
 │ DATE       ┆ BBB  ┆ BBB-  ┆ BB+   ┆ BB    ┆ crossover │
@@ -158,24 +183,31 @@ shape: (7, 6)
 └────────────┴──────┴───────┴───────┴───────┴───────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
 
-- `per=M` gives the last business day of each month and the latest close.
-  `frq=M` instead steps back from today in whole months: run it on the 17th and
-  every row is the 17th.
+    - `per=M` gives the last business day of each month and the latest close.
+      `frq=M` instead steps back from today in whole months: run it on the 17th and
+      every row is the 17th.
+    - `members()` is today's index. Bonds that have left the index are missing from the
+      history, and new issues count only from their issue date. Add
+      `count(group(...))` to see how many bonds each median uses.
+
+Notes
+{ .recipe-label }
+
 - `year()` and `month()` of `#oas().DATE` put the period into the group key, so
   each rating gets one median per month.
 - A bond without any spread history falls into a group whose date is null.
   `drop_nulls("DATE")` removes that row.
-- `members()` is today's index. Bonds that have left the index are missing from the
-  history, and new issues count only from their issue date. Add
-  `count(group(...))` to see how many bonds each median uses.
 - `fill=PREV` carries the last spread forward over days without a price.
 - For AT1 vs other bonds per rating since 2014, see the
   [AT1 vs Credits OAS per Rating](../examples/credit/at1-vs-credits-oas.ipynb)
   example.
 
 ## Daily average Z-spread of index members
+
+`avg(group(#s, by=#s().DATE))`
+{ .recipe-uses }
 
 The average and median Z-spread of the bonds in the Bloomberg European Banks CoCo
 Tier 1 index (`I31415`), for each business day of the last two weeks, with the
@@ -209,8 +241,9 @@ print(
     )
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (10, 5)
 ┌────────────┬───────┬───────┬────────┬────────┐
 │ DATE       ┆ bonds ┆ avg   ┆ median ┆ change │
@@ -230,20 +263,27 @@ shape: (10, 5)
 └────────────┴───────┴───────┴────────┴────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    - `bonds` is the number of bonds with a spread that day. Weekends, and today until
+      the close is stored, have none and are dropped. On a holiday in one market fewer
+      bonds are priced, and the average moves because the set of bonds changed; check
+      `bonds` before you read `change` as a market move.
+    - `preferences(dropCols=['ORIG_IDS'])` is needed here: `ORIG_IDS` is null in every
+      row, and the three items would not join.
+
+Notes
+{ .recipe-label }
 
 - `#z().DATE` is the date of each spread. Grouping by it gives one value per day
   for all bonds together.
-- `bonds` is the number of bonds with a spread that day. Weekends, and today until
-  the close is stored, have none and are dropped. On a holiday in one market fewer
-  bonds are priced, and the average moves because the set of bonds changed; check
-  `bonds` before you read `change` as a market move.
 - This is an equal-weighted average. The index's own spread is weighted by market
   value; the next recipe gets it.
-- `preferences(dropCols=['ORIG_IDS'])` is needed here: `ORIG_IDS` is null in every
-  row, and the three items would not join.
 
 ## Index yield and spread, week by week
+
+`universe_type`, `per=W`
+{ .recipe-uses }
 
 Yield to worst and OAS of the Bloomberg Contingent Capital EUR index (`I30904EU`)
 at each Friday close for the last eight weeks. `rates` is the yield minus the
@@ -274,8 +314,9 @@ print(
     )
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (9, 5)
 ┌────────────┬──────┬────────┬───────┬────────────┐
 │ DATE       ┆ ytw  ┆ oas_bp ┆ rates ┆ spread_pct │
@@ -294,24 +335,31 @@ shape: (9, 5)
 └────────────┴──────┴────────┴───────┴────────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
 
-- Index analytics need `universe_type`; without it, `yield()` and `spread()`
-  return null. `PROJECTED` is the index as it will be after the next rebalancing,
-  `RETURNS` the index fixed for this month's returns. Yield to worst accepts only
-  `PROJECTED`; spreads accept both.
+    - Index analytics need `universe_type`; without it, `yield()` and `spread()`
+      return null. `PROJECTED` is the index as it will be after the next rebalancing,
+      `RETURNS` the index fixed for this month's returns. Yield to worst accepts only
+      `PROJECTED`; spreads accept both.
+    - `per=W` gives Friday closes, like weekly BDH data, and the latest close as the
+      last row. `frq=W` would step back seven days at a time from today.
+    - `spread(spread_type=OAS)` is null for an index. Use `OAS_SOVEREIGN`, `OAS_SWAP`,
+      or `Z` with `universe_type`.
+
+Notes
+{ .recipe-label }
+
 - The same numbers come from BDH:
   `bq.bdh(["I30904EU Index"], ["INDEX_YIELD_TO_WORST", "INDEX_OAS_TSY"], start, end)`.
   `INDEX_OAS_TSY` is the OAS with `RETURNS`, but in percent instead of basis
   points.
-- `per=W` gives Friday closes, like weekly BDH data, and the latest close as the
-  last row. `frq=W` would step back seven days at a time from today.
-- `spread(spread_type=OAS)` is null for an index. Use `OAS_SOVEREIGN`, `OAS_SWAP`,
-  or `Z` with `universe_type`.
 - The hedged index `H30904EU` has the same yield and spread; only its returns
   differ.
 
 ## Tier 2: spread to call or to maturity
+
+YAS: `spread(price=..., workout=...)`
+{ .recipe-uses }
 
 The EUR Tier 2 bonds of SEB, Handelsbanken and Swedbank at today's price: Z-spread
 and yield if the bank calls the bond at the first call date, and if it does not.
@@ -347,8 +395,9 @@ print(
     ).sort("call")
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (9, 8)
 ┌─────────────────────┬────────────┬────────┬────────┬───────┬────────┬───────┬───────────┐
 │ name                ┆ call       ┆ price  ┆ z_call ┆ z_mat ┆ y_call ┆ y_mat ┆ extension │
@@ -367,10 +416,18 @@ shape: (9, 8)
 └─────────────────────┴────────────┴────────┴────────┴───────┴────────┴───────┴───────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
 
-- `price=` takes a number or an expression; `price=#px` runs YAS at `px_last()`.
-  `workout=` without `price=` is rejected with "Incorrect parameters provided".
+    - `price=` takes a number or an expression; `price=#px` runs YAS at `px_last()`.
+      `workout=` without `price=` is rejected with "Incorrect parameters provided".
+    - `TO_WORST` picks the workout with the lower yield, not the lower spread. A bond
+      can be worst to call although its spread to maturity is lower.
+    - Without `price=`, `spread()` uses Bloomberg's own pricing source, not
+      `px_last()`. Pass the same `price=` to every value you compare.
+
+Notes
+{ .recipe-label }
+
 - `workout=` is `TO_WORST` (the default), `TO_NEXT_CALL`, `TO_NEXT_PUT`,
   `TO_MATURITY` or `TO_CUSTOM`. `yield()` and the other spread types take the same
   parameters.
@@ -379,12 +436,11 @@ Notes:
   When it is positive, the reset margin is above today's market spread and the
   bank saves money by calling. When it is negative, an investor earns less spread
   if the bond is not called.
-- `TO_WORST` picks the workout with the lower yield, not the lower spread. A bond
-  can be worst to call although its spread to maturity is lower.
-- Without `price=`, `spread()` uses Bloomberg's own pricing source, not
-  `px_last()`. Pass the same `price=` to every value you compare.
 
 ## One bond at four prices
+
+YAS: `workout=TO_CUSTOM`, `workout_date`
+{ .recipe-uses }
 
 The SEB 4 08/18/37 Tier 2 bond, first call 18 August 2032, at four prices:
 Z-spread to the call, to a custom date two years later, and to maturity, and the
@@ -417,8 +473,9 @@ print(
     )
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (4, 5)
 ┌───────┬────────┬────────┬───────┬──────┐
 │ price ┆ z_call ┆ z_2034 ┆ z_mat ┆ ytw  │
@@ -432,7 +489,8 @@ shape: (4, 5)
 └───────┴────────┴────────┴───────┴──────┘
 ```
 
-Notes:
+Notes
+{ .recipe-label }
 
 - `workout=TO_CUSTOM, workout_date=...` assumes the bond is repaid at 100 on that
   date; `workout_price=` sets another redemption price. Use it for a call that
@@ -444,6 +502,9 @@ Notes:
   `price(yield=4.5, workout=TO_NEXT_CALL)` the price for a yield.
 
 ## SEK AT1 floaters: discount margin
+
+YAS: `discount_margin(price=...)`
+{ .recipe-uses }
 
 The floating rate AT1s in SEK of six Swedish banks: the quoted margin over STIBOR,
 the discount margin at today's price, and the discount margin if you pay one point
@@ -477,8 +538,9 @@ print(
     ).sort("call")
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (10, 7)
 ┌───────────────────┬────────────┬────────┬────────┬───────┬───────────┬──────────────┐
 │ name              ┆ call       ┆ price  ┆ margin ┆ dm    ┆ dm_plus_1 ┆ bp_per_point │
@@ -498,7 +560,8 @@ shape: (10, 7)
 └───────────────────┴────────────┴────────┴────────┴───────┴───────────┴──────────────┘
 ```
 
-Notes:
+Notes
+{ .recipe-label }
 
 - `flt_spread()` is the quoted margin, the spread the coupon pays over the
   reference rate. `discount_margin(price=100)` is close to it: at par a floater
@@ -514,6 +577,8 @@ Notes:
 
 What surprised us while writing these recipes.
 
+<div class="recipe-pitfalls" markdown>
+
 | Symptom | Cause | Fix |
 |---|---|---|
 | "OAS" numbers match the Z-spread | `spread()` without a type is the Z-spread | `spread(spread_type=OAS)` |
@@ -527,5 +592,8 @@ What surprised us while writing these recipes.
 | The daily average jumps on a holiday | Fewer bonds are priced that day | Compare the bond count, or use the median |
 | Two aliases, one column | BQL merges identical expressions, such as `spread()` and `spread(spread_type=Z)`, into one item | Ask for each expression once |
 
-See also `YAS <GO>` and `BQLX <GO>`. For how `bql()` and `combine()` work, see
-[BQL](../usage/bql.md).
+</div>
+
+!!! abstract "Related"
+    See also `YAS <GO>` and `BQLX <GO>`. For how `bql()` and `combine()` work, see
+    [BQL](../usage/bql.md).

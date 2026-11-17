@@ -1,0 +1,226 @@
+/* Recipe pages (docs/recipes).
+
+   The markup this file styles:
+     Lead paragraph     paragraph ending with  { .recipe-lead }
+     Uses line          paragraph with  { .recipe-uses }  right under a recipe heading;
+                        that heading gets a "Recipe n" eyebrow
+     Output             an "Output" line, then  ``` { .text .no-copy .recipe-output }
+                        (dev/refresh_recipes.py needs the line to start with "Output")
+     Notes label        paragraph "Notes" with  { .recipe-label }
+     Pitfalls           <div class="recipe-pitfalls" markdown> around the table
+     Deal stages        <div class="recipe-flow" markdown> around an ordered list
+     Index page         .recipe-cards (grid cards) and .recipe-anatomy (ordered list)
+
+   Colors come from Material's variables, so both palettes work: blue in the
+   default "Polars mode", amber in the slate "Bloomberg mode". They are declared on
+   body, where Material sets the palette; on :root they would resolve to the
+   default indigo. */
+
+body {
+  --recipe-accent: var(--md-primary-fg-color);
+  --recipe-warn: #ff9100; /* Material's warning admonition */
+  --recipe-muted: var(--md-default-fg-color--light);
+  --recipe-rule: var(--md-default-fg-color--lightest);
+  --recipe-output-bg: color-mix(in srgb, var(--md-primary-fg-color) 7%, var(--md-code-bg-color));
+}
+
+/* Wider page where there are output tables: polars prints up to 160 characters. */
+body:has(.recipe-output) .md-grid {
+  max-width: 76rem;
+}
+
+/* Small uppercase labels: "Recipe n", "Uses", "Output", "Notes". */
+.md-typeset h2:has(+ .recipe-uses)::before,
+.md-typeset .recipe-uses::before,
+.md-typeset p:has(+ .recipe-output),
+.md-typeset p.recipe-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
+/* Lead paragraph under the page title. */
+.md-typeset .recipe-lead {
+  font-size: 1.12em;
+  line-height: 1.6;
+}
+
+/* Recipe heading: a rule and a "Recipe n" eyebrow mark where a recipe starts. */
+.md-content__inner {
+  counter-reset: recipe;
+}
+
+.md-typeset h2:has(+ .recipe-uses) {
+  counter-increment: recipe;
+  margin-top: 1.8em;
+  padding-top: 1em;
+  border-top: 0.05rem solid var(--recipe-rule);
+}
+
+.md-typeset h2:has(+ .recipe-uses)::before {
+  content: "Recipe " counter(recipe);
+  display: block;
+  color: var(--recipe-accent);
+}
+
+/* Uses: the functions a recipe shows, as chips. */
+.md-typeset .recipe-uses {
+  margin: -0.3em 0 1em;
+  font-size: 0.7rem;
+  line-height: 2;
+  color: var(--recipe-muted);
+}
+
+.md-typeset .recipe-uses::before {
+  content: "Uses";
+  margin-right: 0.6em;
+}
+
+.md-typeset .recipe-uses code {
+  padding: 0.15em 0.6em;
+  border: 0.05rem solid var(--recipe-rule);
+  border-radius: 1em;
+  background: transparent;
+  color: var(--md-default-fg-color);
+}
+
+/* Output: a tab-like label joined to a tinted block with an accent rule, so the
+   result never reads as more code to copy. */
+.md-typeset p:has(+ .recipe-output) {
+  width: fit-content;
+  margin: 1.2em 0 0;
+  padding: 0.3em 0.9em 0.2em;
+  border-radius: 0.2rem 0.2rem 0 0;
+  background: var(--recipe-output-bg);
+  color: var(--recipe-accent);
+}
+
+.md-typeset .recipe-output pre {
+  margin-top: 0;
+  font-size: 0.8em;
+  line-height: 1.35;
+}
+
+.md-typeset .recipe-output pre > code {
+  background: var(--recipe-output-bg);
+  box-shadow: inset 0.15rem 0 0 var(--recipe-accent);
+  border-top-left-radius: 0;
+}
+
+/* Notes label and list. */
+.md-typeset p.recipe-label {
+  margin: 1.4em 0 0.2em;
+  color: var(--recipe-muted);
+}
+
+.md-typeset p.recipe-label + ul {
+  margin-top: 0.4em;
+}
+
+/* Pitfalls: symptom first, in the warning color. */
+.md-typeset .recipe-pitfalls table:not([class]) th {
+  background: color-mix(in srgb, var(--recipe-warn) 14%, transparent);
+}
+
+.md-typeset .recipe-pitfalls table:not([class]) td:first-child {
+  font-weight: 600;
+}
+
+/* Deal stages on the New Issues page: an ordered list drawn as chevrons. */
+.md-typeset .recipe-flow ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  margin: 0.2em 0 1.2em;
+  padding: 0;
+  list-style: none;
+}
+
+.md-typeset .recipe-flow li {
+  margin: 0;
+  padding: 0.35em 1.3em 0.35em 1.5em;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--recipe-accent) 14%, transparent);
+  clip-path: polygon(0 0, calc(100% - 0.6em) 0, 100% 50%, calc(100% - 0.6em) 100%, 0 100%, 0.6em 50%);
+}
+
+.md-typeset .recipe-flow li:first-child {
+  padding-left: 1em;
+  clip-path: polygon(0 0, calc(100% - 0.6em) 0, 100% 50%, calc(100% - 0.6em) 100%, 0 100%);
+}
+
+.md-typeset .recipe-flow li:last-child {
+  background: var(--recipe-accent);
+  color: var(--md-primary-bg-color);
+}
+
+/* Index page: workflow cards. */
+.md-typeset .recipe-cards .twemoji {
+  color: var(--recipe-accent);
+}
+
+.md-typeset .recipe-cards .recipe-card-meta {
+  margin-bottom: 0;
+  font-size: 0.68rem;
+  color: var(--recipe-muted);
+}
+
+.md-typeset .recipe-cards .recipe-card-meta code {
+  margin-right: 0.2em;
+  font-weight: 700;
+  color: var(--recipe-accent);
+}
+
+/* Index page: one table per recipe page, all the same width with aligned columns. */
+.md-typeset .recipe-index table:not([class]) {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.md-typeset .recipe-index th:first-child {
+  width: 40%;
+}
+
+/* Index page: the parts of a recipe, as numbered steps in the colors used above. */
+.md-typeset .recipe-anatomy ol {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0.6rem;
+  margin: 0.8em 0 1.2em;
+  padding: 0;
+  list-style: none;
+  counter-reset: part;
+}
+
+.md-typeset .recipe-anatomy li {
+  counter-increment: part;
+  margin: 0;
+  padding: 0.6rem 0.7rem;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  border: 0.05rem solid var(--recipe-rule);
+  border-top: 0.15rem solid var(--recipe-muted);
+  border-radius: 0.1rem;
+}
+
+.md-typeset .recipe-anatomy li::before {
+  content: counter(part);
+  display: block;
+  margin-bottom: 0.2em;
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--recipe-muted);
+}
+
+.md-typeset .recipe-anatomy li:nth-child(4) {
+  border-top-color: var(--recipe-accent);
+  background: var(--recipe-output-bg);
+}
+
+.md-typeset .recipe-anatomy li:nth-child(5) {
+  border-top-color: var(--recipe-warn);
+}

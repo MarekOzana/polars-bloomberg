@@ -15,45 +15,60 @@ tags:
 
 BQL screens a universe and computes. BDH, `bq.bdh()` here and `=BDH()` in Excel,
 does something simpler: it returns the history of a few fields for a list of
-securities. The query is short, so the work is in the options. They decide which
-dates you get (days, Fridays, month-ends, fiscal years) and what happens on a day
-when one market is closed and another is open. Get them wrong and you get a frame
-that looks right but has gaps, half-empty rows or misaligned dates.
+securities. The query is short, so the work is in the options.
+{ .recipe-lead }
 
-This page uses the series a credit desk pulls every week: bond index spreads, CDS
-indices, fund NAVs and flows, the cost of hedging dollars into euros, government
-yields, fiscal-year fundamentals and price candles.
+The options decide which dates you get (days, Fridays, month-ends, fiscal years)
+and what happens on a day when one market is closed and another is open. Get them
+wrong and you get a frame that looks right but has gaps, half-empty rows or
+misaligned dates.
+
+!!! info "Data on this page"
+    This page uses the series a credit desk pulls every week: bond index spreads, CDS
+    indices, fund NAVs and flows, the cost of hedging dollars into euros, government
+    yields, fiscal-year fundamentals and price candles.
+
+    The outputs below are live data as of 2026-11-17 and will differ when you run the
+    queries. The recipes with fixed dates change only when Bloomberg revises its
+    data. Before you adapt a query, read the [Pitfalls](#pitfalls).
+
+## Quick reference
 
 `bdh()` returns a long frame with a `security` column, a `date` column and one
 column per field. `pivot(on="security", ...)` makes one column per security.
 
-| You want | Use | One row per |
-|---|---|---|
-| Weekly, monthly or yearly closes | `options={"periodicitySelection": "WEEKLY"}`, `MONTHLY`, `YEARLY` | security and period |
-| Markets with different holidays on the same dates | `"nonTradingDayFillOption": "NON_TRADING_WEEKDAYS"`, `"nonTradingDayFillMethod": "PREVIOUS_VALUE"` | security and weekday |
-| A fund's NAV, assets and flows | `FUND_NET_ASSET_VAL`, `FUND_TOTAL_ASSETS`, `FUND_CLASS_ASSETS`, `FUND_FLOW` | fund and date |
-| A CDS index against its constituents | `CDS_INDEX_INTRINSIC_VALUE`, `CDS_INDEX_INTRINSIC_BASIS_VALUE` | index and date |
-| FX, hedging cost and yields side by side | several securities, `PX_LAST`, then `pivot(on="security")` | date |
-| Fundamentals per fiscal year | `"periodicitySelection": "YEARLY"`, `"periodicityAdjustment": "FISCAL"` | company and fiscal year |
-| Values in another currency | `"currency": "USD"` | |
-| Open, high, low and close | `PX_OPEN`, `PX_HIGH`, `PX_LOW`, `PX_LAST` | security and day, week or month |
+=== "By task"
 
-The options go in one dict, `options={...}`. The values are strings.
+    | You want | Use | One row per |
+    |---|---|---|
+    | Weekly, monthly or yearly closes | `options={"periodicitySelection": "WEEKLY"}`, `MONTHLY`, `YEARLY` | security and period |
+    | Markets with different holidays on the same dates | `"nonTradingDayFillOption": "NON_TRADING_WEEKDAYS"`, `"nonTradingDayFillMethod": "PREVIOUS_VALUE"` | security and weekday |
+    | A fund's NAV, assets and flows | `FUND_NET_ASSET_VAL`, `FUND_TOTAL_ASSETS`, `FUND_CLASS_ASSETS`, `FUND_FLOW` | fund and date |
+    | A CDS index against its constituents | `CDS_INDEX_INTRINSIC_VALUE`, `CDS_INDEX_INTRINSIC_BASIS_VALUE` | index and date |
+    | FX, hedging cost and yields side by side | several securities, `PX_LAST`, then `pivot(on="security")` | date |
+    | Fundamentals per fiscal year | `"periodicitySelection": "YEARLY"`, `"periodicityAdjustment": "FISCAL"` | company and fiscal year |
+    | Values in another currency | `"currency": "USD"` | |
+    | Open, high, low and close | `PX_OPEN`, `PX_HIGH`, `PX_LOW`, `PX_LAST` | security and day, week or month |
 
-| Option | Values | Default | Effect |
-|---|---|---|---|
-| `periodicitySelection` | `DAILY`, `WEEKLY`, `MONTHLY`, `QUARTERLY`, `SEMI_ANNUALLY`, `YEARLY` | `DAILY` | One row per period |
-| `periodicityAdjustment` | `CALENDAR`, `ACTUAL`, `FISCAL` | calendar periods | `CALENDAR`: weeks end on Friday, months on the last business day. `ACTUAL`: periods end on `end_date`, so weeks end on its weekday. `FISCAL`: on each company's fiscal period end |
-| `nonTradingDayFillOption` | `ACTIVE_DAYS_ONLY`, `NON_TRADING_WEEKDAYS`, `ALL_CALENDAR_DAYS` | `ACTIVE_DAYS_ONLY` | Which dates get a row |
-| `nonTradingDayFillMethod` | `PREVIOUS_VALUE`, `NIL_VALUE` | `PREVIOUS_VALUE` | What an added date holds |
-| `currency` | `EUR`, `USD`, `SEK`, ... | the security's own | Converts prices, fund assets and fundamentals |
+=== "Options"
 
-`start_date` and `end_date` take a `date` or a string, `"2026-04-01"` or
-`"20260401"`. The outputs below are live data as of 2026-11-17 and will differ when
-you run the queries. The recipes with fixed dates change only when Bloomberg
-revises its data.
+    The options go in one dict, `options={...}`. The values are strings.
+
+    | Option | Values | Default | Effect |
+    |---|---|---|---|
+    | `periodicitySelection` | `DAILY`, `WEEKLY`, `MONTHLY`, `QUARTERLY`, `SEMI_ANNUALLY`, `YEARLY` | `DAILY` | One row per period |
+    | `periodicityAdjustment` | `CALENDAR`, `ACTUAL`, `FISCAL` | calendar periods | `CALENDAR`: weeks end on Friday, months on the last business day. `ACTUAL`: periods end on `end_date`, so weeks end on its weekday. `FISCAL`: on each company's fiscal period end |
+    | `nonTradingDayFillOption` | `ACTIVE_DAYS_ONLY`, `NON_TRADING_WEEKDAYS`, `ALL_CALENDAR_DAYS` | `ACTIVE_DAYS_ONLY` | Which dates get a row |
+    | `nonTradingDayFillMethod` | `PREVIOUS_VALUE`, `NIL_VALUE` | `PREVIOUS_VALUE` | What an added date holds |
+    | `currency` | `EUR`, `USD`, `SEK`, ... | the security's own | Converts prices, fund assets and fundamentals |
+
+    `start_date` and `end_date` take a `date` or a string, `"2026-04-01"` or
+    `"20260401"`.
 
 ## High-yield spreads, week by week
+
+`periodicitySelection=WEEKLY`, `INDEX_OAS_TSY_BP`
+{ .recipe-uses }
 
 Friday OAS of four Bloomberg bond indices for the last twelve weeks: US High Yield
 (`LF98TRUU`), its Industrials sector (`I00423`), Pan-European High Yield
@@ -85,8 +100,9 @@ oas = df.with_columns(pl.col("security").replace_strict(indices)).pivot(
 with pl.Config(tbl_rows=20):
     print(oas.select("date", pl.col(list(indices.values())).round().cast(pl.Int64)))
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (12, 5)
 ┌────────────┬───────┬───────────────────┬─────────┬──────────┐
 │ date       ┆ us_hy ┆ us_hy_industrials ┆ euro_hy ┆ eur_coco │
@@ -108,11 +124,17 @@ shape: (12, 5)
 └────────────┴───────┴───────────────────┴─────────┴──────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
 
-- `WEEKLY` gives each week's Friday close. The current week is not there until it
-  is complete. For the latest close, add a daily request or use BQL's `per=W`, as in
-  [Index yield and spread, week by week](spreads.md#index-yield-and-spread-week-by-week).
+    - `WEEKLY` gives each week's Friday close. The current week is not there until it
+      is complete. For the latest close, add a daily request or use BQL's `per=W`, as in
+      [Index yield and spread, week by week](spreads.md#index-yield-and-spread-week-by-week).
+    - `"periodicityAdjustment": "ACTUAL"` ends each week on the weekday of `end_date`.
+      Run it on a Wednesday and you get Wednesday closes.
+
+Notes
+{ .recipe-label }
+
 - `INDEX_OAS_TSY_BP` is the OAS in basis points, and `INDEX_OAS_TSY` is the same
   number in percent. `INDEX_Z_SPREAD_BP` is the Z-spread.
 - Field ids work as well as mnemonics: `"BX218"` is `INDEX_OAS_TSY_BP` and
@@ -120,10 +142,11 @@ Notes:
   Look fields up with `FLDS <GO>`.
 - `replace_strict` turns tickers into short names before the pivot. It raises an
   error for a ticker that is missing from the dict, so a typo does not go unnoticed.
-- `"periodicityAdjustment": "ACTUAL"` ends each week on the weekday of `end_date`.
-  Run it on a Wednesday and you get Wednesday closes.
 
 ## Three markets, one calendar
+
+`nonTradingDayFillOption`, `nonTradingDayFillMethod`
+{ .recipe-uses }
 
 The S&P 500, Euro Stoxx 50 and OMX Stockholm 30 around Easter 2026. On Good Friday,
 3 April, all three were closed. On Easter Monday, 6 April, only New York traded.
@@ -154,8 +177,9 @@ print(
     .select("date", pl.col("date").dt.strftime("%a").alias("day"), *markets, "closed")
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (6, 6)
 ┌────────────┬─────┬───────────┬────────────┬───────────┬────────────────┐
 │ date       ┆ day ┆ SPX Index ┆ SX5E Index ┆ OMX Index ┆ closed         │
@@ -171,21 +195,28 @@ shape: (6, 6)
 └────────────┴─────┴───────────┴────────────┴───────────┴────────────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
 
-- Without options (`traded`) each security keeps its own trading days. Good Friday
-  has no row at all, and Easter Monday has one only for the S&P 500. After a pivot
-  Europe is null on Easter Monday. Computed per security, Europe's return on
-  Tuesday covers Thursday to Tuesday, and New York's only Monday to Tuesday.
+    - Without options (`traded`) each security keeps its own trading days. Good Friday
+      has no row at all, and Easter Monday has one only for the S&P 500. After a pivot
+      Europe is null on Easter Monday. Computed per security, Europe's return on
+      Tuesday covers Thursday to Tuesday, and New York's only Monday to Tuesday.
+    - `nonTradingDayFillMethod` alone changes nothing. The default
+      `nonTradingDayFillOption`, `ACTIVE_DAYS_ONLY`, adds no days to fill.
+
+Notes
+{ .recipe-label }
+
 - `NON_TRADING_WEEKDAYS` gives a row for every Monday to Friday. `PREVIOUS_VALUE`
   repeats the last close on the added days, so the return on a holiday is 0.
-- `nonTradingDayFillMethod` alone changes nothing. The default
-  `nonTradingDayFillOption`, `ACTIVE_DAYS_ONLY`, adds no days to fill.
 - `ALL_CALENDAR_DAYS` adds Saturdays and Sundays too, which helps when a month ends
   on a weekend. `NIL_VALUE` adds the days but leaves them null.
 - The anti join finds the rows that only the fill created. Those are the holidays.
 
 ## Fund NAV, assets and flows
+
+`FUND_TOTAL_ASSETS`, `FUND_FLOW`, `MONTHLY`
+{ .recipe-uses }
 
 Month-end NAV, return and assets of two AT1 funds: the SEB Hybrid Capital Bond
 Fund (`SEBVVGD`, a UCITS fund, share class R EUR) and the Invesco USD AT1 CoCo
@@ -228,8 +259,9 @@ table = (
 with pl.Config(tbl_rows=20):
     print(table)
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (10, 7)
 ┌─────────┬────────────┬────────┬─────────┬────────┬────────────┬───────────┐
 │ fund    ┆ month      ┆ nav    ┆ ret_pct ┆ aum    ┆ class_flow ┆ fund_flow │
@@ -249,7 +281,15 @@ shape: (10, 7)
 └─────────┴────────────┴────────┴─────────┴────────┴────────────┴───────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
+
+    - With `MONTHLY`, `FUND_FLOW` is the sum of the month's daily flows. NAV and assets
+      are month-end values. The current month is missing until it ends.
+    - `PX_LAST` of a mutual fund is its NAV. For an ETF it is the exchange price, and
+      `PX_LAST / FUND_NET_ASSET_VAL - 1` is the premium to NAV.
+
+Notes
+{ .recipe-label }
 
 - `FUND_TOTAL_ASSETS` is the whole fund, all share classes together.
   `FUND_CLASS_ASSETS` is the share class of the ticker you ask for, and
@@ -261,13 +301,12 @@ Notes:
   (other currencies, other fees).
 - A month where `class_flow` is close to 0 and `fund_flow` is large means money
   moved in the fund's other share classes.
-- With `MONTHLY`, `FUND_FLOW` is the sum of the month's daily flows. NAV and assets
-  are month-end values. The current month is missing until it ends.
-- `PX_LAST` of a mutual fund is its NAV. For an ETF it is the exchange price, and
-  `PX_LAST / FUND_NET_ASSET_VAL - 1` is the premium to NAV.
 - `"currency": "SEK"` returns the assets in SEK. Bloomberg converts them.
 
 ## CDS index vs intrinsic: the basis
+
+`CDS_INDEX_INTRINSIC_BASIS_VALUE`
+{ .recipe-uses }
 
 iTraxx Europe Main and Crossover, 5-year, for the last three weeks. For each index
 the quoted spread, the intrinsic spread (the index spread implied by the CDS of its
@@ -303,8 +342,9 @@ with pl.Config(tbl_rows=30):
         )
     )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (16, 7)
 ┌────────────┬─────────────┬────────────────┬────────────┬──────────────┬─────────────────┬─────────────┐
 │ date       ┆ spread_main ┆ intrinsic_main ┆ basis_main ┆ spread_xover ┆ intrinsic_xover ┆ basis_xover │
@@ -330,24 +370,31 @@ shape: (16, 7)
 └────────────┴─────────────┴────────────────┴────────────┴──────────────┴─────────────────┴─────────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
 
-- `basis` is the quoted spread minus the intrinsic spread, although the field's
-  description says it the other way round. A positive basis means the index trades
-  wider than its constituents.
+    - `basis` is the quoted spread minus the intrinsic spread, although the field's
+      description says it the other way round. A positive basis means the index trades
+      wider than its constituents.
+    - `ITRXEBE` and `ITRXEXE` follow the current series. They roll to a new series
+      around 20 March and 20 September. The spread jumps on the roll, because the new
+      series runs six months longer and some of its companies change. Main closed at
+      54.6 on Friday 18 September 2026 and at 58.2 on the roll day, Monday 21
+      September; Crossover went from 260 to 284.
+
+Notes
+{ .recipe-label }
+
 - Today's quoted spread is there during the day, but the intrinsic spread and the
   basis are still null. `drop_nulls("basis_main")` removes that row.
-- `ITRXEBE` and `ITRXEXE` follow the current series. They roll to a new series
-  around 20 March and 20 September. The spread jumps on the roll, because the new
-  series runs six months longer and some of its companies change. Main closed at
-  54.6 on Friday 18 September 2026 and at 58.2 on the roll day, Monday 21
-  September; Crossover went from 260 to 284.
 - `values=[...]` in `pivot` gives one column per field and index, named
   `<field>_<index>`.
 - For the return of selling protection on Main, use the excess return index
   `ERIXITEU Index`.
 
 ## US Treasuries hedged into euros vs Bunds
+
+`FXHCEUUS Index`, `pivot(on="security")`
+{ .recipe-uses }
 
 Should a euro investor buy 5-year US Treasuries hedged back into euros, or 5-year
 Bunds? Month-end EURUSD, the cost of hedging dollars into euros with 3-month
@@ -388,8 +435,9 @@ with pl.Config(tbl_rows=20):
         )
     )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (12, 7)
 ┌────────────┬────────┬────────────┬────────┬─────────┬────────────┬───────────┐
 │ date       ┆ eurusd ┆ hedge_cost ┆ ust_5y ┆ bund_5y ┆ ust_hedged ┆ pickup_bp │
@@ -411,13 +459,17 @@ shape: (12, 7)
 └────────────┴────────┴────────────┴────────┴─────────┴────────────┴───────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
 
-- `FXHCEUUS` (Bloomberg EURUSD 3 Month Hedging Cost) is the annualised return, in
-  percent, of selling dollars three months forward for euros. It is negative when
-  hedging costs a euro investor money, so add it to the dollar yield. It follows
-  the forward points. On 13 November 2026, EURUSD at 1.1023 and 3-month points of
-  44.77 (`EUR3M Curncy`) came to about -1.6% a year, and the index stood at -1.59.
+    `FXHCEUUS` (Bloomberg EURUSD 3 Month Hedging Cost) is the annualised return, in
+    percent, of selling dollars three months forward for euros. It is negative when
+    hedging costs a euro investor money, so add it to the dollar yield. It follows
+    the forward points. On 13 November 2026, EURUSD at 1.1023 and 3-month points of
+    44.77 (`EUR3M Curncy`) came to about -1.6% a year, and the index stood at -1.59.
+
+Notes
+{ .recipe-label }
+
 - `FXHCUSEU` is the other side: a dollar investor hedging euros earns about the
   same amount.
 - The hedge is rolled every three months. `ust_hedged` holds only while the gap
@@ -430,6 +482,9 @@ Notes:
   its date.
 
 ## Fiscal-year leverage
+
+`YEARLY`, `periodicityAdjustment=FISCAL`, `currency`
+{ .recipe-uses }
 
 Reported and adjusted EBITDA, net debt and net leverage for each fiscal year, for
 three companies whose years end in different months: IBM (December), Vodafone
@@ -465,8 +520,9 @@ with pl.Config(tbl_rows=20):
         )
     )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (14, 6)
 ┌─────────┬─────────────────┬────────┬────────────┬──────────┬──────────┐
 │ company ┆ fiscal_year_end ┆ ebitda ┆ ebitda_adj ┆ net_debt ┆ leverage │
@@ -490,29 +546,36 @@ shape: (14, 6)
 └─────────┴─────────────────┴────────┴────────────┴──────────┴──────────┘
 ```
 
-Notes:
+!!! warning "Watch out"
 
-- `"periodicityAdjustment": "FISCAL"` puts every field on the company's fiscal year
-  end. Without it, `TRAIL_12M_EBITDA` lands on the last trading day of each
-  calendar year and `NET_DEBT` on the fiscal year end. When the two dates differ,
-  as they do every year for Vodafone and Microsoft, the year has two rows, each
-  half null.
-- `CALENDAR` does not calendarise the figures; it only relabels them. Microsoft's
-  fiscal year to June 2023 and Vodafone's to March 2023 both come back dated
-  2022-12-30. Keep `FISCAL` and the real period end.
+    - `"periodicityAdjustment": "FISCAL"` puts every field on the company's fiscal year
+      end. Without it, `TRAIL_12M_EBITDA` lands on the last trading day of each
+      calendar year and `NET_DEBT` on the fiscal year end. When the two dates differ,
+      as they do every year for Vodafone and Microsoft, the year has two rows, each
+      half null.
+    - `CALENDAR` does not calendarise the figures; it only relabels them. Microsoft's
+      fiscal year to June 2023 and Vodafone's to March 2023 both come back dated
+      2022-12-30. Keep `FISCAL` and the real period end.
+    - Vodafone reports in EUR and `"currency": "USD"` converts. EBITDA is converted at
+      the average rate of the year and net debt at the rate at year end: about 1.16
+      and 1.11 USD per EUR for fiscal 2022. So leverage in USD can differ from
+      leverage in the reporting currency.
+
+Notes
+{ .recipe-label }
+
 - `TRAIL_12M_EBITDA` is EBITDA as reported. `EBITDA_ADJUSTED` takes out one-off
   items. Vodafone's fiscal 2023 shows the difference: 25.3 reported, 16.2
   adjusted.
-- Vodafone reports in EUR and `"currency": "USD"` converts. EBITDA is converted at
-  the average rate of the year and net debt at the rate at year end: about 1.16
-  and 1.11 USD per EUR for fiscal 2022. So leverage in USD can differ from
-  leverage in the reporting currency.
 - Amounts are in millions; the recipe divides by 1,000. Negative net debt is net
   cash.
 - For period offsets, segments, adjusted figures and estimates in BQL, see
   [Company Fundamentals](fundamentals.md).
 
 ## Weekly candles
+
+`PX_OPEN`, `PX_HIGH`, `PX_LOW`, `WEEKLY`
+{ .recipe-uses }
 
 Weekly open, high, low and close of the S&P 500 for the last eight weeks, with the
 week's range and change in percent.
@@ -543,8 +606,9 @@ print(
     )
 )
 ```
-Output:
-```python
+
+Output
+``` { .text .no-copy .recipe-output }
 shape: (8, 7)
 ┌─────────────┬─────────┬─────────┬─────────┬─────────┬───────────┬─────────┐
 │ week_ending ┆ open    ┆ high    ┆ low     ┆ close   ┆ range_pct ┆ chg_pct │
@@ -562,7 +626,8 @@ shape: (8, 7)
 └─────────────┴─────────┴─────────┴─────────┴─────────┴───────────┴─────────┘
 ```
 
-Notes:
+Notes
+{ .recipe-label }
 
 - With `WEEKLY`, BDH builds real weekly bars: the open of the first day, the
   highest high, the lowest low and the last close. `group_by_dynamic("date",
@@ -578,6 +643,8 @@ Notes:
 ## Pitfalls
 
 What surprised us while writing these recipes.
+
+<div class="recipe-pitfalls" markdown>
 
 | Symptom | Cause | Fix |
 |---|---|---|
@@ -596,5 +663,8 @@ What surprised us while writing these recipes.
 | Leverage in USD differs from leverage in EUR | EBITDA converts at the year's average rate, net debt at the year-end rate | Compute leverage in the reporting currency |
 | The hedged yield is too high | `FXHCEUUS` is negative when hedging costs money | Add it to the yield; do not subtract it |
 
-See also `FLDS <GO>` for field mnemonics and ids, and `HP <GO>` for one security's
-history on the Terminal. For how `bdh()` works, see [BDH](../usage/bdh.md).
+</div>
+
+!!! abstract "Related"
+    See also `FLDS <GO>` for field mnemonics and ids, and `HP <GO>` for one security's
+    history on the Terminal. For how `bdh()` works, see [BDH](../usage/bdh.md).
