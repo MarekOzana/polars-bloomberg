@@ -23,6 +23,20 @@ see [BQL](../usage/bql.md). For worked analyses with charts, see the Examples.
 | | [Per bond: today vs 1 and 5 weeks](axes.md#per-bond-today-vs-1-and-5-weeks) | `calc_interval`, `*_HIST_AGG_SIZE` |
 | | [Axes in a relative-value screen](axes.md#axes-in-a-relative-value-screen) | `flt_spread()`, `spread(spread_type=OAS)` |
 | | [Top 3 dealers](axes.md#top-3-dealers) | `axes_by_dealer()` |
+| [Bonds and Capital Structure](capital-structure.md) | [Swedish bank capital stacks](capital-structure.md#swedish-bank-capital-stacks) | `normalized_payment_rank()`, `sum(group(..., [ticker, #rank]))` |
+| | [AT1 and Tier 2 call schedule](capital-structure.md#at1-and-tier-2-call-schedule) | `basel_iii_designation()`, `nxt_call_dt` |
+| | [AT1 distance to trigger](capital-structure.md#at1-distance-to-trigger) | `value(..., parent(type=CAST), mapby=LINEAGE)`, `capital_type_coco_trigger_level()` |
+| | [Bonds and loans with leverage](capital-structure.md#bonds-and-loans-with-leverage) | `loansUniv(ACTIVE)`, `ebitda(fpt=LTM)` |
+| | [Direct, ultimate and CAST parent](capital-structure.md#direct-ultimate-and-cast-parent) | `parent(type=DIRECT)`, `ULTIMATE`, `CAST` |
+| | [One capital structure, several issuers](capital-structure.md#one-capital-structure-several-issuers) | `group(..., [#cast, ticker, #rank])` |
+| | [Largest capital structures in a high-yield index](capital-structure.md#largest-capital-structures-in-a-high-yield-index) | `sum(group(..., #cast))` over `members()` |
+| [Spread Statistics](spreads.md) | [OAS by rating: AT1 vs other bonds](spreads.md#oas-by-rating-at1-vs-other-bonds) | `median()`, `quantile()`, `group(..., by=[bb_composite(), ...])` |
+| | [Median OAS by rating, month by month](spreads.md#median-oas-by-rating-month-by-month) | `per=M`, `month()`, `year()` |
+| | [Daily average Z-spread of index members](spreads.md#daily-average-z-spread-of-index-members) | `avg(group(#s, by=#s().DATE))` |
+| | [Index yield and spread, week by week](spreads.md#index-yield-and-spread-week-by-week) | `universe_type`, `per=W` |
+| | [Tier 2: spread to call or to maturity](spreads.md#tier-2-spread-to-call-or-to-maturity) | YAS: `spread(price=..., workout=...)` |
+| | [One bond at four prices](spreads.md#one-bond-at-four-prices) | YAS: `workout=TO_CUSTOM`, `workout_date` |
+| | [SEK AT1 floaters: discount margin](spreads.md#sek-at1-floaters-discount-margin) | YAS: `discount_margin(price=...)` |
 
 !!! tip "Keeping outputs fresh"
     The outputs are pasted in by `python dev/refresh_recipes.py`, run at a

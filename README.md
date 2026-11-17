@@ -934,7 +934,7 @@ is needed to run the tests.
 
 - *API Documentation*: Detailed documentation and function references are available in https://marekozana.github.io/polars-bloomberg
 
-- *Recipes*: Short, copy-paste queries grouped by workflow, for example [New Issues](https://marekozana.github.io/polars-bloomberg/recipes/new-issues/) (AT1 and sector screens of the primary market).
+- *Recipes*: Short, copy-paste queries grouped by workflow: [New Issues](https://marekozana.github.io/polars-bloomberg/recipes/new-issues/) (AT1 and sector screens of the primary market), [Dealer Axes](https://marekozana.github.io/polars-bloomberg/recipes/axes/), [Bonds and Capital Structure](https://marekozana.github.io/polars-bloomberg/recipes/capital-structure/) (bank capital stacks, CAST parents, debt per issuer) and [Spread Statistics](https://marekozana.github.io/polars-bloomberg/recipes/spreads/) (OAS by rating, index spreads, YAS analytics).
 
 - *Additional Examples*: Check out [examples/](examples/) for hands-on notebooks demonstrating a variety of use cases.
     - BQL examples and use cases: [examples/Examples-BQL.ipynb](https://github.com/MarekOzana/polars-bloomberg/blob/main/examples/Examples-BQL.ipynb)

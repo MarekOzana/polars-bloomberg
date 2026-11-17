@@ -56,5 +56,7 @@ If you see a price in `df`, your setup is working 🤩!!!
 | `bql()` | Execute complex Bloomberg Query Language requests. [more.. ](usage/bql.md)  |
 
 Looking for a ready-made query? The [Recipes](recipes/index.md) are short,
-copy-paste queries grouped by workflow, for example
-[New Issues](recipes/new-issues.md).
+copy-paste queries grouped by workflow: [New Issues](recipes/new-issues.md),
+[Dealer Axes](recipes/axes.md),
+[Bonds and Capital Structure](recipes/capital-structure.md) and
+[Spread Statistics](recipes/spreads.md).

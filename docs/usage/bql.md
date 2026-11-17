@@ -272,6 +272,11 @@ shape: (5, 11)
 ```
 
 
+Debt per issuer, payment rank or capital structure parent is in the
+[Bonds and Capital Structure](../recipes/capital-structure.md) recipes. Median and
+quartile spreads per rating are in the [Spread Statistics](../recipes/spreads.md)
+recipes.
+
 ## Axes
 Get current axes of all Swedish USD AT1 bonds. More axes queries (per dealer, large
 axes, net axes, the last 1 and 5 weeks) are in the [Dealer Axes](../recipes/axes.md)

@@ -70,6 +70,8 @@ nav:
     - recipes/index.md
     - New Issues: recipes/new-issues.md
     - Dealer Axes: recipes/axes.md
+    - Bonds and Capital Structure: recipes/capital-structure.md
+    - Spread Statistics: recipes/spreads.md
   - Examples:
     - Equity: examples/equity/index.md
     - Credits: examples/credit/index.md
