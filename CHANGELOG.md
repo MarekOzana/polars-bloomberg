@@ -13,6 +13,11 @@ All notable changes to polars-bloomberg are listed here.
 - Recipes: Dealer Axes, on the USD AT1s of Swedish banks - axes per bond, large
   dealer axes, net axes per issuer, totals and per-bond axes against the last 1
   and 5 weeks, axes in a relative-value screen, and the top 3 dealers.
+- Recipes: Company Fundamentals - from a bond to the company that reports with
+  `fundamentalTicker()`, annual and adjusted EBITDA of European high-yield
+  issuers, revenue by product and country, quarterly CET1 and ROE of Swedish AT1
+  issuers, fundamentals coverage and median leverage per sector of a high-yield
+  index, and a Bloomberg Intelligence template via BSRCH.
 
 ## 0.7.2 - 2026-11-16
 

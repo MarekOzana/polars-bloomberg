@@ -37,6 +37,14 @@ see [BQL](../usage/bql.md). For worked analyses with charts, see the Examples.
 | | [Tier 2: spread to call or to maturity](spreads.md#tier-2-spread-to-call-or-to-maturity) | YAS: `spread(price=..., workout=...)` |
 | | [One bond at four prices](spreads.md#one-bond-at-four-prices) | YAS: `workout=TO_CUSTOM`, `workout_date` |
 | | [SEK AT1 floaters: discount margin](spreads.md#sek-at1-floaters-discount-margin) | YAS: `discount_margin(price=...)` |
+| [Company Fundamentals](fundamentals.md) | [From a bond to the company that reports](fundamentals.md#from-a-bond-to-the-company-that-reports) | `value(..., fundamentalticker, mapby=LINEAGE)` |
+| | [Annual revenue and EBITDA, last two years](fundamentals.md#annual-revenue-and-ebitda-last-two-years) | `fundamentalticker(...)`, `fa_period_type=A`, `fa_period_offset=range(-1Y, 0Y)` |
+| | [Reported vs adjusted EBITDA](fundamentals.md#reported-vs-adjusted-ebitda) | `fa_adjusted=N` / `Y`, `fa_act_est_data=A` |
+| | [Revenue by product and by country](fundamentals.md#revenue-by-product-and-by-country) | `segments(..., hierarchy=PRODUCT)`, `hierarchy=LOCATION` |
+| | [Swedish AT1 issuers: CET1 and ROE by quarter](fundamentals.md#swedish-at1-issuers-cet1-and-roe-by-quarter) | `bs_tier1_com_equity_ratio()`, `normalized_roe()`, `fpt=Q` |
+| | [How much of a high-yield index has fundamentals?](fundamentals.md#how-much-of-a-high-yield-index-has-fundamentals) | `issuerOf` vs `parent(type=CAST)` vs `fundamentalticker` |
+| | [Median leverage per sector](fundamentals.md#median-leverage-per-sector) | `median(group(..., classification_name(BCLASS, 3)))` |
+| | [Bloomberg Intelligence sector template](fundamentals.md#bloomberg-intelligence-sector-template) | BSRCH: `bsrch("BI:TPD", {"BIKEY": ...})` |
 
 !!! tip "Keeping outputs fresh"
     The outputs are pasted in by `python dev/refresh_recipes.py`, run at a
