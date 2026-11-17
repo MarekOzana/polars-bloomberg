@@ -73,6 +73,7 @@ nav:
     - Bonds and Capital Structure: recipes/capital-structure.md
     - Spread Statistics: recipes/spreads.md
     - Company Fundamentals: recipes/fundamentals.md
+    - Market History with BDH: recipes/history.md
   - Examples:
     - Equity: examples/equity/index.md
     - Credits: examples/credit/index.md

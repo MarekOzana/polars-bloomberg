@@ -7,6 +7,9 @@ description: Pull Bloomberg BDH historical time series into Polars DataFrames wi
 
 Use Case: Retrieve historical data over a date range, such as daily closing prices or volumes.
 
+For weekly and fiscal-year data, holidays, fund flows, CDS indices, FX hedging cost
+and candles, see the [Market History with BDH](../recipes/history.md) recipes.
+
 An invalid security has no rows and an invalid field is a column of nulls, with one
 warning per call that lists them; a range without data, such as a weekend, gives an
 empty frame that keeps its `security`, `date` and field columns, and a request

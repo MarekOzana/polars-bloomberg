@@ -3,15 +3,17 @@ title: Recipes
 description: Short, copy-paste polars-bloomberg queries grouped by workflow, each with the query, the Python code and the output it gives.
 tags:
     - BQL
+    - BDH
 ---
 
 # Recipes
 
 Short reference queries grouped by workflow. Each recipe has the query, the Python
 code that runs it and the output it printed. For how `bql()` and `combine()` work,
-see [BQL](../usage/bql.md). For worked analyses with charts, see the Examples.
+see [BQL](../usage/bql.md); for `bdh()`, see [BDH](../usage/bdh.md). For worked
+analyses with charts, see the Examples.
 
-| Page | Recipe | BQL used |
+| Page | Recipe | Uses |
 |---|---|---|
 | [New Issues](new-issues.md) | [New AT1 / RT1 deals](new-issues.md#new-at1-rt1-deals-in-usd-eur-gbp) | `INCLUDEPRELIMINARYSECURITIES`, `issuance_pricing`, `as #alias` |
 | | [New Technology deals](new-issues.md#new-technology-deals-in-usd-eur-gbp) | `classification_name(BCLASS)` |
@@ -45,6 +47,13 @@ see [BQL](../usage/bql.md). For worked analyses with charts, see the Examples.
 | | [How much of a high-yield index has fundamentals?](fundamentals.md#how-much-of-a-high-yield-index-has-fundamentals) | `issuerOf` vs `parent(type=CAST)` vs `fundamentalticker` |
 | | [Median leverage per sector](fundamentals.md#median-leverage-per-sector) | `median(group(..., classification_name(BCLASS, 3)))` |
 | | [Bloomberg Intelligence sector template](fundamentals.md#bloomberg-intelligence-sector-template) | BSRCH: `bsrch("BI:TPD", {"BIKEY": ...})` |
+| [Market History with BDH](history.md) | [High-yield spreads, week by week](history.md#high-yield-spreads-week-by-week) | BDH: `periodicitySelection=WEEKLY`, `INDEX_OAS_TSY_BP` |
+| | [Three markets, one calendar](history.md#three-markets-one-calendar) | BDH: `nonTradingDayFillOption`, `nonTradingDayFillMethod` |
+| | [Fund NAV, assets and flows](history.md#fund-nav-assets-and-flows) | BDH: `FUND_TOTAL_ASSETS`, `FUND_FLOW`, `MONTHLY` |
+| | [CDS index vs intrinsic: the basis](history.md#cds-index-vs-intrinsic-the-basis) | BDH: `CDS_INDEX_INTRINSIC_BASIS_VALUE` |
+| | [US Treasuries hedged into euros vs Bunds](history.md#us-treasuries-hedged-into-euros-vs-bunds) | BDH: `FXHCEUUS Index`, `pivot(on="security")` |
+| | [Fiscal-year leverage](history.md#fiscal-year-leverage) | BDH: `YEARLY`, `periodicityAdjustment=FISCAL`, `currency` |
+| | [Weekly candles](history.md#weekly-candles) | BDH: `PX_OPEN`, `PX_HIGH`, `PX_LOW`, `WEEKLY` |
 
 !!! tip "Keeping outputs fresh"
     The outputs are pasted in by `python dev/refresh_recipes.py`, run at a

@@ -18,6 +18,11 @@ All notable changes to polars-bloomberg are listed here.
   issuers, revenue by product and country, quarterly CET1 and ROE of Swedish AT1
   issuers, fundamentals coverage and median leverage per sector of a high-yield
   index, and a Bloomberg Intelligence template via BSRCH.
+- Recipes: Market History with BDH - weekly OAS of high-yield and CoCo indices,
+  markets with different holidays on one calendar (`nonTradingDayFillOption`),
+  fund NAV, assets and net flows, the iTraxx basis to intrinsic, US Treasuries
+  hedged into EUR vs Bunds, fiscal-year leverage (`periodicityAdjustment=FISCAL`)
+  and weekly OHLC candles.
 
 ## 0.7.2 - 2026-11-16
 
